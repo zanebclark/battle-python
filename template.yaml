@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  A Serverless Battlesnake API using Lamda Powertools
+
+  https://docs.battlesnake.com/api/webhooks
+
+Resources:
+  BattlesnakeApi:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      CodeUri: ./battle_python/
+      Description: A Serverless Battlesnake API written in Python
+      Runtime: python3.11
+      MemorySize: 128
+      Timeout: 100
+      Architectures:
+      - x86_64
+      Tracing: Active
+      LoggingConfig:
+        LogFormat: JSON
+      Tags:
+        LambdaPowertools: python
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: PowertoolsBattlesnakeApi
+          POWERTOOLS_METRICS_NAMESPACE: Powertools
+          LOG_LEVEL: DEBUG
+      Events:
+        BattlesnakeDetails:
+          Type: Api
+          Properties:
+            Path: /
+            Method: GET
+        GameStarted:
+          Type: Api
+          Properties:
+            Path: /start
+            Method: POST
+        Move:
+          Type: Api
+          Properties:
+            Path: /move
+            Method: POST
+        GameOver:
+          Type: Api
+          Properties:
+            Path: /end
+            Method: POST
+
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name:
+        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
+
+  ApplicationInsightsMonitoring:
+    Type: AWS::ApplicationInsights::Application
+    Properties:
+      ResourceGroupName:
+        Ref: ApplicationResourceGroup
+      AutoConfigurationEnabled: 'true'
+
+Outputs:
+  BattlesnakeApiUrl:
+    Description: API Gateway endpoint URL for Prod environment for the Battlesnake API
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+
+  BattlesnakeApiArn:
+    Description: Battlesnake API Lambda Function ARN
+    Value: !GetAtt BattlesnakeApi.Arn
