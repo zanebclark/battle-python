@@ -10,6 +10,7 @@ python = "^3.11"
 requests = "^2.31.0"
 pre-commit = "^3.6.0"
 poetry-plugin-export = "^1.6.0"
+aws-lambda-powertools = "^2.30.2"
 
 
 [tool.poetry.group.dev.dependencies]

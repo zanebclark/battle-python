@@ -10,11 +10,26 @@ Instructions on how to create the repo. In some cases, these notes lead down a d
 5. Install the AWS CLI
 6. Configure AWS SSO with `aws configure sso`
 7. Install the AWS SAM CLI
-8
 
-GitHub OIDC
+## Deploy AWS Resources
 
+Execute the following command:
+```bash
+sam deploy --guided
+```
+
+AWS SAM will deploy the resources defined in [template.yaml](./template.yaml) to your AWS account
+
+When this is done, execute the following:
+```bash
 sam pipeline init --bootstrap
+```
+
+Follow the instructions to use a quick-start template and create two environments. AWS SAM will create a template file that GitHub will use to build and deploy your changes to AWS every time you make a change.
+
+## Testing
+
+
 
 
 # Battlesnake API
