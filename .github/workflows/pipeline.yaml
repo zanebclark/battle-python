@@ -29,8 +29,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          # trigger the tests here
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pytest
 
   delete-feature:
     if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
