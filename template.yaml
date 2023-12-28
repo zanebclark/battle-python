@@ -66,8 +66,8 @@ Resources:
 
 Outputs:
   BattlesnakeApiUrl:
-    Description: API Gateway endpoint URL for Prod environment for the Battlesnake API
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Description: API Gateway endpoint URL for the Battlesnake API
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/"
 
   BattlesnakeApiArn:
     Description: Battlesnake API Lambda Function ARN
