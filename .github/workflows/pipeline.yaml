@@ -39,7 +39,7 @@ jobs:
       - name: Install Python Dependencies
         run: pip install -r ./tests/requirements.txt
       - name: Pytest
-        run: pytest
+        run: python -m pytest
 
   delete-feature:
     if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
