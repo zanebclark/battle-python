@@ -71,7 +71,7 @@ def apigw_event():
             "X-Forwarded-Proto": ["http"],
         },
         "multiValueQueryStringParameters": "",
-        "path": "/hello",
+        "path": "/",
         "pathParameters": "",
         "queryStringParameters": "",
         "requestContext": {
