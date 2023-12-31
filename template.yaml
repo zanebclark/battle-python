@@ -9,7 +9,7 @@ Resources:
   BattlesnakeApi:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: app.lambda_handler
+      Handler: api.lambda_handler
       CodeUri: ./battle_python/
       Description: A Serverless Battlesnake API written in Python
       Runtime: python3.11

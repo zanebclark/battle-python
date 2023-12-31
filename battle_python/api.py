@@ -17,13 +17,13 @@ from battle_python.BattlesnakeTypes import (
 )
 
 RestMethod = Literal["GET", "POST"]
-app = APIGatewayRestResolver()
+api = APIGatewayRestResolver()
 tracer = Tracer()
 logger = Logger()
 metrics = Metrics(namespace="Powertools")
 
 
-@app.get("/")
+@api.get("/")
 @tracer.capture_method
 def battlesnake_details() -> BattlesnakeDetails:
     return BattlesnakeDetails(
@@ -35,20 +35,20 @@ def battlesnake_details() -> BattlesnakeDetails:
     )  # TODO: Do I need to filter out None?
 
 
-@app.post("/start")
+@api.post("/start")
 @tracer.capture_method
 def game_started() -> None:
-    game_started = GameStarted(**app.current_event.json_body)
+    game_started = GameStarted(**api.current_event.json_body)
     return None
 
 
-@app.post("/move")
+@api.post("/move")
 @tracer.capture_method
 def move() -> MoveResponse:
     return MoveResponse(move="up")
 
 
-@app.post("/end")
+@api.post("/end")
 @tracer.capture_method
 def game_over(game_state: GameState) -> None:
     return None
@@ -62,4 +62,4 @@ def game_over(game_state: GameState) -> None:
 # ensures metrics are flushed upon request completion/failure and capturing ColdStart metric
 @metrics.log_metrics(capture_cold_start_metric=True)
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    return app.resolve(event, context)
+    return api.resolve(event, context)
