@@ -1,12 +1,53 @@
 import json
+import os
+from unittest import mock
 
-from battle_python import app
+from battle_python import api
+from battle_python.BattlesnakeTypes import Coordinate, GameStarted, Battlesnake
+from tests.mocks.MockBattlesnakeTypes import (
+    get_mock_battlesnake,
+    get_mock_standard_game,
+    get_mock_standard_board,
+)
+from tests.mocks.api_gateway_event import get_mock_api_gateway_event
 
 
-def test_lambda_handler(apigw_event, lambda_context):
-    ret = app.lambda_handler(apigw_event, lambda_context)
-    data = json.loads(ret["body"])
+def test_populated_battlesnake_details(lambda_context):
+    env_vars = {
+        "BATTLESNAKE_AUTHOR": "testauthor",
+        "BATTLESNAKE_COLOR": "#888888",
+        "BATTLESNAKE_HEAD": "all-seeing",
+        "BATTLESNAKE_TAIL": "curled",
+        "BATTLESNAKE_VERSION": "testversion",
+    }
+    with mock.patch.dict(os.environ, env_vars, clear=True):
+        apigw_event = get_mock_api_gateway_event(method="GET", path="/")
+        response = api.lambda_handler(event=apigw_event, context=lambda_context)
+        data = json.loads(response["body"])
 
-    assert ret["statusCode"] == 200
-    assert "message" in ret["body"]
-    assert data["message"] == "hello world"
+        assert response["statusCode"] == 200
+        assert data["apiversion"] == "1"
+        assert (
+            data["author"] == env_vars["BATTLESNAKE_AUTHOR"]
+        )  # TODO: Do I need to assert that none of the values are null?
+        assert data["color"] == env_vars["BATTLESNAKE_COLOR"]
+        assert data["head"] == env_vars["BATTLESNAKE_HEAD"]
+        assert data["tail"] == env_vars["BATTLESNAKE_TAIL"]
+        assert data["version"] == env_vars["BATTLESNAKE_VERSION"]
+
+
+# TODO: Test unpopuolated battlesnake details
+
+
+def test_game_started(lambda_context):
+    body = GameStarted(
+        game=get_mock_standard_game(),
+        turn=0,
+        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
+        you=get_mock_battlesnake(
+            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
+        ),
+    )
+    apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
+    response = api.lambda_handler(event=apigw_event, context=lambda_context)
+    assert response["statusCode"] == 200

@@ -1,3 +1,6 @@
+import dataclasses
+import os
+from typing import Literal
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.logging import correlation_paths
@@ -6,6 +9,14 @@ from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 from aws_lambda_powertools.metrics import MetricUnit
 
+from battle_python.BattlesnakeTypes import (
+    BattlesnakeDetails,
+    GameStarted,
+    GameState,
+    MoveResponse,
+)
+
+RestMethod = Literal["GET", "POST"]
 app = APIGatewayRestResolver()
 tracer = Tracer()
 logger = Logger()
@@ -14,15 +25,33 @@ metrics = Metrics(namespace="Powertools")
 
 @app.get("/")
 @tracer.capture_method
-def hello():
-    # adding custom metrics
-    # See: https://awslabs.github.io/aws-lambda-powertools-python/latest/core/metrics/
-    metrics.add_metric(name="HelloWorldInvocations", unit=MetricUnit.Count, value=1)
+def battlesnake_details() -> BattlesnakeDetails:
+    return BattlesnakeDetails(
+        author=os.environ.get("BATTLESNAKE_AUTHOR"),
+        color=os.environ.get("BATTLESNAKE_COLOR"),
+        head=os.environ.get("BATTLESNAKE_HEAD"),
+        tail=os.environ.get("BATTLESNAKE_TAIL"),
+        version=os.environ.get("BATTLESNAKE_VERSION"),
+    )  # TODO: Do I need to filter out None?
 
-    # structured log
-    # See: https://awslabs.github.io/aws-lambda-powertools-python/latest/core/logger/
-    logger.info("Hello world API - HTTP 200")
-    return {"message": "hello world"}
+
+@app.post("/start")
+@tracer.capture_method
+def game_started() -> None:
+    game_started = GameStarted(**app.current_event.json_body)
+    return None
+
+
+@app.post("/move")
+@tracer.capture_method
+def move() -> MoveResponse:
+    return MoveResponse(move="up")
+
+
+@app.post("/end")
+@tracer.capture_method
+def game_over(game_state: GameState) -> None:
+    return None
 
 
 # Enrich logging with contextual information from Lambda
