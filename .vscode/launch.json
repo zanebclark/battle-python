@@ -10,9 +10,10 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "cwd": "${workspaceFolder}",
-            "env": {"PYTHONPATH": "${cwd}"
+            "env": {"PYTHONPATH": "${cwd}",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe"
         }
     ]
 }

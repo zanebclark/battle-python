@@ -19,7 +19,7 @@ repos:
       - id: poetry-export
         args: [
         "--format", "requirements.txt",
-        "--output", "battle_python/requirements.txt",
+        "--output", "src/requirements.txt",
         "--without-urls",
         "--without-hashes"]
       - id: poetry-export

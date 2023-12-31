@@ -50,3 +50,8 @@ us-west-2 seems to be the best region to choose
 use game id values to manage concurrent games
 
 How do I make the most out of the allotted timeout?
+
+aws sso login
+
+start the local lambda endpoint
+sam local start-api

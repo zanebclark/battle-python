@@ -39,7 +39,7 @@ jobs:
       - name: Install Python Dependencies
         run: pip install -r ./tests/requirements.txt
       - name: Pytest
-        run: python -m pytest
+        run: python -m pytest tests/unit
 
   delete-feature:
     if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
@@ -156,6 +156,9 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [build-and-package]
     runs-on: ubuntu-latest
+    outputs:
+      BattlesnakeApiArn: ${{ steps.cloudformation-output.outputs.BattlesnakeApiArn }}
+      BattlesnakeApiUrl: ${{ steps.cloudformation-output.outputs.BattlesnakeApiUrl }}
     steps:
       - uses: actions/checkout@v4
       - uses: aws-actions/setup-sam@v2
@@ -184,7 +187,9 @@ jobs:
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
             --on-failure DELETE \
             --no-confirm-changeset
-
+      - name: Write Cloudformation Outputs to Environment Variables
+        id: cloudformation-output
+        run: echo "$(python scripts/get_cloudformation_outputs.py --stack-name "battle-python-dev)" >> $GITHUB_OUTPUT
   integration-test:
     if: github.ref == 'refs/heads/main'
     needs: [deploy-testing]

@@ -9,8 +9,8 @@ Resources:
   BattlesnakeApi:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: api.lambda_handler
-      CodeUri: ./battle_python/
+      Handler: battle_python.api.lambda_handler
+      CodeUri: ./src/
       Description: A Serverless Battlesnake API written in Python
       Runtime: python3.11
       MemorySize: 128
@@ -20,6 +20,8 @@ Resources:
       Tracing: Active
       LoggingConfig:
         LogFormat: JSON
+        ApplicationLogLevel: DEBUG
+        SystemLogLevel: INFO
       Tags:
         LambdaPowertools: python
       Environment:
