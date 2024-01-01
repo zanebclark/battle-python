@@ -41,8 +41,6 @@ class Coordinate:
     y: int
 
 
-# TODO: If the battlesnake is going to run out of health and die, take this into account with probabilities
-# TODO: If the battlesnake consistently times out, take this into account with probabilities
 @dataclass
 class Battlesnake:
     id: str

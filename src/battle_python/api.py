@@ -1,5 +1,6 @@
 import dataclasses
 import os
+import random
 from typing import Literal
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -40,7 +41,10 @@ def game_started() -> None:
     body = api.current_event.json_body
     logger.info("body", extra=body)
     game_started = GameStarted(**body)
-    return body
+    return {
+        "move": random.choice(["up", "down", "left", "right"]),
+        "shout": "something!",
+    }
 
 
 @api.post("/move")
@@ -65,3 +69,7 @@ def game_over() -> None:
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
     logger.info("event", extra=event)
     return api.resolve(event, context)
+
+
+# TODO: If the battlesnake is going to run out of health and die, take this into account with probabilities
+# TODO: If the battlesnake consistently times out, take this into account with probabilities

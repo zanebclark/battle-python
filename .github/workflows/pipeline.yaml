@@ -22,6 +22,11 @@ env:
   PROD_PIPELINE_EXECUTION_ROLE: arn:aws:iam::057283593447:role/aws-sam-cli-managed-prod-pipe-PipelineExecutionRole-yNpFv7EyK0GH
   PROD_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::057283593447:role/aws-sam-cli-managed-prod--CloudFormationExecutionRo-thdiA0EeD97V
   PROD_ARTIFACTS_BUCKET: aws-sam-cli-managed-prod-pipeline--artifactsbucket-d8oltvucdptu
+  BATTLESNAKE_AUTHOR: zanebclark
+  BATTLESNAKE_COLOR: '#768a13'
+  BATTLESNAKE_HEAD: evil
+  BATTLESNAKE_TAIL: bolt
+  BATTLESNAKE_VERSION: do-something-with-this # TODO: Make this useful
 
 jobs:
   test:
