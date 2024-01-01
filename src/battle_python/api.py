@@ -7,7 +7,6 @@ from aws_lambda_powertools.logging import correlation_paths
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
-from aws_lambda_powertools.metrics import MetricUnit
 
 from battle_python.BattlesnakeTypes import (
     BattlesnakeDetails,
@@ -38,8 +37,10 @@ def battlesnake_details() -> BattlesnakeDetails:
 @api.post("/start")
 @tracer.capture_method
 def game_started() -> None:
-    game_started = GameStarted(**api.current_event.json_body)
-    return None
+    body = api.current_event.json_body
+    logger.info("body", extra=body)
+    game_started = GameStarted(**body)
+    return body
 
 
 @api.post("/move")
