@@ -17,13 +17,13 @@ def main(stack_name: str):
     print(f"stack name: {stack_name}")
     result = subprocess.run(
         [
-            "sam",
-            "list",
-            "stack-outputs",
+            "aws",
+            "cloudformation",
+            "describe-stacks",
             "--stack-name",
             f"{stack_name}",
-            "--output",
-            "json",
+            "--query",
+            "Stacks[0].Outputs",
         ],
         shell=True,
         capture_output=True,
