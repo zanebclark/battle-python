@@ -21,11 +21,11 @@ def main(stack_name: str):
     response = cf_client.describe_stacks(StackName=stack_name)
     outputs = response["Stacks"][0]["Outputs"]
 
-    env_file = os.getenv("GITHUB_OUTPUT")
     env_vars = [get_formatted_output(output) for output in outputs]
-    with open(env_file, "a") as myfile:
+    with open(os.getenv["GITHUB_OUTPUT"], "a") as fh:
         for env_var in env_vars:
-            myfile.write(env_var)
+            print(env_var)
+            print(f"{env_var}", file=fh)
 
 
 if __name__ == "__main__":
