@@ -32,7 +32,7 @@ def battlesnake_url() -> str:
         )
     else:
         url = os.environ["BATTLESNAKEAPIURL"]
-        return f"{url}Prod"
+        return f"{str(url)}Prod"
 
 
 def test_populated_battlesnake_details(battlesnake_url: str):
