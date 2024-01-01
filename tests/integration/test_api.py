@@ -19,8 +19,8 @@ from ..mocks.MockBattlesnakeTypes import (
 
 @pytest.fixture
 def battlesnake_url() -> str:
-    # url = os.environ.get("BATTLESNAKEAPIURL")
-    url = "https://ewtdyq6666.execute-api.us-west-2.amazonaws.com/"
+    url = os.environ.get("BATTLESNAKEAPIURL")
+    # url = "https://ewtdyq6666.execute-api.us-west-2.amazonaws.com/"
     return f"{url}Prod"
 
 

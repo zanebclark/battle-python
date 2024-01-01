@@ -50,7 +50,7 @@ def move() -> MoveResponse:
 
 @api.post("/end")
 @tracer.capture_method
-def game_over(game_state: GameState) -> None:
+def game_over() -> None:
     return None
 
 
