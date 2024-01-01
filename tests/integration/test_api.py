@@ -1,7 +1,6 @@
 import dataclasses
-import json
 import pytest
-
+import os
 import requests
 
 from battle_python.BattlesnakeTypes import (
