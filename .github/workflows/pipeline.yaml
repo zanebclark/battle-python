@@ -215,7 +215,7 @@ jobs:
       - name: Install Battle Pythons
         run: pip install .
       - name: Write Cloudformation Outputs to Environment Variables
-        run: python scripts/get_cloudformation_outputs.py --stack-name battle-python-dev
+        run: python scripts/cloudformation_outputs.py write-cloudformation-outputs-to-github-env --stack-name battle-python-dev
       - name: Run Integration Tests
         run: python -m pytest tests/integration
 

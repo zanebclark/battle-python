@@ -2,6 +2,7 @@ import dataclasses
 import pytest
 import os
 import requests
+import boto3
 
 from battle_python.BattlesnakeTypes import (
     BattlesnakeDetails,
@@ -16,11 +17,21 @@ from ..mocks.MockBattlesnakeTypes import (
 )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def battlesnake_url() -> str:
-    url = os.environ.get("BATTLESNAKEAPIURL")
-    # url = "https://ewtdyq6666.execute-api.us-west-2.amazonaws.com/"
-    return f"{url}Prod"
+    if os.environ.get("BATTLESNAKEAPIURL") is None:
+        stack_name = "battle-python-dev"
+        cf_client = boto3.client("cloudformation", region_name="us-west-2")
+        response = cf_client.describe_stacks(StackName=stack_name)
+        outputs = response["Stacks"][0]["Outputs"]
+        for output in outputs:
+            if output["OutputKey"] == "BattlesnakeApiUrl":
+                return f"{output['OutputValue']}Prod"
+        raise Exception(
+            f"{stack_name} cloudformation deployment BattlesnakeApiUrl not found"
+        )
+    else:
+        return f"{os.environ['BATTLESNAKEAPIURL']}Prod"
 
 
 def test_populated_battlesnake_details(battlesnake_url: str):
