@@ -1,4 +1,5 @@
 import dataclasses
+import json
 import pytest
 import os
 import requests
@@ -49,7 +50,9 @@ def test_populated_game_started(battlesnake_url: str):
             body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
         ),
     )
-    response = requests.post(f"{battlesnake_url}/start", data=dataclasses.asdict(data))
+    response = requests.post(
+        f"{battlesnake_url}/start", data=json.dumps(dataclasses.asdict(data))
+    )
     assert response.status_code == 200
 
 
@@ -62,7 +65,9 @@ def test_populated_move(battlesnake_url: str):
             body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
         ),
     )
-    response = requests.post(f"{battlesnake_url}/move", data=dataclasses.asdict(data))
+    response = requests.post(
+        f"{battlesnake_url}/move", data=json.dumps(dataclasses.asdict(data))
+    )
     assert response.status_code == 200
 
 
@@ -75,5 +80,7 @@ def test_populated_game_over(battlesnake_url: str):
             body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
         ),
     )
-    response = requests.post(f"{battlesnake_url}/end", data=dataclasses.asdict(data))
+    response = requests.post(
+        f"{battlesnake_url}/end", data=json.dumps(dataclasses.asdict(data))
+    )
     assert response.status_code == 200
