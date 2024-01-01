@@ -9,7 +9,7 @@ import json
 def get_formatted_output(output_obj: Dict) -> str:
     output_key = output_obj["OutputKey"]
     output_value = output_obj["OutputValue"]
-    return f'{output_key.strip().upper()}="{output_value.strip()}"'
+    return f"{output_key.strip().upper()}={output_value.strip()}"
 
 
 def get_cloudformation_outputs(stack_name: str, aws_region: str) -> List[Dict]:
