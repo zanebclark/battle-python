@@ -31,7 +31,7 @@ def main(stack_name):
     )
     if result.stderr != "":
         raise Exception(f"{result.stderr}")
-    print(result)
+    print(f"result: {result}")
     stack_outputs = json.loads(result.stdout)
     output = "\n".join(
         [get_formatted_output(output_obj) for output_obj in stack_outputs]
