@@ -9,7 +9,7 @@ import json
 def get_formatted_output(output_obj: Dict):
     output_key = output_obj["OutputKey"]
     output_value = output_obj["OutputValue"]
-    return f'{output_key.strip()}="{output_value.strip()}"'
+    return f'{output_key.strip().upper()}="{output_value.strip()}"'
 
 
 @click.command()
