@@ -14,6 +14,7 @@ def get_formatted_output(output_obj: Dict):
 @click.command()
 @click.option("--stack-name", help="The name of the Cloudformation stack")
 def main(stack_name):
+    print(f"stack name: {stack_name}")
     result = subprocess.run(
         [
             "sam",
@@ -30,6 +31,7 @@ def main(stack_name):
     )
     if result.stderr != "":
         raise Exception(f"{result.stderr}")
+    print(result)
     stack_outputs = json.loads(result.stdout)
     output = "\n".join(
         [get_formatted_output(output_obj) for output_obj in stack_outputs]
