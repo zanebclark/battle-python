@@ -1,4 +1,4 @@
-name: Depoy AWS SAM template
+name: Depoy Battlesnake API
 
 on:
   push:
@@ -34,6 +34,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
+          cache-dependency-path: './tests/requirements.txt'
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       - name: Install Python Dependencies
@@ -190,6 +191,8 @@ jobs:
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
             --on-failure DELETE \
             --no-confirm-changeset
+      - name: Install boto3
+        run: pip install boto3
       - name: Write Cloudformation Outputs to Environment Variables
         id: cloudformation-output
         run: python scripts/get_cloudformation_outputs.py --stack-name battle-python-dev
