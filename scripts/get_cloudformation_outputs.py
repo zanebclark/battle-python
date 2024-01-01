@@ -22,7 +22,7 @@ def main(stack_name: str):
     outputs = response["Stacks"][0]["Outputs"]
 
     env_vars = [get_formatted_output(output) for output in outputs]
-    with open(os.getenv["GITHUB_OUTPUT"], "a") as fh:
+    with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
         for env_var in env_vars:
             print(env_var)
             print(f"{env_var}", file=fh)
