@@ -215,8 +215,7 @@ jobs:
       - name: Write Cloudformation Outputs to Environment Variables
         run: python scripts/get_cloudformation_outputs.py --stack-name battle-python-dev
       - name: Run Integration Tests
-        run: |
-          # trigger the integration tests here
+        run: python -m pytest tests/integration
 
   deploy-prod:
     if: github.ref == 'refs/heads/main'

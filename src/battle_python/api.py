@@ -62,4 +62,5 @@ def game_over(game_state: GameState) -> None:
 # ensures metrics are flushed upon request completion/failure and capturing ColdStart metric
 @metrics.log_metrics(capture_cold_start_metric=True)
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
+    logger.info("event", extra=event)
     return api.resolve(event, context)

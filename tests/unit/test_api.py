@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import os
 from unittest import mock
@@ -11,8 +12,8 @@ from tests.mocks.MockBattlesnakeTypes import (
     get_mock_standard_game,
     get_mock_standard_board,
 )
-from tests.mocks.MockLambdaContext import MockLambdaContext
-from tests.mocks.api_gateway_event import get_mock_api_gateway_event
+from ..mocks.MockLambdaContext import MockLambdaContext
+from ..mocks.api_gateway_event import get_mock_api_gateway_event
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 
@@ -58,5 +59,46 @@ def test_game_started(lambda_context):
         ),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
+    response = api.lambda_handler(event=apigw_event, context=lambda_context)
+    assert response["statusCode"] == 200
+
+
+def test_game_started(lambda_context):
+    body = GameStarted(
+        game=get_mock_standard_game(),
+        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
+        you=get_mock_battlesnake(
+            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
+        ),
+    )
+    apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
+    response = api.lambda_handler(event=apigw_event, context=lambda_context)
+    assert response["statusCode"] == 200
+
+
+def test_move(lambda_context):
+    body = GameStarted(
+        game=get_mock_standard_game(),
+        turn=100,
+        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
+        you=get_mock_battlesnake(
+            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
+        ),
+    )
+    apigw_event = get_mock_api_gateway_event(method="POST", path="/move", body=body)
+    response = api.lambda_handler(event=apigw_event, context=lambda_context)
+    assert response["statusCode"] == 200
+
+
+def test_end(lambda_context):
+    body = GameStarted(
+        game=get_mock_standard_game(),
+        turn=100,
+        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
+        you=get_mock_battlesnake(
+            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
+        ),
+    )
+    apigw_event = get_mock_api_gateway_event(method="POST", path="/end", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)
     assert response["statusCode"] == 200
