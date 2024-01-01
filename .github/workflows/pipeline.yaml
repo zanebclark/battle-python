@@ -38,6 +38,9 @@ jobs:
         run: python -m pip install --upgrade pip
       - name: Install Python Dependencies
         run: pip install -r ./tests/requirements.txt
+      # Poetry's export command doesn't include the actual package, so the CI/CD doesn't actually install battle_pythons. There's not a flag to add this to the poetry export command and pre-commit is pretty difficult to alter.
+      - name: Install Battle Pythons
+        run: pip install .
       - name: Pytest
         run: python -m pytest tests/unit
 
