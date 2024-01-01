@@ -2,6 +2,7 @@ import os
 import subprocess
 from typing import Dict
 import click
+import boto3
 import json
 
 
@@ -14,30 +15,17 @@ def get_formatted_output(output_obj: Dict):
 @click.command()
 @click.option("--stack-name", help="The name of the Cloudformation stack")
 def main(stack_name: str):
+    stack_name = "battle-python-dev"
     print(f"stack name: {stack_name}")
-    result = subprocess.run(
-        [
-            "aws",
-            "cloudformation",
-            "describe-stacks",
-            "--stack-name",
-            f"{stack_name}",
-            "--query",
-            "Stacks[0].Outputs",
-        ],
-        shell=True,
-        capture_output=True,
-        text=True,
-    )
-    if result.stderr != "":
-        raise Exception(f"{result.stderr}")
-    print(f"result: {result}")
+    cf_client = boto3.client("cloudformation")
+    response = cf_client.describe_stacks(StackName=stack_name)
+    outputs = response["Stacks"][0]["Outputs"]
 
-    stack_outputs = json.loads(result.stdout)
     env_file = os.getenv("GITHUB_OUTPUT")
+    env_vars = [get_formatted_output(output) for output in outputs]
     with open(env_file, "a") as myfile:
-        for output_obj in stack_outputs:
-            myfile.write(get_formatted_output(output_obj))
+        for env_var in env_vars:
+            myfile.write(env_var)
 
 
 if __name__ == "__main__":
