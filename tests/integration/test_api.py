@@ -1,30 +1,66 @@
-import boto3
-import botocore
+import json
 import os
+import pytest
 
-# In a GithubActions task, CI will be 'true'
-# https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
-if os.environ.get("CI", "false") != "true":
-    # Create Lambda SDK client to connect to appropriate Lambda endpoint
-    lambda_client = boto3.client(
-        "lambda",
-        region_name="us-west-2",
-        endpoint_url="http://127.0.0.1:3001",
-        use_ssl=False,
-        verify=False,
-        config=botocore.client.Config(
-            signature_version=botocore.UNSIGNED,
-            read_timeout=1,
-            retries={"max_attempts": 0},
+import requests
+
+from battle_python.BattlesnakeTypes import (
+    BattlesnakeDetails,
+    Coordinate,
+    GameStarted,
+    GameState,
+)
+from tests.mocks.MockBattlesnakeTypes import (
+    get_mock_battlesnake,
+    get_mock_standard_board,
+    get_mock_standard_game,
+)
+
+
+@pytest.fixture
+def battlesnake_url() -> str:
+    url = os.environ.get("BATTLESNAKEAPIURL")
+    return f"{url}Prod"
+
+
+def test_populated_battlesnake_details(battlesnake_url: str):
+    response = requests.get(battlesnake_url)
+    payload = json.loads(response.json())
+    BattlesnakeDetails(**payload)
+    assert response.status_code == 200
+
+
+def test_populated_game_started(battlesnake_url: str):
+    data = GameStarted(
+        game=get_mock_standard_game(),
+        turn=0,
+        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
+        you=get_mock_battlesnake(
+            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
         ),
     )
-else:
-    lambda_client = boto3.client("lambda")
+    response = requests.post(f"{battlesnake_url}/start", data=data)
 
 
-# Invoke your Lambda function as you normally usually do. The function will run
-# locally if it is configured to do so
-response = lambda_client.invoke(FunctionName="BattlesnakeApi")
+def test_populated_move(battlesnake_url: str):
+    data = GameState(
+        game=get_mock_standard_game(),
+        turn=12,
+        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
+        you=get_mock_battlesnake(
+            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
+        ),
+    )
+    response = requests.post(f"{battlesnake_url}/move", data=data)
 
-# Verify the response
-assert response == "Hello World"
+
+def test_populated_game_over(battlesnake_url: str):
+    data = GameState(
+        game=get_mock_standard_game(),
+        turn=12,
+        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
+        you=get_mock_battlesnake(
+            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
+        ),
+    )
+    response = requests.post(f"{battlesnake_url}/end", data=data)

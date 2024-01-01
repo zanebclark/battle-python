@@ -2,6 +2,8 @@ import json
 import os
 from unittest import mock
 
+import pytest
+
 from battle_python import api
 from battle_python.BattlesnakeTypes import Coordinate, GameStarted, Battlesnake
 from tests.mocks.MockBattlesnakeTypes import (
@@ -9,7 +11,14 @@ from tests.mocks.MockBattlesnakeTypes import (
     get_mock_standard_game,
     get_mock_standard_board,
 )
+from tests.mocks.MockLambdaContext import MockLambdaContext
 from tests.mocks.api_gateway_event import get_mock_api_gateway_event
+from aws_lambda_powertools.utilities.typing import LambdaContext
+
+
+@pytest.fixture()
+def lambda_context() -> LambdaContext:
+    return MockLambdaContext()
 
 
 def test_populated_battlesnake_details(lambda_context):
