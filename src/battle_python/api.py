@@ -41,16 +41,17 @@ def game_started() -> None:
     body = api.current_event.json_body
     logger.info("body", extra=body)
     game_started = GameStarted(**body)
-    return {
-        "move": random.choice(["up", "down", "left", "right"]),
-        "shout": "something!",
-    }
+    return None
 
 
 @api.post("/move")
 @tracer.capture_method
 def move() -> MoveResponse:
-    return MoveResponse(move="up")
+    return dataclasses.asdict(
+        MoveResponse(
+            move=random.choice(["up", "down", "left", "right"]), shout="something!"
+        )
+    )
 
 
 @api.post("/end")
