@@ -14,7 +14,7 @@ def get_formatted_output(output_obj: Dict):
 @click.command()
 @click.option("--stack-name", help="The name of the Cloudformation stack")
 def main(stack_name: str):
-    # print(f"stack name: {stack_name}")
+    print(f"stack name: {stack_name}")
     result = subprocess.run(
         [
             "sam",
@@ -31,13 +31,13 @@ def main(stack_name: str):
     )
     if result.stderr != "":
         raise Exception(f"{result.stderr}")
-    # print(f"result: {result}")
+    print(f"result: {result}")
+
     stack_outputs = json.loads(result.stdout)
-    output = "\n".join(
-        [get_formatted_output(output_obj) for output_obj in stack_outputs]
-    )
-    # print(output)
-    return output
+    env_file = os.getenv("GITHUB_OUTPUT")
+    with open(env_file, "a") as myfile:
+        for output_obj in stack_outputs:
+            myfile.write(get_formatted_output(output_obj))
 
 
 if __name__ == "__main__":
