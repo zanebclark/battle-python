@@ -17,7 +17,8 @@ def get_formatted_output(output_obj: Dict):
 def main(stack_name: str):
     stack_name = "battle-python-dev"
     print(f"stack name: {stack_name}")
-    cf_client = boto3.client("cloudformation")
+    aws_region = os.environ.get("AWS_REGION")
+    cf_client = boto3.client("cloudformation", region_name=aws_region)
     response = cf_client.describe_stacks(StackName=stack_name)
     outputs = response["Stacks"][0]["Outputs"]
 
