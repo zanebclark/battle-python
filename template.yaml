@@ -51,14 +51,6 @@ Resources:
             Path: /end
             Method: POST
 
-  BattlesnakeApiVersion:
-    Type: AWS::Lambda::Version
-    Properties:
-      FunctionName: !Ref BattlesnakeApi
-      Description: v1
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 1
-
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
     Properties:
