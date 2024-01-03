@@ -6,7 +6,7 @@ from unittest import mock
 import pytest
 
 from battle_python import api
-from battle_python.BattlesnakeTypes import Coordinate, GameStarted, Battlesnake
+from battle_python.BattlesnakeTypes import Coord, GameState
 from tests.mocks.MockBattlesnakeTypes import (
     get_mock_battlesnake,
     get_mock_standard_game,
@@ -50,12 +50,12 @@ def test_populated_battlesnake_details(lambda_context):
 
 
 def test_game_started(lambda_context):
-    body = GameStarted(
+    body = GameState(
         game=get_mock_standard_game(),
         turn=0,
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
         you=get_mock_battlesnake(
-            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
+            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
         ),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
@@ -64,11 +64,12 @@ def test_game_started(lambda_context):
 
 
 def test_game_started(lambda_context):
-    body = GameStarted(
+    body = GameState(
+        turn=0,
         game=get_mock_standard_game(),
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
         you=get_mock_battlesnake(
-            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
+            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
         ),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
@@ -77,12 +78,12 @@ def test_game_started(lambda_context):
 
 
 def test_move(lambda_context):
-    body = GameStarted(
+    body = GameState(
         game=get_mock_standard_game(),
         turn=100,
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
         you=get_mock_battlesnake(
-            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
+            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
         ),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/move", body=body)
@@ -91,12 +92,12 @@ def test_move(lambda_context):
 
 
 def test_end(lambda_context):
-    body = GameStarted(
+    body = GameState(
         game=get_mock_standard_game(),
         turn=100,
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
         you=get_mock_battlesnake(
-            body=[Coordinate(x=0, y=0), Coordinate(x=0, y=1), Coordinate(x=0, y=2)]
+            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
         ),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/end", body=body)

@@ -4,7 +4,7 @@ from battle_python.BattlesnakeTypes import (
     Battlesnake,
     BattlesnakeCustomizations,
     Board,
-    Coordinate,
+    Coord,
     Game,
     Ruleset,
 )
@@ -45,14 +45,14 @@ def get_mock_standard_board(
     if not snakes:
         snakes = []
 
-    food = [{"x": x, "y": y} for x, y in food_coords if food_coords is not None]
-    hazards = [{"x": x, "y": y} for x, y in hazard_coords if hazard_coords is not None]
+    food = [Coord(x=x, y=y) for x, y in food_coords if food_coords is not None]
+    hazards = [Coord(x=x, y=y) for x, y in hazard_coords if hazard_coords is not None]
 
     return Board(height=11, width=11, food=food, hazards=hazards, snakes=snakes)
 
 
 def get_mock_battlesnake(
-    body: List[Coordinate], health: int = 60, latency: int = 456
+    body: List[Coord], health: int = 60, latency: int = 456
 ) -> Battlesnake:
     id = str(uuid.uuid4())
     return Battlesnake(
@@ -60,7 +60,7 @@ def get_mock_battlesnake(
         name=f"mock_battlesnake_{id}",
         health=health,
         body=body,
-        latency=latency,
+        latency=str(latency),
         head=body[0],
         length=len(body),
         shout="something to shout",

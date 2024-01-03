@@ -2,14 +2,14 @@ from dataclasses import dataclass
 from typing import Dict, Literal, Optional, List
 
 
-@dataclass
+@dataclass(frozen=True)
 class BattlesnakeCustomizations:
     color: Optional[str]
     head: Optional[str]
     tail: Optional[str]
 
 
-@dataclass(kw_only=True)
+@dataclass(frozen=True, kw_only=True)
 class BattlesnakeDetails(BattlesnakeCustomizations):
     apiversion: Literal["1"] = "1"
     author: Optional[str]
@@ -19,14 +19,14 @@ class BattlesnakeDetails(BattlesnakeCustomizations):
 GameSource = Literal["tournament", "league", "arena", "challenge", "custom"]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Ruleset:
     name: str
     version: str
     settings: Dict
 
 
-@dataclass
+@dataclass(frozen=True)
 class Game:
     id: str
     ruleset: Ruleset
@@ -35,35 +35,35 @@ class Game:
     source: GameSource
 
 
-@dataclass
-class Coordinate:
+@dataclass(frozen=True)
+class Coord:
     x: int
     y: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class Battlesnake:
     id: str
     name: str
     health: int
-    body: List[Coordinate]
+    body: List[Coord]
     latency: str
-    head: Coordinate
+    head: Coord
     length: int
     shout: str
     customizations: BattlesnakeCustomizations
 
 
-@dataclass
+@dataclass(frozen=True)
 class Board:
     height: int
     width: int
-    food: List[Coordinate]
-    hazards: List[Coordinate]
+    food: List[Coord]
+    hazards: List[Coord]
     snakes: List[Battlesnake]
 
 
-@dataclass
+@dataclass(frozen=True)
 class GameState:
     game: Game
     turn: int
@@ -71,12 +71,7 @@ class GameState:
     you: Battlesnake
 
 
-@dataclass(kw_only=True)
-class GameStarted(GameState):
-    turn: int = 0
-
-
-@dataclass
+@dataclass(frozen=True)
 class MoveResponse:
     move: Literal["up", "down", "left", "right"]
     shout: Optional[str] = None

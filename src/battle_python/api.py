@@ -1,20 +1,21 @@
 import dataclasses
 import os
 import random
-from typing import Literal
+from typing import Dict, Literal
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.logging import correlation_paths
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
+from dacite import from_dict
 
 from battle_python.BattlesnakeTypes import (
     BattlesnakeDetails,
-    GameStarted,
     GameState,
     MoveResponse,
 )
+from battle_python.pathfinder import get_next_move
 
 RestMethod = Literal["GET", "POST"]
 api = APIGatewayRestResolver()
@@ -39,14 +40,16 @@ def battlesnake_details() -> BattlesnakeDetails:
 @tracer.capture_method
 def game_started() -> None:
     body = api.current_event.json_body
-    logger.info("body", extra=body)
-    game_started = GameStarted(**body)
+    game_state = from_dict(data_class=GameState, data=body)
     return None
 
 
 @api.post("/move")
 @tracer.capture_method
-def move() -> MoveResponse:
+def move() -> Dict:
+    body = api.current_event.json_body
+    gs = from_dict(data_class=GameState, data=body)
+    move = get_next_move(gs=gs)
     return dataclasses.asdict(
         MoveResponse(
             move=random.choice(["up", "down", "left", "right"]), shout="something!"
@@ -57,6 +60,8 @@ def move() -> MoveResponse:
 @api.post("/end")
 @tracer.capture_method
 def game_over() -> None:
+    body = api.current_event.json_body
+    game_state = from_dict(data_class=GameState, data=body)
     return None
 
 
