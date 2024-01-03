@@ -2,12 +2,13 @@ import random
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 
-from battle_python.BattlesnakeTypes import Battlesnake, Coord, GameState
+from battle_python.BattlesnakeTypes import Battlesnake, Coord, GameState, MoveDirection
 
 
 @dataclass(frozen=True)
 class BattlesnakeStub:
     id: str
+    section: int
     health: str
     latency: str
     length: int
@@ -25,6 +26,36 @@ class BoardState:
     turn: int
     snakes: List[Battlesnake]
     cells: Dict[Coord, CoordState]
+    you: Battlesnake
+
+    def get_safe_moves(self, snake_head_coord: Coord) -> Dict[Coord, MoveDirection]:
+        moves: Dict[Coord, MoveDirection] = {
+            Coord(snake_head_coord.x, snake_head_coord.y + 1): "up",
+            Coord(snake_head_coord.x, snake_head_coord.y - 1): "down",
+            Coord(snake_head_coord.x - 1, snake_head_coord.y): "left",
+            Coord(snake_head_coord.x + 1, snake_head_coord.y): "right",
+        }
+        for coord in list(moves.keys()):
+            # Avoid moving out of bounds
+            if coord not in self.cells:
+                del moves[coord]
+                continue
+
+            coord_state = self.cells[coord]
+
+            # Avoid colliding with any snake (including yourself)
+            for other_snake, prob in coord_state.snake_prob.items():
+                # Avoid body collisions altogether
+                # This will also exclude your neck
+                if other_snake.section >= 1:
+                    del moves[coord]
+                    continue
+
+                # Allow head collisions if longer
+                if prob >= 33 and other_snake.length >= self.you.length:
+                    del moves[coord]
+
+        return moves
 
 
 @dataclass
@@ -54,6 +85,7 @@ class Game:
             snake_prob = {
                 BattlesnakeStub(
                     id=snake.id,
+                    section=snake.body.index(coord),
                     health=snake.health,
                     latency=snake.latency,
                     length=snake.length,
@@ -77,18 +109,34 @@ class Game:
             coords=coords,
             frames=[
                 BoardState(
-                    cells=cells,
-                    turn=gs.turn,
-                    snakes=[snake for snake in gs.board.snakes],
+                    cells=cells, turn=gs.turn, snakes=gs.board.snakes, you=gs.you
                 )
             ],
         )
 
-    def next_frame(self, move: Coord):
+    def next_frame(self):
         # TODO: Has the food been eaten?
         # TODO: Where could the snakes move?
         # TODO: Hazard progression?
         current_frame = self.frames[-1]
+        for snake in current_frame.snakes:
+            safe_moves = current_frame.get_safe_moves(snake_head_coord=snake.head)
+            move_prob = round(100 / len(safe_moves.keys()))
+
+        # for snake in current_frame.snakes.values():
+
+        #     if
+
+        your_snake = current_frame.snakes[self.your_battlesnake_id]
+
+        # Append the last move
+        your_snake.body.insert(0, move)
+
+        # If you ate food on the previous round, your health will be at 100 and your tail won't be popped this round
+        if your_snake.health != 100:
+            your_snake.body.pop()
+
+        your_snake = None
         for coord in self.coords:
             pass
         # self.frames.append(next_gs)
@@ -96,22 +144,8 @@ class Game:
 
 def get_next_move(gs: GameState):
     game = Game.from_game_state(gs=gs)
-    moves = {
-        Coord(gs.you.head.x, gs.you.head.y + 1): "up",
-        Coord(gs.you.head.x, gs.you.head.y - 1): "down",
-        Coord(gs.you.head.x - 1, gs.you.head.y): "left",
-        Coord(gs.you.head.x + 1, gs.you.head.y): "right",
-    }
-    for coord in list(moves.keys()):
-        # Avoid moving out of bounds
-        if coord not in game.frames[0].cells:
-            del moves[coord]
-            continue
-        coord_state = game.frames[0].cells[coord]
-        # Avoid colliding with any snake (including yourself)
-        if coord_state.snake_prob:
-            del moves[coord]
+    moves = game.frames[0].get_safe_moves(game.frames[0].you.head)
 
-        # TODO: Implement some sort of yield to return a move here
+    # TODO: Implement some sort of yield to return a move here
 
     return random.choice(list(moves.values()))

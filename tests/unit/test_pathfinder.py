@@ -64,19 +64,7 @@ def test_upper_y_boundry():
         board=get_mock_standard_board(
             food_coords=[(5, 5), (9, 0), (2, 6)],
             hazard_coords=[(3, 2)],
-            snakes=[
-                you,
-                get_mock_battlesnake(
-                    body=[
-                        Coord(x=1, y=6),
-                        Coord(x=1, y=7),
-                        Coord(x=1, y=8),
-                        Coord(x=1, y=9),
-                    ],
-                    health=16,
-                    latency=222,
-                ),
-            ],
+            snakes=[you],
         ),
         you=you,
     )
@@ -102,19 +90,7 @@ def test_upper_x_boundry():
         board=get_mock_standard_board(
             food_coords=[(5, 5), (9, 0), (2, 6)],
             hazard_coords=[(3, 2)],
-            snakes=[
-                you,
-                get_mock_battlesnake(
-                    body=[
-                        Coord(x=7, y=10),
-                        Coord(x=8, y=10),
-                        Coord(x=9, y=10),
-                        Coord(x=10, y=10),
-                    ],
-                    health=16,
-                    latency=222,
-                ),
-            ],
+            snakes=[you],
         ),
         you=you,
     )

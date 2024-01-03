@@ -41,7 +41,7 @@ class Coord:
     y: int
 
 
-@dataclass(frozen=True)
+@dataclass
 class Battlesnake:
     id: str
     name: str
@@ -52,6 +52,7 @@ class Battlesnake:
     length: int
     shout: str
     customizations: BattlesnakeCustomizations
+    is_self: bool = False
 
 
 @dataclass(frozen=True)
@@ -70,8 +71,17 @@ class GameState:
     board: Board
     you: Battlesnake
 
+    def __post_init__(self):
+        for snake in self.board.snakes:
+            if snake.id == self.you.id:
+                snake.is_self = True
+                break
+
+
+MoveDirection = Literal["up", "down", "left", "right"]
+
 
 @dataclass(frozen=True)
 class MoveResponse:
-    move: Literal["up", "down", "left", "right"]
+    move: MoveDirection
     shout: Optional[str] = None
