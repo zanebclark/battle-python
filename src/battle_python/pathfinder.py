@@ -28,8 +28,8 @@ class Game:
     @staticmethod
     def get_coords(width: int, height: int) -> List[Coord]:
         coords: List[Coord] = []
-        for x in range(width + 1):
-            for y in range(height + 1):
+        for x in range(width):
+            for y in range(height):
                 coords.append(Coord(x=x, y=y))
         return coords
 

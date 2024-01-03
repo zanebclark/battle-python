@@ -50,9 +50,9 @@ def test_rock_and_a_hard_place():
 def test_upper_y_boundry():
     you = get_mock_battlesnake(
         body=[
-            Coord(x=0, y=11),
             Coord(x=0, y=10),
             Coord(x=0, y=9),
+            Coord(x=0, y=8),
         ],
         health=54,
         latency=111,
@@ -68,10 +68,10 @@ def test_upper_y_boundry():
                 you,
                 get_mock_battlesnake(
                     body=[
+                        Coord(x=1, y=6),
                         Coord(x=1, y=7),
                         Coord(x=1, y=8),
                         Coord(x=1, y=9),
-                        Coord(x=1, y=10),
                     ],
                     health=16,
                     latency=222,
@@ -88,9 +88,9 @@ def test_upper_y_boundry():
 def test_upper_x_boundry():
     you = get_mock_battlesnake(
         body=[
-            Coord(x=11, y=11),
-            Coord(x=10, y=11),
-            Coord(x=9, y=11),
+            Coord(x=10, y=10),
+            Coord(x=9, y=10),
+            Coord(x=8, y=10),
         ],
         health=54,
         latency=111,
