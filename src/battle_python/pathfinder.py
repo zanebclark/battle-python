@@ -6,15 +6,24 @@ from battle_python.BattlesnakeTypes import Battlesnake, Coord, GameState
 
 
 @dataclass(frozen=True)
+class BattlesnakeStub:
+    id: str
+    health: str
+    latency: str
+    length: int
+
+
+@dataclass(frozen=True)
 class CoordState(Coord):
-    is_food: bool
-    is_hazard: bool
-    snakes: List[Battlesnake]
+    is_food_prob: int
+    is_hazard_prob: int
+    snake_prob: Dict[BattlesnakeStub, int]
 
 
 @dataclass(frozen=True)
 class BoardState:
     turn: int
+    snakes: List[Battlesnake]
     cells: Dict[Coord, CoordState]
 
 
@@ -24,6 +33,7 @@ class Game:
     width: int
     coords: List[Coord]
     frames: List[BoardState]
+    your_battlesnake_id: str
 
     @staticmethod
     def get_coords(width: int, height: int) -> List[Coord]:
@@ -39,33 +49,49 @@ class Game:
 
         coords = cls.get_coords(width=gs.board.width, height=gs.board.height)
         for coord in coords:
-            is_food = coord in gs.board.food
-            is_hazard = coord in gs.board.hazards
-            snakes = [snake for snake in gs.board.snakes if coord in snake.body]
+            is_food_prob = 100 if coord in gs.board.food else 0
+            is_hazard_prob = 100 if coord in gs.board.hazards else 0
+            snake_prob = {
+                BattlesnakeStub(
+                    id=snake.id,
+                    health=snake.health,
+                    latency=snake.latency,
+                    length=snake.length,
+                ): 100
+                for snake in gs.board.snakes
+                if coord in snake.body
+            }
 
             cells[coord] = CoordState(
                 x=coord.x,
                 y=coord.y,
-                is_food=is_food,
-                is_hazard=is_hazard,
-                snakes=snakes,
+                is_food_prob=is_food_prob,
+                is_hazard_prob=is_hazard_prob,
+                snake_prob=snake_prob,
             )
 
         return cls(
+            your_battlesnake_id=gs.you.id,
             height=gs.board.height,
             width=gs.board.width,
             coords=coords,
-            frames=[BoardState(cells=cells, turn=gs.turn)],
+            frames=[
+                BoardState(
+                    cells=cells,
+                    turn=gs.turn,
+                    snakes=[snake for snake in gs.board.snakes],
+                )
+            ],
         )
 
-    # def next_frame(self):
-    #     # TODO: Has the food been eaten?
-    #     # TODO: Where could the snakes move?
-    #     # TODO: Hazard progression?
-    #     current_frame = self.frames[-1]
-    #     for coord in self.coords:
-    #         pass
-    #     self.frames.append(next_gs)
+    def next_frame(self, move: Coord):
+        # TODO: Has the food been eaten?
+        # TODO: Where could the snakes move?
+        # TODO: Hazard progression?
+        current_frame = self.frames[-1]
+        for coord in self.coords:
+            pass
+        # self.frames.append(next_gs)
 
 
 def get_next_move(gs: GameState):
@@ -83,6 +109,9 @@ def get_next_move(gs: GameState):
             continue
         coord_state = game.frames[0].cells[coord]
         # Avoid colliding with any snake (including yourself)
-        if coord_state.snakes:
+        if coord_state.snake_prob:
             del moves[coord]
+
+        # TODO: Implement some sort of yield to return a move here
+
     return random.choice(list(moves.values()))
