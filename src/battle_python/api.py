@@ -50,11 +50,7 @@ def move() -> Dict:
     body = api.current_event.json_body
     gs = from_dict(data_class=GameState, data=body)
     move = get_next_move(gs=gs)
-    return dataclasses.asdict(
-        MoveResponse(
-            move=random.choice(["up", "down", "left", "right"]), shout="something!"
-        )
-    )
+    return dataclasses.asdict(MoveResponse(move=move))
 
 
 @api.post("/end")
