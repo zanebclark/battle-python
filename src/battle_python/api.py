@@ -39,8 +39,8 @@ def battlesnake_details() -> BattlesnakeDetails:
 @tracer.capture_method
 def game_started() -> None:
     body = api.current_event.json_body
-    logger.append_keys(body["game"]["id"], body["game"]["id"])
-    logger.append_keys(body["turn"], body["turn"])
+    logger.append_keys(game_id=body["game"]["id"])
+    logger.append_keys(turn=body["turn"])
     game_state = from_dict(data_class=GameState, data=body)
     return None
 
@@ -49,8 +49,8 @@ def game_started() -> None:
 @tracer.capture_method
 def move() -> dict:
     body = api.current_event.json_body
-    logger.append_keys(body["game"]["id"], body["game"]["id"])
-    logger.append_keys(body["turn"], body["turn"])
+    logger.append_keys(game_id=body["game"]["id"])
+    logger.append_keys(turn=body["turn"])
     gs = from_dict(data_class=GameState, data=body)
     move = get_next_move(gs=gs)
     return dataclasses.asdict(MoveResponse(move=move))
@@ -60,8 +60,8 @@ def move() -> dict:
 @tracer.capture_method
 def game_over() -> None:
     body = api.current_event.json_body
-    logger.append_keys(body["game"]["id"], body["game"]["id"])
-    logger.append_keys(body["turn"], body["turn"])
+    logger.append_keys(game_id=body["game"]["id"])
+    logger.append_keys(turn=body["turn"])
     game_state = from_dict(data_class=GameState, data=body)
     return None
 
