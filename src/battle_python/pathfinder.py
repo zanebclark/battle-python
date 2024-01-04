@@ -1,7 +1,7 @@
 import random
 from dataclasses import dataclass
 
-from battle_python.GameState import GameState
+from battle_python.EnrichedGameState import EnrichedGameState
 
 
 @dataclass
@@ -34,7 +34,7 @@ class Game:
         # self.frames.append(next_gs)
 
 
-def get_next_move(gs: GameState):
+def get_next_move(gs: EnrichedGameState):
     game = Game.from_game_state(gs=gs)
     moves = game.frames[0].get_safe_moves(game.frames[0].you.head)
 

@@ -9,7 +9,7 @@ from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 from dacite import from_dict
 
-from battle_python.GameState import GameState
+from battle_python.EnrichedGameState import EnrichedGameState
 from battle_python.types import (
     BattlesnakeDetails,
     MoveResponse,
@@ -41,7 +41,7 @@ def game_started() -> None:
     body = api.current_event.json_body
     logger.append_keys(game_id=body["game"]["id"])
     logger.append_keys(turn=body["turn"])
-    game_state = from_dict(data_class=GameState, data=body)
+    game_state = from_dict(data_class=EnrichedGameState, data=body)
     return None
 
 
@@ -51,7 +51,7 @@ def move() -> dict:
     body = api.current_event.json_body
     logger.append_keys(game_id=body["game"]["id"])
     logger.append_keys(turn=body["turn"])
-    gs = from_dict(data_class=GameState, data=body)
+    gs = from_dict(data_class=EnrichedGameState, data=body)
     move = get_next_move(gs=gs)
     return dataclasses.asdict(MoveResponse(move=move))
 
@@ -62,7 +62,7 @@ def game_over() -> None:
     body = api.current_event.json_body
     logger.append_keys(game_id=body["game"]["id"])
     logger.append_keys(turn=body["turn"])
-    game_state = from_dict(data_class=GameState, data=body)
+    game_state = from_dict(data_class=EnrichedGameState, data=body)
     return None
 
 

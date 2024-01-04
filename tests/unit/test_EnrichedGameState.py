@@ -1,5 +1,5 @@
 import pytest
-from battle_python.GameState import GameState
+from battle_python.EnrichedGameState import EnrichedGameState
 from battle_python.types import Coord, get_board_coords
 from tests.mocks.MockBattlesnakeTypes import (
     get_mock_battlesnake,
@@ -30,7 +30,7 @@ def test_game_state_init():
     board_width = 50
     turn = 11
 
-    gs = GameState(
+    gs = EnrichedGameState(
         game=get_mock_standard_game(),
         turn=turn,
         board=get_mock_standard_board(

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from itertools import product
 from typing import Literal
@@ -49,15 +50,6 @@ def get_board_coords(board_width: int, board_height: int) -> list[Coord]:
         Coord(x=x, y=y) for x, y in product(range(board_width), range(board_height))
     ]
     return coords
-
-
-@dataclass(frozen=True)
-class Board:
-    height: int
-    width: int
-    food: list[Coord]
-    hazards: list[Coord]
-    snakes: list[Battlesnake]
 
 
 @dataclass(frozen=True)

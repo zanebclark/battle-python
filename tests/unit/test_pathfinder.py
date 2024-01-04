@@ -1,4 +1,4 @@
-from battle_python.GameState import GameState
+from battle_python.EnrichedGameState import EnrichedGameState
 from battle_python.pathfinder import get_next_move
 from tests.mocks.MockBattlesnakeTypes import (
     get_mock_battlesnake,
@@ -14,7 +14,7 @@ def test_rock_and_a_hard_place():
         latency=111,
     )
 
-    gs = GameState(
+    gs = EnrichedGameState(
         game=get_mock_standard_game(),
         turn=0,
         board=get_mock_standard_board(
@@ -43,7 +43,7 @@ def test_upper_y_boundry():
         latency=111,
     )
 
-    gs = GameState(
+    gs = EnrichedGameState(
         game=get_mock_standard_game(),
         turn=0,
         board=get_mock_standard_board(
@@ -65,7 +65,7 @@ def test_upper_x_boundry():
         latency=111,
     )
 
-    gs = GameState(
+    gs = EnrichedGameState(
         game=get_mock_standard_game(),
         turn=0,
         board=get_mock_standard_board(
@@ -91,7 +91,7 @@ def test_upper_x_boundry():
 #         latency=111,
 #     )
 
-#     gs = GameState(
+#     gs = EnrichedGameState(
 #         game=get_mock_standard_game(),
 #         turn=0,
 #         board=get_mock_standard_board(
