@@ -1,3 +1,4 @@
+from itertools import groupby, product
 import random
 from typing import Dict, List, Optional
 from dataclasses import dataclass
@@ -18,7 +19,30 @@ class BattlesnakeStub:
 class CoordState(Coord):
     is_food_prob: int
     is_hazard_prob: int
-    snake_prob: Dict[BattlesnakeStub, int]
+    prob_dict: Dict[str, int]
+
+
+def get_board_coords(board_width: int, board_height: int) -> List[Coord]:
+    coords: List[Coord] = [
+        Coord(x=x, y=y) for x, y in product(range(board_width), range(board_height))
+    ]
+    return coords
+
+
+def get_combined_coord_prob_dict(
+    snakes: List[Battlesnake], turn: int, board_width: int, board_height: int
+) -> Dict[Coord, Dict[str, int]]:
+    coord_prob_dicts: List[Dict[Coord, Dict[str, int]]] = [
+        snake.get_coord_prob_dict(
+            turn=turn, board_width=board_width, board_height=board_height
+        )
+        for snake in snakes
+    ]
+    return {
+        coord: prob_dict
+        for coord_prob_dict in coord_prob_dicts
+        for coord, prob_dict in coord_prob_dict.items()
+    }
 
 
 @dataclass(frozen=True)
@@ -26,7 +50,6 @@ class BoardState:
     turn: int
     snakes: List[Battlesnake]
     cells: Dict[Coord, CoordState]
-    you: Battlesnake
 
     def get_safe_moves(self, snake_head_coord: Coord) -> Dict[Coord, MoveDirection]:
         moves: Dict[Coord, MoveDirection] = {
@@ -57,61 +80,59 @@ class BoardState:
 
         return moves
 
-
-@dataclass
-class Game:
-    height: int
-    width: int
-    coords: List[Coord]
-    frames: List[BoardState]
-    your_battlesnake_id: str
-
-    @staticmethod
-    def get_coords(width: int, height: int) -> List[Coord]:
-        coords: List[Coord] = []
-        for x in range(width):
-            for y in range(height):
-                coords.append(Coord(x=x, y=y))
-        return coords
-
     @classmethod
-    def from_game_state(cls, gs: GameState):
+    def from_game_state(cls, gs: GameState, coords: List[Coord]):
         cells: Dict[Coord, CoordState] = {}
+        turn = gs.turn
+        snakes = gs.board.snakes
 
-        coords = cls.get_coords(width=gs.board.width, height=gs.board.height)
+        coord_prob_dict = get_combined_coord_prob_dict(
+            snakes=snakes,
+            turn=turn,
+            board_height=gs.board.height,
+            board_width=gs.board.width,
+        )
+
         for coord in coords:
             is_food_prob = 100 if coord in gs.board.food else 0
             is_hazard_prob = 100 if coord in gs.board.hazards else 0
-            snake_prob = {
-                BattlesnakeStub(
-                    id=snake.id,
-                    section=snake.body.index(coord),
-                    health=snake.health,
-                    latency=snake.latency,
-                    length=snake.length,
-                ): 100
-                for snake in gs.board.snakes
-                if coord in snake.body
-            }
+            prob_dict = coord_prob_dict.get(coord)
 
             cells[coord] = CoordState(
                 x=coord.x,
                 y=coord.y,
                 is_food_prob=is_food_prob,
                 is_hazard_prob=is_hazard_prob,
-                snake_prob=snake_prob,
+                prob_dict=prob_dict,
             )
 
         return cls(
-            your_battlesnake_id=gs.you.id,
-            height=gs.board.height,
-            width=gs.board.width,
+            turn=turn,
+            snakes=snakes,
+            cells=cells,
+        )
+
+
+@dataclass
+class Game:
+    board_height: int
+    board_width: int
+    coords: List[Coord]
+    frames: List[BoardState]
+
+    @classmethod
+    def from_game_state(cls, gs: GameState):
+        coords = get_board_coords(
+            board_width=gs.board.width, board_height=gs.board.height
+        )
+
+        board_state = BoardState.from_game_state(gs=gs, coords=coords)
+
+        return cls(
+            board_height=gs.board.height,
+            board_width=gs.board.width,
             coords=coords,
-            frames=[
-                BoardState(
-                    cells=cells, turn=gs.turn, snakes=gs.board.snakes, you=gs.you
-                )
-            ],
+            frames=[board_state],
         )
 
     def next_frame(self):

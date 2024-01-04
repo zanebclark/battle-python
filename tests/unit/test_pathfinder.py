@@ -11,11 +11,7 @@ from tests.mocks.MockBattlesnakeTypes import (
 
 def test_rock_and_a_hard_place():
     you = get_mock_battlesnake(
-        body=[
-            Coord(x=2, y=0),
-            Coord(x=1, y=0),
-            Coord(x=0, y=0),
-        ],
+        body_coords=[(2, 0), (1, 0), (0, 0)],
         health=54,
         latency=111,
     )
@@ -29,12 +25,7 @@ def test_rock_and_a_hard_place():
             snakes=[
                 you,
                 get_mock_battlesnake(
-                    body=[
-                        Coord(x=3, y=1),
-                        Coord(x=2, y=1),
-                        Coord(x=1, y=1),
-                        Coord(x=0, y=1),
-                    ],
+                    body_coords=[(3, 1), (2, 1), (1, 1), (0, 1)],
                     health=16,
                     latency=222,
                 ),
@@ -49,11 +40,7 @@ def test_rock_and_a_hard_place():
 
 def test_upper_y_boundry():
     you = get_mock_battlesnake(
-        body=[
-            Coord(x=0, y=10),
-            Coord(x=0, y=9),
-            Coord(x=0, y=8),
-        ],
+        body_coords=[(0, 10), (0, 9), (0, 8)],
         health=54,
         latency=111,
     )
@@ -75,11 +62,7 @@ def test_upper_y_boundry():
 
 def test_upper_x_boundry():
     you = get_mock_battlesnake(
-        body=[
-            Coord(x=10, y=10),
-            Coord(x=9, y=10),
-            Coord(x=8, y=10),
-        ],
+        body_coords=[(10, 10), (9, 10), (8, 10)],
         health=54,
         latency=111,
     )

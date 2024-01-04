@@ -45,9 +45,7 @@ def test_populated_game_started(battlesnake_url: str):
         game=get_mock_standard_game(),
         turn=0,
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(
-            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
-        ),
+        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
     )
     response = requests.post(
         f"{battlesnake_url}/start", data=json.dumps(dataclasses.asdict(data))
@@ -60,9 +58,7 @@ def test_populated_move(battlesnake_url: str):
         game=get_mock_standard_game(),
         turn=12,
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(
-            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
-        ),
+        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
     )
     response = requests.post(
         f"{battlesnake_url}/move", data=json.dumps(dataclasses.asdict(data))
@@ -75,9 +71,7 @@ def test_populated_game_over(battlesnake_url: str):
         game=get_mock_standard_game(),
         turn=12,
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(
-            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
-        ),
+        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
     )
     response = requests.post(
         f"{battlesnake_url}/end", data=json.dumps(dataclasses.asdict(data))

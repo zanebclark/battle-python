@@ -54,9 +54,7 @@ def test_game_started(lambda_context):
         game=get_mock_standard_game(),
         turn=0,
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(
-            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
-        ),
+        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)
@@ -68,9 +66,7 @@ def test_game_started(lambda_context):
         turn=0,
         game=get_mock_standard_game(),
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(
-            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
-        ),
+        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)
@@ -82,9 +78,7 @@ def test_move(lambda_context):
         game=get_mock_standard_game(),
         turn=100,
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(
-            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
-        ),
+        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/move", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)
@@ -96,9 +90,7 @@ def test_end(lambda_context):
         game=get_mock_standard_game(),
         turn=100,
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(
-            body=[Coord(x=0, y=0), Coord(x=0, y=1), Coord(x=0, y=2)]
-        ),
+        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/end", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)

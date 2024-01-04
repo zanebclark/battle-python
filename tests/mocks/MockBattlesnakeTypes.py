@@ -37,6 +37,8 @@ def get_mock_standard_board(
     food_coords: Optional[List[Tuple[int, int]]] = None,
     hazard_coords: Optional[List[Tuple[int, int]]] = None,
     snakes: Optional[List[Battlesnake]] = None,
+    height: int = 11,
+    width: int = 11,
 ) -> Board:
     if not food_coords:
         food_coords = []
@@ -48,13 +50,19 @@ def get_mock_standard_board(
     food = [Coord(x=x, y=y) for x, y in food_coords if food_coords is not None]
     hazards = [Coord(x=x, y=y) for x, y in hazard_coords if hazard_coords is not None]
 
-    return Board(height=11, width=11, food=food, hazards=hazards, snakes=snakes)
+    return Board(height=height, width=width, food=food, hazards=hazards, snakes=snakes)
 
 
 def get_mock_battlesnake(
-    body: List[Coord], health: int = 60, latency: int = 456
+    body_coords: List[Tuple[int, int]],
+    health: int = 60,
+    latency: int = 456,
+    turn: int = 0,
+    board_width=0,
+    board_height=0,
 ) -> Battlesnake:
     id = str(uuid.uuid4())
+    body = [Coord(x=x, y=y) for x, y in body_coords]
     return Battlesnake(
         id=id,
         name=f"mock_battlesnake_{id}",
@@ -67,4 +75,7 @@ def get_mock_battlesnake(
         customizations=BattlesnakeCustomizations(
             color="#888888", head="all-seeing", tail="curled"
         ),
+        turn=turn,
+        board_width=board_width,
+        board_height=board_height,
     )
