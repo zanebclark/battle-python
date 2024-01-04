@@ -1,11 +1,10 @@
 import dataclasses
 import json
-from typing import Any, Dict, Literal
 
 from battle_python.api import RestMethod
 
 
-def get_mock_api_gateway_headers() -> Dict[str, str]:
+def get_mock_api_gateway_headers() -> dict[str, str]:
     return {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
@@ -27,7 +26,7 @@ def get_mock_api_gateway_headers() -> Dict[str, str]:
     }
 
 
-def get_mock_multi_value_headers() -> Dict[str, Any]:
+def get_mock_multi_value_headers() -> dict[str, object]:
     return {
         "Accept": [
             "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
@@ -55,7 +54,7 @@ def get_mock_multi_value_headers() -> Dict[str, Any]:
     }
 
 
-def get_mock_identity() -> Dict[str, str]:
+def get_mock_identity() -> dict[str, str]:
     return {
         "accountId": "",
         "apiKey": "",
@@ -89,7 +88,7 @@ def get_mock_request_context(method: RestMethod, path: str):
     }
 
 
-def get_mock_api_gateway_event(method: RestMethod, path: str, body: Any = ""):
+def get_mock_api_gateway_event(method: RestMethod, path: str, body: object = ""):
     if not isinstance(body, str):
         body = json.dumps(dataclasses.asdict(body))
     return {

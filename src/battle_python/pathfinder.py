@@ -1,6 +1,5 @@
 from itertools import groupby, product
 import random
-from typing import Dict, List, Optional
 from dataclasses import dataclass
 
 from battle_python.BattlesnakeTypes import Battlesnake, Coord, GameState, MoveDirection
@@ -19,20 +18,20 @@ class BattlesnakeStub:
 class CoordState(Coord):
     is_food_prob: int
     is_hazard_prob: int
-    prob_dict: Dict[str, int]
+    prob_dict: dict[str, int]
 
 
-def get_board_coords(board_width: int, board_height: int) -> List[Coord]:
-    coords: List[Coord] = [
+def get_board_coords(board_width: int, board_height: int) -> list[Coord]:
+    coords: list[Coord] = [
         Coord(x=x, y=y) for x, y in product(range(board_width), range(board_height))
     ]
     return coords
 
 
 def get_combined_coord_prob_dict(
-    snakes: List[Battlesnake], turn: int, board_width: int, board_height: int
-) -> Dict[Coord, Dict[str, int]]:
-    coord_prob_dicts: List[Dict[Coord, Dict[str, int]]] = [
+    snakes: list[Battlesnake], turn: int, board_width: int, board_height: int
+) -> dict[Coord, dict[str, int]]:
+    coord_prob_dicts: list[dict[Coord, dict[str, int]]] = [
         snake.get_coord_prob_dict(
             turn=turn, board_width=board_width, board_height=board_height
         )
@@ -48,11 +47,11 @@ def get_combined_coord_prob_dict(
 @dataclass(frozen=True)
 class BoardState:
     turn: int
-    snakes: List[Battlesnake]
-    cells: Dict[Coord, CoordState]
+    snakes: list[Battlesnake]
+    cells: dict[Coord, CoordState]
 
-    def get_safe_moves(self, snake_head_coord: Coord) -> Dict[Coord, MoveDirection]:
-        moves: Dict[Coord, MoveDirection] = {
+    def get_safe_moves(self, snake_head_coord: Coord) -> dict[Coord, MoveDirection]:
+        moves: dict[Coord, MoveDirection] = {
             Coord(snake_head_coord.x, snake_head_coord.y + 1): "up",
             Coord(snake_head_coord.x, snake_head_coord.y - 1): "down",
             Coord(snake_head_coord.x - 1, snake_head_coord.y): "left",
@@ -81,8 +80,8 @@ class BoardState:
         return moves
 
     @classmethod
-    def from_game_state(cls, gs: GameState, coords: List[Coord]):
-        cells: Dict[Coord, CoordState] = {}
+    def from_game_state(cls, gs: GameState, coords: list[Coord]):
+        cells: dict[Coord, CoordState] = {}
         turn = gs.turn
         snakes = gs.board.snakes
 
@@ -117,8 +116,8 @@ class BoardState:
 class Game:
     board_height: int
     board_width: int
-    coords: List[Coord]
-    frames: List[BoardState]
+    coords: list[Coord]
+    frames: list[BoardState]
 
     @classmethod
     def from_game_state(cls, gs: GameState):

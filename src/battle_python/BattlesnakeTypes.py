@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Literal, Optional, List
+from typing import Literal
 
 MoveDirection = Literal["up", "down", "left", "right"]
 
@@ -8,23 +8,23 @@ GameSource = Literal["tournament", "league", "arena", "challenge", "custom"]
 
 @dataclass(frozen=True)
 class BattlesnakeCustomizations:
-    color: Optional[str]
-    head: Optional[str]
-    tail: Optional[str]
+    color: str | None
+    head: str | None
+    tail: str | None
 
 
 @dataclass(frozen=True, kw_only=True)
 class BattlesnakeDetails(BattlesnakeCustomizations):
     apiversion: Literal["1"] = "1"
-    author: Optional[str]
-    version: Optional[str]
+    author: str | None
+    version: str | None
 
 
 @dataclass(frozen=True)
 class Ruleset:
     name: str
     version: str
-    settings: Dict
+    settings: dict
 
 
 @dataclass(frozen=True)
@@ -47,7 +47,7 @@ class Battlesnake:
     id: str
     name: str
     health: int
-    body: List[Coord]
+    body: list[Coord]
     latency: str
     head: Coord
     length: int
@@ -63,7 +63,7 @@ class Battlesnake:
             return True
         return self.health != 100
 
-    def get_moves(self) -> Dict[Coord, MoveDirection]:
+    def get_moves(self) -> dict[Coord, MoveDirection]:
         return {
             Coord(self.head.x, self.head.y + 1): "up",
             Coord(self.head.x, self.head.y - 1): "down",
@@ -71,7 +71,7 @@ class Battlesnake:
             Coord(self.head.x + 1, self.head.y): "right",
         }
 
-    def get_safe_moves(self) -> Dict[Coord, MoveDirection]:
+    def get_safe_moves(self) -> dict[Coord, MoveDirection]:
         moves = self.get_moves()
 
         for coord in list(moves.keys()):
@@ -92,8 +92,8 @@ class Battlesnake:
 
         return moves
 
-    def get_coord_prob_dict(self) -> Dict[Coord, Dict[str, int]]:
-        coord_prob_dict: Dict[Coord, Dict[str, int]] = {
+    def get_coord_prob_dict(self) -> dict[Coord, dict[str, int]]:
+        coord_prob_dict: dict[Coord, dict[str, int]] = {
             coord: {} for coord in self.body
         }
 
@@ -121,9 +121,9 @@ class Battlesnake:
 class Board:
     height: int
     width: int
-    food: List[Coord]
-    hazards: List[Coord]
-    snakes: List[Battlesnake]
+    food: list[Coord]
+    hazards: list[Coord]
+    snakes: list[Battlesnake]
 
 
 @dataclass(frozen=True)
@@ -146,4 +146,4 @@ class GameState:
 @dataclass(frozen=True)
 class MoveResponse:
     move: MoveDirection
-    shout: Optional[str] = None
+    shout: str | None = None

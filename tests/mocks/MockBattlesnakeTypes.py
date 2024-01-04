@@ -1,4 +1,3 @@
-from typing import List, Optional, Tuple
 import uuid
 from battle_python.BattlesnakeTypes import (
     Battlesnake,
@@ -34,9 +33,9 @@ def get_mock_standard_game(
 
 
 def get_mock_standard_board(
-    food_coords: Optional[List[Tuple[int, int]]] = None,
-    hazard_coords: Optional[List[Tuple[int, int]]] = None,
-    snakes: Optional[List[Battlesnake]] = None,
+    food_coords: list[tuple[int, int]] | None = None,
+    hazard_coords: list[tuple[int, int]] | None = None,
+    snakes: list[Battlesnake] | None = None,
     height: int = 11,
     width: int = 11,
 ) -> Board:
@@ -54,7 +53,7 @@ def get_mock_standard_board(
 
 
 def get_mock_battlesnake(
-    body_coords: List[Tuple[int, int]],
+    body_coords: list[tuple[int, int]],
     health: int = 60,
     latency: int = 456,
     turn: int = 0,

@@ -1,7 +1,6 @@
 import dataclasses
 import os
-import random
-from typing import Dict, Literal
+from typing import Literal
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.logging import correlation_paths
@@ -46,7 +45,7 @@ def game_started() -> None:
 
 @api.post("/move")
 @tracer.capture_method
-def move() -> Dict:
+def move() -> dict:
     body = api.current_event.json_body
     gs = from_dict(data_class=GameState, data=body)
     move = get_next_move(gs=gs)

@@ -1,18 +1,17 @@
 import os
 import subprocess
-from typing import Dict, List
 import click
 import boto3
 import json
 
 
-def get_formatted_output(output_obj: Dict) -> str:
+def get_formatted_output(output_obj: dict) -> str:
     output_key = output_obj["OutputKey"]
     output_value = output_obj["OutputValue"]
     return f"{output_key.strip().upper()}={output_value.strip()}"
 
 
-def get_cloudformation_outputs(stack_name: str, aws_region: str) -> List[Dict]:
+def get_cloudformation_outputs(stack_name: str, aws_region: str) -> list[dict]:
     print(f"Stack Name: {stack_name}")
     print(f"AWS Region: {aws_region}")
     cf_client = boto3.client("cloudformation", region_name=aws_region)

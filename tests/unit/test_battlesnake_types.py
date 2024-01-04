@@ -1,4 +1,3 @@
-from typing import List, Tuple
 import pytest
 from battle_python.BattlesnakeTypes import Coord, GameState
 from tests.mocks.MockBattlesnakeTypes import (
@@ -82,23 +81,23 @@ def test_battlesnake_get_moves():
 @pytest.mark.parametrize(
     "body_coords, health, turn, expected",
     [
-        # # Left Border
-        # ([(0, 10), (0, 9), (0, 8)], 100, 0, [Coord(x=1, y=10)]),  # Up -> Right
-        # ([(0, 0), (0, 1), (0, 2)], 100, 0, [Coord(x=1, y=0)]),  # Down -> Right
-        # # Right Border
-        # ([(10, 10), (10, 9), (10, 8)], 100, 0, [Coord(x=9, y=10)]),  # Up -> Left
-        # ([(10, 0), (10, 1), (10, 2)], 100, 0, [Coord(x=9, y=0)]),  # Down -> Left
-        # # Bottom Border
-        # ([(0, 0), (1, 0), (2, 0)], 100, 0, [Coord(x=0, y=1)]),  # Left -> Up
-        # ([(10, 0), (9, 0), (8, 0)], 100, 0, [Coord(x=10, y=1)]),  # Right -> Up
-        # # Top Border
-        # ([(0, 10), (1, 10), (2, 10)], 100, 0, [Coord(x=0, y=9)]),  # Left -> Down
-        # ([(10, 10), (9, 10), (8, 10)], 100, 0, [Coord(x=10, y=9)]),  # Right -> Down
+        # Left Border
+        ([(0, 10), (0, 9), (0, 8)], 100, 0, [Coord(x=1, y=10)]),  # Up -> Right
+        ([(0, 0), (0, 1), (0, 2)], 100, 0, [Coord(x=1, y=0)]),  # Down -> Right
+        # Right Border
+        ([(10, 10), (10, 9), (10, 8)], 100, 0, [Coord(x=9, y=10)]),  # Up -> Left
+        ([(10, 0), (10, 1), (10, 2)], 100, 0, [Coord(x=9, y=0)]),  # Down -> Left
+        # Bottom Border
+        ([(0, 0), (1, 0), (2, 0)], 100, 0, [Coord(x=0, y=1)]),  # Left -> Up
+        ([(10, 0), (9, 0), (8, 0)], 100, 0, [Coord(x=10, y=1)]),  # Right -> Up
+        # Top Border
+        ([(0, 10), (1, 10), (2, 10)], 100, 0, [Coord(x=0, y=9)]),  # Left -> Down
+        ([(10, 10), (9, 10), (8, 10)], 100, 0, [Coord(x=10, y=9)]),  # Right -> Down
         # Two Options
-        ([(1, 10), (2, 10)], 100, 0, [Coord(x=0, y=10), Coord(x=1, y=9)]),
+        ([(1, 10), (2, 10), (3, 10)], 100, 0, [Coord(x=0, y=10), Coord(x=1, y=9)]),
         # Three Options
         (
-            [(1, 9), (2, 9)],
+            [(1, 9), (2, 9), (3, 9)],
             100,
             0,
             [Coord(x=1, y=10), Coord(x=0, y=9), Coord(x=1, y=8)],
@@ -113,7 +112,7 @@ def test_battlesnake_get_moves():
     ],
 )
 def test_battlesnake_get_safe_moves(
-    body_coords: List[Tuple[int, int]], health: int, turn: int, expected: List[Coord]
+    body_coords: list[tuple[int, int]], health: int, turn: int, expected: list[Coord]
 ):
     board_width = 11
     board_height = 11
