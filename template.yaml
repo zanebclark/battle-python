@@ -28,7 +28,7 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: PowertoolsBattlesnakeApi
           POWERTOOLS_METRICS_NAMESPACE: Powertools
-          LOG_LEVEL: DEBUG
+          LOG_LEVEL: INFO
       Events:
         BattlesnakeDetails:
           Type: Api

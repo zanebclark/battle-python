@@ -39,6 +39,8 @@ def battlesnake_details() -> BattlesnakeDetails:
 @tracer.capture_method
 def game_started() -> None:
     body = api.current_event.json_body
+    logger.append_keys(body["game"]["id"], body["game"]["id"])
+    logger.append_keys(body["turn"], body["turn"])
     game_state = from_dict(data_class=GameState, data=body)
     return None
 
@@ -47,6 +49,8 @@ def game_started() -> None:
 @tracer.capture_method
 def move() -> dict:
     body = api.current_event.json_body
+    logger.append_keys(body["game"]["id"], body["game"]["id"])
+    logger.append_keys(body["turn"], body["turn"])
     gs = from_dict(data_class=GameState, data=body)
     move = get_next_move(gs=gs)
     return dataclasses.asdict(MoveResponse(move=move))
@@ -56,19 +60,24 @@ def move() -> dict:
 @tracer.capture_method
 def game_over() -> None:
     body = api.current_event.json_body
+    logger.append_keys(body["game"]["id"], body["game"]["id"])
+    logger.append_keys(body["turn"], body["turn"])
     game_state = from_dict(data_class=GameState, data=body)
     return None
 
 
 # Enrich logging with contextual information from Lambda
-@logger.inject_lambda_context(correlation_id_path=correlation_paths.API_GATEWAY_REST)
+@logger.inject_lambda_context(
+    correlation_id_path=correlation_paths.API_GATEWAY_REST,
+    log_event=True,
+    clear_state=True,
+)
 # Adding tracer
 # See: https://awslabs.github.io/aws-lambda-powertools-python/latest/core/tracer/
 @tracer.capture_lambda_handler
 # ensures metrics are flushed upon request completion/failure and capturing ColdStart metric
 @metrics.log_metrics(capture_cold_start_metric=True)
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    logger.info("event", extra=event)
     return api.resolve(event, context)
 
 
