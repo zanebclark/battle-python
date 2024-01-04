@@ -4,12 +4,9 @@ import pytest
 import os
 import requests
 import boto3
+from battle_python.GameState import GameState
 
-from battle_python.BattlesnakeTypes import (
-    BattlesnakeDetails,
-    Coord,
-    GameState,
-)
+from battle_python.types import BattlesnakeDetails
 from ..mocks.MockBattlesnakeTypes import (
     get_mock_battlesnake,
     get_mock_standard_board,

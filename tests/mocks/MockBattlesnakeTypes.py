@@ -1,6 +1,6 @@
 import uuid
-from battle_python.BattlesnakeTypes import (
-    Battlesnake,
+from battle_python.Battlesnake import Battlesnake
+from battle_python.types import (
     BattlesnakeCustomizations,
     Board,
     Coord,

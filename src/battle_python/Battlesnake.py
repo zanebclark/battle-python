@@ -1,45 +1,10 @@
 from dataclasses import dataclass
-from typing import Literal
 
-MoveDirection = Literal["up", "down", "left", "right"]
-
-GameSource = Literal["tournament", "league", "arena", "challenge", "custom"]
-
-
-@dataclass(frozen=True)
-class BattlesnakeCustomizations:
-    color: str | None
-    head: str | None
-    tail: str | None
-
-
-@dataclass(frozen=True, kw_only=True)
-class BattlesnakeDetails(BattlesnakeCustomizations):
-    apiversion: Literal["1"] = "1"
-    author: str | None
-    version: str | None
-
-
-@dataclass(frozen=True)
-class Ruleset:
-    name: str
-    version: str
-    settings: dict
-
-
-@dataclass(frozen=True)
-class Game:
-    id: str
-    ruleset: Ruleset
-    map: str
-    timeout: int
-    source: GameSource
-
-
-@dataclass(frozen=True)
-class Coord:
-    x: int
-    y: int
+from battle_python.types import (
+    BattlesnakeCustomizations,
+    Coord,
+    MoveDirection,
+)
 
 
 @dataclass
@@ -117,33 +82,14 @@ class Battlesnake:
         return coord_prob_dict
 
 
-@dataclass(frozen=True)
-class Board:
-    height: int
-    width: int
-    food: list[Coord]
-    hazards: list[Coord]
-    snakes: list[Battlesnake]
-
-
-@dataclass(frozen=True)
-class GameState:
-    game: Game
-    turn: int
-    board: Board
-    you: Battlesnake
-
-    def __post_init__(self):
-        for snake in self.board.snakes:
-            snake.board_width = self.board.width
-            snake.board_height = self.board.height
-            snake.turn = self.turn
-            if snake.id == self.you.id:
-                snake.is_self = True
-                continue
-
-
-@dataclass(frozen=True)
-class MoveResponse:
-    move: MoveDirection
-    shout: str | None = None
+def get_combined_coord_prob_dict(
+    snakes: list[Battlesnake],
+) -> dict[Coord, dict[str, int]]:
+    coord_prob_dicts: list[dict[Coord, dict[str, int]]] = [
+        snake.get_coord_prob_dict() for snake in snakes
+    ]
+    return {
+        coord: prob_dict
+        for coord_prob_dict in coord_prob_dicts
+        for coord, prob_dict in coord_prob_dict.items()
+    }

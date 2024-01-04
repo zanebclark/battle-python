@@ -9,9 +9,9 @@ from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 from dacite import from_dict
 
-from battle_python.BattlesnakeTypes import (
+from battle_python.GameState import GameState
+from battle_python.types import (
     BattlesnakeDetails,
-    GameState,
     MoveResponse,
 )
 from battle_python.pathfinder import get_next_move

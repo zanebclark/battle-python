@@ -1,6 +1,4 @@
-import pytest
-
-from battle_python.BattlesnakeTypes import Coord, GameState
+from battle_python.GameState import GameState
 from battle_python.pathfinder import get_next_move
 from tests.mocks.MockBattlesnakeTypes import (
     get_mock_battlesnake,

@@ -1,50 +1,6 @@
 import pytest
-from battle_python.BattlesnakeTypes import Coord, GameState
-from tests.mocks.MockBattlesnakeTypes import (
-    get_mock_battlesnake,
-    get_mock_standard_board,
-    get_mock_standard_game,
-)
-
-
-def test_game_state():
-    you = get_mock_battlesnake(
-        body_coords=[(2, 0), (1, 0), (0, 0)],
-        health=54,
-        latency=111,
-    )
-
-    board_height = 70
-    board_width = 50
-    turn = 11
-
-    gs = GameState(
-        game=get_mock_standard_game(),
-        turn=turn,
-        board=get_mock_standard_board(
-            width=board_width,
-            height=board_height,
-            food_coords=[(5, 5), (9, 0), (2, 6)],
-            hazard_coords=[(3, 2)],
-            snakes=[
-                you,
-                get_mock_battlesnake(
-                    body_coords=[(3, 1), (2, 1), (1, 1), (0, 1)],
-                    health=16,
-                    latency=222,
-                ),
-            ],
-        ),
-        you=you,
-    )
-    for snake in gs.board.snakes:
-        assert snake.board_height == board_height
-        assert snake.board_width == board_width
-        assert snake.turn == turn
-        if snake.id != you.id:
-            assert not snake.is_self
-        else:
-            assert snake.is_self
+from battle_python.types import Coord
+from tests.mocks.MockBattlesnakeTypes import get_mock_battlesnake
 
 
 @pytest.mark.parametrize(

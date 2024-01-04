@@ -1,12 +1,11 @@
-import dataclasses
 import json
 import os
 from unittest import mock
 
 import pytest
 
+from battle_python.GameState import GameState
 from battle_python import api
-from battle_python.BattlesnakeTypes import Coord, GameState
 from tests.mocks.MockBattlesnakeTypes import (
     get_mock_battlesnake,
     get_mock_standard_game,
