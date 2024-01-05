@@ -1,8 +1,6 @@
 import os
-import subprocess
 import click
 import boto3
-import json
 
 
 def get_formatted_output(output_obj: dict) -> str:

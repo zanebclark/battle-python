@@ -12,9 +12,8 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "cwd": "${workspaceFolder}",
-            "env": {"PYTHONPATH": "${cwd}",
+            "env": {"PYTHONPATH": "${cwd}"},
             "python": "${workspaceFolder}/.venv/Scripts/python.exe",
-            "env": {"PYTHONPATH": ".:${PYTHONPATH}"}
         }
     ]
 }
