@@ -1,6 +1,4 @@
-import pytest
-from battle_python.EnrichedGameState import EnrichedGameState
-from battle_python.types import Coord, get_board_coords
+from battle_python.api_types import Coord, get_board_coords, GameState
 from tests.mocks.MockBattlesnakeTypes import (
     get_mock_battlesnake,
     get_mock_standard_board,
@@ -30,7 +28,7 @@ def test_game_state_init():
     board_width = 50
     turn = 11
 
-    gs = EnrichedGameState(
+    gs = GameState(
         game=get_mock_standard_game(),
         turn=turn,
         board=get_mock_standard_board(
@@ -51,12 +49,7 @@ def test_game_state_init():
     )
 
     for snake in gs.board.snakes:
-        assert snake.board_height == board_height
-        assert snake.board_width == board_width
-        assert snake.turn == turn
         if snake.id != you.id:
             assert not snake.is_self
         else:
             assert snake.is_self
-
-    assert len(gs.cells) == ((board_height) * (board_width))

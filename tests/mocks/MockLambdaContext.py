@@ -10,5 +10,6 @@ class MockLambdaContext:
     )
     aws_request_id: str = "52fdfc07-2182-154f-163f-5f0f9a621d72"
 
-    def get_remaining_time_in_millis(self) -> int:
+    @staticmethod
+    def get_remaining_time_in_millis() -> int:
         return 1000

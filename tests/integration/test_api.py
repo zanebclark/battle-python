@@ -4,9 +4,8 @@ import pytest
 import os
 import requests
 import boto3
-from battle_python.GameState import GameState
 
-from battle_python.types import BattlesnakeDetails
+from battle_python.api_types import BattlesnakeDetails, GameState
 from ..mocks.MockBattlesnakeTypes import (
     get_mock_battlesnake,
     get_mock_standard_board,
@@ -37,40 +36,22 @@ def test_populated_battlesnake_details(battlesnake_url: str):
     assert response.status_code == 200
 
 
-def test_populated_game_started(battlesnake_url: str):
+@pytest.mark.parametrize(
+    "turn, path",
+    [
+        (0, "start"),
+        (12, "move"),
+        (24, "end"),
+    ],
+)
+def test_populated_api_endpoints(battlesnake_url: str, turn: int, path: str):
     data = GameState(
         game=get_mock_standard_game(),
-        turn=0,
+        turn=turn,
         board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
         you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
     )
     response = requests.post(
-        f"{battlesnake_url}/start", data=json.dumps(dataclasses.asdict(data))
-    )
-    assert response.status_code == 200
-
-
-def test_populated_move(battlesnake_url: str):
-    data = GameState(
-        game=get_mock_standard_game(),
-        turn=12,
-        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
-    )
-    response = requests.post(
-        f"{battlesnake_url}/move", data=json.dumps(dataclasses.asdict(data))
-    )
-    assert response.status_code == 200
-
-
-def test_populated_game_over(battlesnake_url: str):
-    data = GameState(
-        game=get_mock_standard_game(),
-        turn=12,
-        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
-    )
-    response = requests.post(
-        f"{battlesnake_url}/end", data=json.dumps(dataclasses.asdict(data))
+        f"{battlesnake_url}/{path}", data=json.dumps(dataclasses.asdict(data))
     )
     assert response.status_code == 200

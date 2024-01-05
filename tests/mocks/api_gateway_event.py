@@ -2,11 +2,13 @@ import dataclasses
 import json
 
 from battle_python.api import RestMethod
+from battle_python.api_types import GameState
 
 
 def get_mock_api_gateway_headers() -> dict[str, str]:
     return {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,"
+        "application/signed-exchange;v=b3;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
         "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
         "Cache-Control": "max-age=0",
@@ -20,7 +22,8 @@ def get_mock_api_gateway_headers() -> dict[str, str]:
         "Sec-Fetch-Site": "none",
         "Sec-Fetch-User": "?1",
         "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 "
+        "Safari/537.36",
         "X-Forwarded-Port": "3000",
         "X-Forwarded-Proto": "http",
     }
@@ -29,7 +32,8 @@ def get_mock_api_gateway_headers() -> dict[str, str]:
 def get_mock_multi_value_headers() -> dict[str, object]:
     return {
         "Accept": [
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,"
+            "application/signed-exchange;v=b3;q=0.9 "
         ],
         "Accept-Encoding": ["gzip, deflate, br"],
         "Accept-Language": ["pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7"],
@@ -88,8 +92,10 @@ def get_mock_request_context(method: RestMethod, path: str):
     }
 
 
-def get_mock_api_gateway_event(method: RestMethod, path: str, body: object = ""):
-    if not isinstance(body, str):
+def get_mock_api_gateway_event(
+    method: RestMethod, path: str, body: [object | GameState] = ""
+):
+    if isinstance(body, GameState):
         body = json.dumps(dataclasses.asdict(body))
     return {
         "body": body,

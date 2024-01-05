@@ -1,18 +1,18 @@
 import uuid
-from battle_python.Battlesnake import Battlesnake
-from battle_python.Board import Board
-from battle_python.types import (
+from battle_python.api_types import (
     BattlesnakeCustomizations,
     Coord,
     Game,
     Ruleset,
+    Board,
+    Battlesnake,
 )
 
 
 def get_mock_standard_game(
-    foodSpawnChance: int = 15,
-    minimumFood: int = 1,
-    hazardDamagePerTurn: int = 14,
+    food_spawn_chance: int = 15,
+    minimum_food: int = 1,
+    hazard_damage_per_turn: int = 14,
     timeout: int = 500,
 ) -> Game:
     return Game(
@@ -21,9 +21,9 @@ def get_mock_standard_game(
             name="standard",
             version="v1.1.15",
             settings={
-                "foodSpawnChance": foodSpawnChance,
-                "minimumFood": minimumFood,
-                "hazardDamagePerTurn": hazardDamagePerTurn,
+                "foodSpawnChance": food_spawn_chance,
+                "minimumFood": minimum_food,
+                "hazardDamagePerTurn": hazard_damage_per_turn,
             },
         ),
         map="standard",
@@ -53,18 +53,13 @@ def get_mock_standard_board(
 
 
 def get_mock_battlesnake(
-    body_coords: list[tuple[int, int]],
-    health: int = 60,
-    latency: int = 456,
-    turn: int = 0,
-    board_width=0,
-    board_height=0,
+    body_coords: list[tuple[int, int]], health: int = 60, latency: int = 456
 ) -> Battlesnake:
-    id = str(uuid.uuid4())
+    id_value = str(uuid.uuid4())
     body = [Coord(x=x, y=y) for x, y in body_coords]
     return Battlesnake(
-        id=id,
-        name=f"mock_battlesnake_{id}",
+        id=id_value,
+        name=f"mock_battlesnake_{id_value}",
         health=health,
         body=body,
         latency=str(latency),
@@ -74,7 +69,4 @@ def get_mock_battlesnake(
         customizations=BattlesnakeCustomizations(
             color="#888888", head="all-seeing", tail="curled"
         ),
-        turn=turn,
-        board_width=board_width,
-        board_height=board_height,
     )

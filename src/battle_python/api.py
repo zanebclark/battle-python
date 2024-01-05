@@ -9,12 +9,7 @@ from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 from dacite import from_dict
 
-from battle_python.EnrichedGameState import EnrichedGameState
-from battle_python.types import (
-    BattlesnakeDetails,
-    MoveResponse,
-)
-from battle_python.pathfinder import get_next_move
+from battle_python.api_types import BattlesnakeDetails, MoveResponse, GameState
 
 RestMethod = Literal["GET", "POST"]
 api = APIGatewayRestResolver()
@@ -41,7 +36,7 @@ def game_started() -> None:
     body = api.current_event.json_body
     logger.append_keys(game_id=body["game"]["id"])
     logger.append_keys(turn=body["turn"])
-    game_state = from_dict(data_class=EnrichedGameState, data=body)
+    gs = from_dict(data_class=GameState, data=body)
     return None
 
 
@@ -51,9 +46,8 @@ def move() -> dict:
     body = api.current_event.json_body
     logger.append_keys(game_id=body["game"]["id"])
     logger.append_keys(turn=body["turn"])
-    gs = from_dict(data_class=EnrichedGameState, data=body)
-    move = get_next_move(gs=gs)
-    return dataclasses.asdict(MoveResponse(move=move))
+    gs = from_dict(data_class=GameState, data=body)
+    return dataclasses.asdict(MoveResponse(move="up"))
 
 
 @api.post("/end")
@@ -62,7 +56,7 @@ def game_over() -> None:
     body = api.current_event.json_body
     logger.append_keys(game_id=body["game"]["id"])
     logger.append_keys(turn=body["turn"])
-    game_state = from_dict(data_class=EnrichedGameState, data=body)
+    gs = from_dict(data_class=GameState, data=body)
     return None
 
 
@@ -76,7 +70,7 @@ def game_over() -> None:
 # See: https://awslabs.github.io/aws-lambda-powertools-python/latest/core/tracer/
 @tracer.capture_lambda_handler
 # ensures metrics are flushed upon request completion/failure and capturing ColdStart metric
-@metrics.log_metrics(capture_cold_start_metric=True)
+@metrics.log_metrics(capture_cold_start_metric=True)  # type: ignore
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
     return api.resolve(event, context)
 
