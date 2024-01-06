@@ -1,5 +1,6 @@
 import dataclasses
 import os
+import random
 from typing import Literal
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -10,6 +11,7 @@ from aws_lambda_powertools import Metrics
 from dacite import from_dict
 
 from battle_python.api_types import BattlesnakeDetails, MoveResponse, GameState
+from pathfinder import resolve_collisions
 
 RestMethod = Literal["GET", "POST"]
 api = APIGatewayRestResolver()
@@ -47,7 +49,13 @@ def move() -> dict:
     logger.append_keys(game_id=body["game"]["id"])
     logger.append_keys(turn=body["turn"])
     gs = from_dict(data_class=GameState, data=body)
-    return dataclasses.asdict(MoveResponse(move="up"))
+    resolve_collisions(gs=gs, turn=gs.turn)
+    turn_prob = gs.board.snake_dict[gs.you.id].turn_prob[gs.turn]
+    available_moves = [
+        spam.direction for spam in turn_prob.values() if spam.body_index == 0
+    ]
+
+    return dataclasses.asdict(MoveResponse(move=random.choice(available_moves)))
 
 
 @api.post("/end")

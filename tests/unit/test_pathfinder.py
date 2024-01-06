@@ -1,6 +1,6 @@
 import pytest
 from battle_python.pathfinder import resolve_collisions
-from battle_python.api_types import Coord, Battlesnake, Direction, GameState, Spam
+from battle_python.api_types import Coord, GameState, Spam
 from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
 
 
@@ -17,7 +17,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                 snakes=[
                     get_mock_battlesnake(
                         is_self=True,
-                        id="Up -> Right",
+                        snake_id="Up -> Right",
                         body_coords=[
                             Coord(x=0, y=10),
                             Coord(x=0, y=9),
@@ -26,7 +26,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                         health=100,
                     ),
                     get_mock_battlesnake(
-                        id="Sidecar",
+                        snake_id="Sidecar",
                         body_coords=[
                             Coord(x=1, y=9),
                             Coord(x=1, y=8),
@@ -60,7 +60,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                 snakes=[
                     get_mock_battlesnake(
                         is_self=True,
-                        id="Up -> Right",
+                        snake_id="Up -> Right",
                         body_coords=[
                             Coord(x=0, y=10),
                             Coord(x=0, y=9),
@@ -69,7 +69,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                         health=100,
                     ),
                     get_mock_battlesnake(
-                        id="Sidecar",
+                        snake_id="Sidecar",
                         body_coords=[
                             Coord(x=1, y=9),
                             Coord(x=1, y=8),
@@ -108,7 +108,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                 snakes=[
                     get_mock_battlesnake(
                         is_self=True,
-                        id="Up -> Right",
+                        snake_id="Up -> Right",
                         body_coords=[
                             Coord(x=0, y=10),
                             Coord(x=0, y=9),
@@ -117,7 +117,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                         health=100,
                     ),
                     get_mock_battlesnake(
-                        id="Sidecar",
+                        snake_id="Sidecar",
                         body_coords=[
                             Coord(x=1, y=9),
                             Coord(x=1, y=8),
@@ -126,7 +126,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                         health=100,
                     ),
                     get_mock_battlesnake(
-                        id="Up -> Left",
+                        snake_id="Up -> Left",
                         body_coords=[
                             Coord(x=2, y=10),
                             Coord(x=2, y=9),
@@ -167,7 +167,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                 snakes=[
                     get_mock_battlesnake(
                         is_self=True,
-                        id="Up -> Right",
+                        snake_id="Up -> Right",
                         body_coords=[
                             Coord(x=0, y=10),
                             Coord(x=0, y=9),
@@ -176,7 +176,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                         health=100,
                     ),
                     get_mock_battlesnake(
-                        id="Sidecar",
+                        snake_id="Sidecar",
                         body_coords=[
                             Coord(x=1, y=9),
                             Coord(x=1, y=8),
@@ -185,7 +185,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                         health=100,
                     ),
                     get_mock_battlesnake(
-                        id="Up -> Left",
+                        snake_id="Up -> Left",
                         body_coords=[
                             Coord(x=2, y=10),
                             Coord(x=2, y=9),
@@ -234,7 +234,7 @@ from ..mocks.mock_api_types import get_mock_battlesnake, get_mock_gamestate
                 snakes=[
                     get_mock_battlesnake(
                         is_self=True,
-                        id="Highlander",
+                        snake_id="Highlander",
                         body_coords=[
                             Coord(x=1, y=9),
                             Coord(x=1, y=8),

@@ -5,11 +5,9 @@ import os
 import requests
 import boto3
 
-from battle_python.api_types import BattlesnakeDetails, GameState
+from battle_python.api_types import BattlesnakeDetails
 from ..mocks.mock_api_types import (
     get_mock_battlesnake,
-    get_mock_standard_board,
-    get_mock_standard_game,
     get_mock_gamestate,
 )
 

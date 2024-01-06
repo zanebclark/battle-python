@@ -179,7 +179,7 @@ class Battlesnake:
     shout: str
     customizations: BattlesnakeCustomizations
     is_self: bool = False
-    turn_prob: dict[int, dict[Coord, object]] = field(default_factory=dict)
+    turn_prob: dict[int, dict[Coord, Spam]] = field(default_factory=dict)
 
     def delete_from_turn_prob(self, turn: int, coord: Coord) -> None:
         option_count = len(

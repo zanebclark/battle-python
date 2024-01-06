@@ -10,7 +10,6 @@ from battle_python.api_types import (
 )
 from ..mocks.mock_api_types import (
     get_mock_battlesnake,
-    get_mock_gamestate,
     get_mock_standard_board,
 )
 

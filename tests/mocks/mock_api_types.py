@@ -61,19 +61,19 @@ def get_mock_standard_board(
 
 def get_mock_battlesnake(
     body_coords: list[tuple[int, int]] | list[Coord],
-    id: str | None = None,
+    snake_id: str | None = None,
     health: int = 60,
     latency: int = 456,
     is_self: bool = False,
 ) -> Battlesnake:
-    if id is None:
-        id = str(uuid.uuid4())
+    if snake_id is None:
+        snake_id = str(uuid.uuid4())
     if not isinstance(body_coords[0], Coord):
         body_coords = [Coord(x=x, y=y) for x, y in body_coords]
     return Battlesnake(
-        id=id,
+        id=snake_id,
         is_self=is_self,
-        name=f"mock_battlesnake_{id}",
+        name=f"mock_battlesnake_{snake_id}",
         health=health,
         body=body_coords,
         latency=str(latency),
