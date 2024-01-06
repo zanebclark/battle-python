@@ -37,8 +37,8 @@ def get_mock_standard_board(
     food_coords: list[tuple[int, int]] | None = None,
     hazard_coords: list[tuple[int, int]] | None = None,
     snakes: list[Battlesnake] | None = None,
-    height: int = 11,
-    width: int = 11,
+    board_height: int = 11,
+    board_width: int = 11,
 ) -> Board:
     if not food_coords:
         food_coords = []
@@ -50,7 +50,13 @@ def get_mock_standard_board(
     food = [Coord(x=x, y=y) for x, y in food_coords if food_coords is not None]
     hazards = [Coord(x=x, y=y) for x, y in hazard_coords if hazard_coords is not None]
 
-    return Board(height=height, width=width, food=food, hazards=hazards, snakes=snakes)
+    return Board(
+        height=board_height,
+        width=board_width,
+        food=food,
+        hazards=hazards,
+        snakes=snakes,
+    )
 
 
 def get_mock_battlesnake(
@@ -85,8 +91,8 @@ def get_mock_gamestate(
     food_coords: list[tuple[int, int]] | None = None,
     hazard_coords: list[tuple[int, int]] | None = None,
     snakes: list[Battlesnake] | None = None,
-    height: int = 11,
-    width: int = 11,
+    board_height: int = 11,
+    board_width: int = 11,
     food_spawn_chance: int = 15,
     minimum_food: int = 1,
     hazard_damage_per_turn: int = 14,
@@ -103,8 +109,8 @@ def get_mock_gamestate(
         food_coords=food_coords,
         hazard_coords=hazard_coords,
         snakes=snakes,
-        height=height,
-        width=width,
+        board_height=board_height,
+        board_width=board_width,
     )
 
     yous = [snake for snake in snakes if snake.is_self]
