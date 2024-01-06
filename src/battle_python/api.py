@@ -11,7 +11,7 @@ from aws_lambda_powertools import Metrics
 from dacite import from_dict
 
 from battle_python.api_types import BattlesnakeDetails, MoveResponse, GameState
-from pathfinder import resolve_collisions
+from battle_python.pathfinder import resolve_collisions
 
 RestMethod = Literal["GET", "POST"]
 api = APIGatewayRestResolver()
