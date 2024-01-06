@@ -44,7 +44,9 @@ class Coord:
     x: int
     y: int
 
-    def get_legal_moves(self, board_width: int, board_height: int):
+    def get_legal_moves(
+        self, board_width: int, board_height: int
+    ) -> dict[Coord, Direction]:
         moves = self.get_potential_moves()
         for coord in list(moves.keys()):
             if (

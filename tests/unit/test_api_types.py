@@ -3,6 +3,7 @@ from ..mocks.mock_api_types import (
     get_mock_battlesnake,
     get_mock_standard_board,
     get_mock_standard_game,
+    get_mock_gamestate,
 )
 
 
@@ -19,6 +20,7 @@ def test_get_board_coords():
 
 def test_game_state_init():
     you = get_mock_battlesnake(
+        is_self=True,
         body_coords=[(2, 0), (1, 0), (0, 0)],
         health=54,
         latency=111,
@@ -28,24 +30,20 @@ def test_game_state_init():
     board_width = 50
     turn = 11
 
-    gs = GameState(
-        game=get_mock_standard_game(),
+    gs = get_mock_gamestate(
         turn=turn,
-        board=get_mock_standard_board(
-            width=board_width,
-            height=board_height,
-            food_coords=[(5, 5), (9, 0), (2, 6)],
-            hazard_coords=[(3, 2)],
-            snakes=[
-                you,
-                get_mock_battlesnake(
-                    body_coords=[(3, 1), (2, 1), (1, 1), (0, 1)],
-                    health=16,
-                    latency=222,
-                ),
-            ],
-        ),
-        you=you,
+        width=board_width,
+        height=board_height,
+        food_coords=[(5, 5), (9, 0), (2, 6)],
+        hazard_coords=[(3, 2)],
+        snakes=[
+            you,
+            get_mock_battlesnake(
+                body_coords=[(3, 1), (2, 1), (1, 1), (0, 1)],
+                health=16,
+                latency=222,
+            ),
+        ],
     )
 
     for snake in gs.board.snakes:

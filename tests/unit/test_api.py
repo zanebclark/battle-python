@@ -4,12 +4,10 @@ from unittest import mock
 
 import pytest
 
-from battle_python.api_types import GameState
 from battle_python import api
 from tests.mocks.mock_api_types import (
     get_mock_battlesnake,
-    get_mock_standard_game,
-    get_mock_standard_board,
+    get_mock_gamestate,
 )
 from ..mocks.MockLambdaContext import MockLambdaContext
 from ..mocks.api_gateway_event import get_mock_api_gateway_event
@@ -46,11 +44,12 @@ def test_populated_battlesnake_details(lambda_context):
 
 
 def test_game_started(lambda_context):
-    body = GameState(
+    body = get_mock_gamestate(
         turn=0,
-        game=get_mock_standard_game(),
-        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
+        food_coords=[(1, 1), (10, 10)],
+        snakes=[
+            get_mock_battlesnake(is_self=True, body_coords=[(0, 0), (0, 1), (0, 2)]),
+        ],
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)  # type: ignore
@@ -58,11 +57,12 @@ def test_game_started(lambda_context):
 
 
 def test_move(lambda_context):
-    body = GameState(
-        game=get_mock_standard_game(),
+    body = get_mock_gamestate(
         turn=100,
-        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
+        food_coords=[(1, 1), (10, 10)],
+        snakes=[
+            get_mock_battlesnake(is_self=True, body_coords=[(0, 0), (0, 1), (0, 2)]),
+        ],
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/move", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)  # type: ignore
@@ -70,11 +70,12 @@ def test_move(lambda_context):
 
 
 def test_end(lambda_context):
-    body = GameState(
-        game=get_mock_standard_game(),
-        turn=100,
-        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
+    body = get_mock_gamestate(
+        turn=200,
+        food_coords=[(1, 1), (10, 10)],
+        snakes=[
+            get_mock_battlesnake(is_self=True, body_coords=[(0, 0), (0, 1), (0, 2)]),
+        ],
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/end", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)  # type: ignore
