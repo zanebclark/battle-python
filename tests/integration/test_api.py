@@ -6,10 +6,11 @@ import requests
 import boto3
 
 from battle_python.api_types import BattlesnakeDetails, GameState
-from ..mocks.MockBattlesnakeTypes import (
+from ..mocks.mock_api_types import (
     get_mock_battlesnake,
     get_mock_standard_board,
     get_mock_standard_game,
+    get_mock_gamestate,
 )
 
 
@@ -45,12 +46,14 @@ def test_populated_battlesnake_details(battlesnake_url: str):
     ],
 )
 def test_populated_api_endpoints(battlesnake_url: str, turn: int, path: str):
-    data = GameState(
-        game=get_mock_standard_game(),
-        turn=turn,
-        board=get_mock_standard_board(food_coords=[(1, 1), (10, 10)]),
-        you=get_mock_battlesnake(body_coords=[(0, 0), (0, 1), (0, 2)]),
+    data = get_mock_gamestate(
+        turn,
+        food_coords=[(1, 1), (10, 10)],
+        snakes=[
+            get_mock_battlesnake(is_self=True, body_coords=[(0, 0), (0, 1), (0, 2)]),
+        ],
     )
+
     response = requests.post(
         f"{battlesnake_url}/{path}", data=json.dumps(dataclasses.asdict(data))
     )

@@ -1,5 +1,5 @@
 from battle_python.api_types import Coord, get_board_coords, GameState
-from tests.mocks.MockBattlesnakeTypes import (
+from ..mocks.mock_api_types import (
     get_mock_battlesnake,
     get_mock_standard_board,
     get_mock_standard_game,

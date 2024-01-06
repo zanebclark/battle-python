@@ -6,7 +6,7 @@ import pytest
 
 from battle_python.api_types import GameState
 from battle_python import api
-from tests.mocks.MockBattlesnakeTypes import (
+from tests.mocks.mock_api_types import (
     get_mock_battlesnake,
     get_mock_standard_game,
     get_mock_standard_board,
