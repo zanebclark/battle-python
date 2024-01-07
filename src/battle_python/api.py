@@ -9,7 +9,7 @@ from aws_lambda_powertools import Logger
 from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 
-from battle_python.api_types import BattlesnakeDetails, MoveResponse, GameState
+from battle_python.game_state import SnakeDetails, MoveResponse, GameState
 from battle_python.pathfinder import resolve_collisions
 
 RestMethod = Literal["GET", "POST"]
@@ -22,7 +22,7 @@ metrics = Metrics(namespace="Powertools")
 @api.get("/")
 @tracer.capture_method
 def battlesnake_details() -> dict:
-    return BattlesnakeDetails(
+    return SnakeDetails(
         author=os.environ.get("BATTLESNAKE_AUTHOR"),
         color=os.environ.get("BATTLESNAKE_COLOR"),
         head=os.environ.get("BATTLESNAKE_HEAD"),
@@ -33,7 +33,7 @@ def battlesnake_details() -> dict:
 
 @api.post("/start")
 @tracer.capture_method
-def game_started() -> dict:
+def game_started() -> dict[str, int | str]:
     body = api.current_event.json_body
     logger.append_keys(game_id=body["game"]["id"])
     logger.append_keys(turn=body["turn"])
@@ -46,7 +46,7 @@ def game_started() -> dict:
 
 @api.post("/move")
 @tracer.capture_method
-def move() -> dict:
+def move() -> dict[str, int | str]:
     body = api.current_event.json_body
 
     logger.append_keys(game_id=body["game"]["id"])
@@ -68,7 +68,7 @@ def move() -> dict:
 
 @api.post("/end")
 @tracer.capture_method
-def game_over() -> None:
+def game_over() -> dict[str, int | str]:
     body = api.current_event.json_body
 
     logger.append_keys(game_id=body["game"]["id"])
