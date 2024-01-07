@@ -1,13 +1,11 @@
-import dataclasses
-import json
 import pytest
 import os
 import requests
 import boto3
 
-from battle_python.api_types import BattlesnakeDetails
+from battle_python.api_types import SnakeDetails
 from ..mocks.mock_api_types import (
-    get_mock_battlesnake,
+    get_mock_snake,
     get_mock_gamestate,
 )
 
@@ -31,7 +29,7 @@ def battlesnake_url() -> str:
 
 def test_populated_battlesnake_details(battlesnake_url: str):
     response = requests.get(battlesnake_url)
-    BattlesnakeDetails(**response.json())
+    SnakeDetails(**response.json())
     assert response.status_code == 200
 
 
@@ -48,11 +46,9 @@ def test_populated_api_endpoints(battlesnake_url: str, turn: int, path: str):
         turn,
         food_coords=[(1, 1), (10, 10)],
         snakes=[
-            get_mock_battlesnake(is_self=True, body_coords=[(0, 0), (0, 1), (0, 2)]),
+            get_mock_snake(body_coords=[(0, 0), (0, 1), (0, 2)]),
         ],
     )
 
-    response = requests.post(
-        f"{battlesnake_url}/{path}", data=json.dumps(dataclasses.asdict(data))
-    )
+    response = requests.post(f"{battlesnake_url}/{path}", data=data.model_dump_json())
     assert response.status_code == 200
