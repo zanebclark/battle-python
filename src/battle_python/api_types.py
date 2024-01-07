@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 from aws_lambda_powertools.utilities.parser import BaseModel, Field
-from pydantic import PositiveInt, ConfigDict
+from pydantic import NonNegativeInt, ConfigDict
 
 Direction = Literal["up", "down", "left", "right"]
 
@@ -35,7 +35,7 @@ class Game(FrozenBaseModel):
     id: str
     ruleset: Ruleset
     map: str
-    timeout: PositiveInt
+    timeout: NonNegativeInt
     source: GameSource
 
 
@@ -60,18 +60,18 @@ class MoveResponse(FrozenBaseModel):
 class Snake(BaseModel):
     id: str
     name: str
-    health: PositiveInt
+    health: NonNegativeInt
     body: list[Coord]
     latency: str
     head: Coord
-    length: PositiveInt
+    length: NonNegativeInt
     shout: str
     customizations: SnakeCustomizations
 
 
 class Board(FrozenBaseModel):
-    height: PositiveInt
-    width: PositiveInt
+    height: NonNegativeInt
+    width: NonNegativeInt
     food: list[Coord]
     hazards: list[Coord]
     snakes: list[Snake]
@@ -79,6 +79,6 @@ class Board(FrozenBaseModel):
 
 class GameState(BaseModel):
     game: Game
-    turn: PositiveInt
+    turn: NonNegativeInt
     board: Board
     you: Snake

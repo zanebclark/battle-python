@@ -1,11 +1,11 @@
 import uuid
 from battle_python.api_types import (
-    BattlesnakeCustomizations,
+    SnakeCustomizations,
     Coord,
     Game,
     Ruleset,
     Board,
-    Battlesnake,
+    Snake,
     GameState,
 )
 
@@ -33,10 +33,10 @@ def get_mock_standard_game(
     )
 
 
-def get_mock_standard_board(
+def get_mock_board(
     food_coords: list[tuple[int, int]] | None = None,
     hazard_coords: list[tuple[int, int]] | None = None,
-    snakes: list[Battlesnake] | None = None,
+    snakes: list[Snake] | None = None,
     board_height: int = 11,
     board_width: int = 11,
 ) -> Board:
@@ -59,20 +59,18 @@ def get_mock_standard_board(
     )
 
 
-def get_mock_battlesnake(
+def get_mock_snake(
     body_coords: list[tuple[int, int]] | list[Coord],
     snake_id: str | None = None,
     health: int = 60,
     latency: int = 456,
-    is_self: bool = False,
-) -> Battlesnake:
+) -> Snake:
     if snake_id is None:
         snake_id = str(uuid.uuid4())
     if not isinstance(body_coords[0], Coord):
         body_coords = [Coord(x=x, y=y) for x, y in body_coords]
-    return Battlesnake(
+    return Snake(
         id=snake_id,
-        is_self=is_self,
         name=f"mock_battlesnake_{snake_id}",
         health=health,
         body=body_coords,
@@ -80,7 +78,7 @@ def get_mock_battlesnake(
         head=body_coords[0],
         length=len(body_coords),
         shout="something to shout",
-        customizations=BattlesnakeCustomizations(
+        customizations=SnakeCustomizations(
             color="#888888", head="all-seeing", tail="curled"
         ),
     )
@@ -90,7 +88,7 @@ def get_mock_gamestate(
     turn: int,
     food_coords: list[tuple[int, int]] | None = None,
     hazard_coords: list[tuple[int, int]] | None = None,
-    snakes: list[Battlesnake] | None = None,
+    snakes: list[Snake] | None = None,
     board_height: int = 11,
     board_width: int = 11,
     food_spawn_chance: int = 15,
@@ -105,7 +103,7 @@ def get_mock_gamestate(
         timeout=timeout,
     )
 
-    board = get_mock_standard_board(
+    board = get_mock_board(
         food_coords=food_coords,
         hazard_coords=hazard_coords,
         snakes=snakes,
@@ -113,13 +111,9 @@ def get_mock_gamestate(
         board_width=board_width,
     )
 
-    yous = [snake for snake in snakes if snake.is_self]
-    if len(yous) != 1:
-        raise Exception(f"There can only be one!\n\n{yous}")
-
     return GameState(
         game=game,
         turn=turn,
         board=board,
-        you=yous[0],
+        you=snakes[0],
     )
