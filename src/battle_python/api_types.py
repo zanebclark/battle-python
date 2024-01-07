@@ -1,71 +1,84 @@
 from __future__ import annotations
 
 from typing import Literal
-from aws_lambda_powertools.utilities.parser import BaseModel
+from aws_lambda_powertools.utilities.parser import BaseModel, Field
+from pydantic import PositiveInt, ConfigDict
 
 Direction = Literal["up", "down", "left", "right"]
 
 GameSource = Literal["tournament", "league", "arena", "challenge", "custom"]
 
 
-class BattlesnakeCustomizations(BaseModel):
+class FrozenBaseModel(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+
+class SnakeCustomizations(FrozenBaseModel):
     color: str | None
     head: str | None
     tail: str | None
 
 
-class BattlesnakeDetails(BattlesnakeCustomizations):
+class SnakeDetails(SnakeCustomizations):
     author: str | None
     version: str | None
     apiversion: Literal["1"] = "1"
 
 
-class Ruleset(BaseModel):
+class Ruleset(FrozenBaseModel):
     name: str
     version: str
     settings: dict
 
 
-class Game(BaseModel):
+class Game(FrozenBaseModel):
     id: str
     ruleset: Ruleset
     map: str
-    timeout: int
+    timeout: PositiveInt
     source: GameSource
 
 
-class Coord(BaseModel):
+class Coord(FrozenBaseModel):
     x: int
     y: int
 
+    def get_adjacent(self) -> list[Coord]:
+        return [
+            Coord(x=self.x, y=self.y + 1),
+            Coord(x=self.x, y=self.y - 1),
+            Coord(x=self.x - 1, y=self.y),
+            Coord(x=self.x + 1, y=self.y),
+        ]
 
-class MoveResponse(BaseModel):
+
+class MoveResponse(FrozenBaseModel):
     move: Direction
     shout: str | None = None
 
 
-class Battlesnake(BaseModel):
+class Snake(BaseModel):
     id: str
     name: str
-    health: int
+    health: PositiveInt
     body: list[Coord]
     latency: str
     head: Coord
-    length: int
+    length: PositiveInt
     shout: str
-    customizations: BattlesnakeCustomizations
+    customizations: SnakeCustomizations
 
 
-class Board(BaseModel):
-    height: int
-    width: int
+class Board(FrozenBaseModel):
+    height: PositiveInt
+    width: PositiveInt
     food: list[Coord]
     hazards: list[Coord]
-    snakes: list[Battlesnake]
+    snakes: list[Snake]
 
 
 class GameState(BaseModel):
     game: Game
-    turn: int
+    turn: PositiveInt
     board: Board
-    you: Battlesnake
+    you: Snake
