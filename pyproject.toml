@@ -8,8 +8,8 @@ packages = [{include = "battle_python", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-aws-lambda-powertools = {extras = ["parser", "tracer", "validation"], version = "^2.30.2"}
-dacite = "^1.8.1"
+aws-lambda-powertools = {extras = ["tracer", "validation"], version = "^2.30.2"}
+pydantic = "^2.5.3"
 
 [tool.poetry.group.dev.dependencies]
 aws_xray_sdk = "*"
