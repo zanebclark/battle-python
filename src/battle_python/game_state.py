@@ -48,6 +48,12 @@ class SnakeState(FrozenBaseModel):
         return False
 
 
+class Spam(FrozenBaseModel):
+    probability: float
+    body_index: int = None
+    direction: Direction | None = None
+
+
 class EnrichedBoard(FrozenBaseModel):
     height: NonNegativeInt
     width: NonNegativeInt
@@ -66,6 +72,39 @@ class EnrichedBoard(FrozenBaseModel):
         snake = self.snake_states[snake_id]
         coords = self.get_legal_adjacent_coords(snake.head)
         return [coord for coord in coords if not snake.is_collision(coord=coord)]
+
+    def get_coord_prob_dict(
+        self,
+        snake_id: str,
+        state_prob: float,
+    ):
+        coord_prob_dict: dict[Coord, Spam] = {}
+        snake = self.snake_states[snake_id]
+
+        for current_body_index, coord in enumerate(snake.body):
+            body_index = current_body_index + 1
+            if coord == snake.body[-1] and not snake.is_growing():
+                continue
+
+            coord_prob_dict[coord] = Spam(
+                probability=state_prob,
+                body_index=body_index,
+            )
+
+        safe_moves = self.get_body_evading_moves(snake_id=snake_id)
+        options = float(len(safe_moves))
+
+        if options == 0:
+            return coord_prob_dict
+
+        prob = state_prob / options
+        for coord in safe_moves:
+            coord_prob_dict[coord] = Spam(
+                probability=prob,
+                body_index=0,
+            )
+
+        return coord_prob_dict
 
 
 class EnrichedGameState(BaseModel):
