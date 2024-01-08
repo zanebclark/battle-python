@@ -12,6 +12,19 @@ from battle_python.api_types import (
 )
 
 
+def get_legal_adjacent_coords(
+    coord: Coord,
+    board_width: int,
+    board_height: int,
+) -> list[Coord]:
+    adj_coords = coord.get_adjacent()
+    return [
+        coord
+        for coord in adj_coords
+        if 0 <= coord.x <= board_width - 1 and 0 <= coord.y <= board_height - 1
+    ]
+
+
 class SnakeDef(FrozenBaseModel):
     id: str
     name: str
@@ -47,6 +60,16 @@ class SnakeState(FrozenBaseModel):
 
         return False
 
+    def get_self_evading_moves(
+        self,
+        board_width: int,
+        board_height: int,
+    ) -> list[Coord]:
+        coords = get_legal_adjacent_coords(
+            board_width=board_width, board_height=board_height, coord=self.head
+        )
+        return [coord for coord in coords if not self.is_collision(coord=coord)]
+
 
 class Spam(FrozenBaseModel):
     probability: float
@@ -55,23 +78,10 @@ class Spam(FrozenBaseModel):
 
 
 class EnrichedBoard(FrozenBaseModel):
-    height: NonNegativeInt
-    width: NonNegativeInt
+    turn: NonNegativeInt
     food: list[Coord]
     hazards: list[Coord]
     snake_states: dict[str, SnakeState]
-
-    def is_legal(self, coord: Coord):
-        return 0 <= coord.x <= self.width - 1 and 0 <= coord.y <= self.height - 1
-
-    def get_legal_adjacent_coords(self, coord: Coord) -> list[Coord]:
-        adj_coords = coord.get_adjacent()
-        return [coord for coord in adj_coords if self.is_legal(coord)]
-
-    def get_body_evading_moves(self, snake_id) -> list[Coord]:
-        snake = self.snake_states[snake_id]
-        coords = self.get_legal_adjacent_coords(snake.head)
-        return [coord for coord in coords if not snake.is_collision(coord=coord)]
 
     def get_coord_prob_dict(
         self,
@@ -109,6 +119,8 @@ class EnrichedBoard(FrozenBaseModel):
 
 class EnrichedGameState(BaseModel):
     game: Game
+    board_height: NonNegativeInt
+    board_width: NonNegativeInt
     current_turn: NonNegativeInt
     turns: list[EnrichedBoard]
     snake_defs: dict[str, SnakeDef]
@@ -144,8 +156,7 @@ class EnrichedGameState(BaseModel):
         }
 
         board = EnrichedBoard(
-            height=payload["board"]["height"],
-            width=payload["board"]["width"],
+            turn=payload["turn"],
             food=payload["board"]["food"],
             hazards=payload["board"]["hazards"],
             snake_states=snake_states,
@@ -153,6 +164,8 @@ class EnrichedGameState(BaseModel):
 
         return EnrichedGameState(
             game=game,
+            board_width=payload["board"]["width"],
+            board_height=payload["board"]["height"],
             current_turn=payload["turn"],
             turns=[board],
             snake_defs=snake_defs,

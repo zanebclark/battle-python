@@ -43,8 +43,7 @@ def get_mock_snake_def(
 
 
 def get_mock_enriched_board(
-    board_height: int = 11,
-    board_width: int = 11,
+    turn: int = 0,
     food_coords: list[Coord] | None = None,
     hazard_coords: list[Coord] | None = None,
     snake_states: dict[str, SnakeState] | None = None,
@@ -57,8 +56,7 @@ def get_mock_enriched_board(
         snake_states = {}
 
     return EnrichedBoard(
-        height=board_height,
-        width=board_width,
+        turn=turn,
         food=food_coords,
         hazards=hazard_coords,
         snake_states=snake_states,
@@ -97,8 +95,6 @@ def get_mock_enriched_gamestate(
     if not turns:
         turns = [
             get_mock_enriched_board(
-                board_height=board_height,
-                board_width=board_width,
                 food_coords=food_coords,
                 hazard_coords=hazard_coords,
                 snake_states=snake_states,
@@ -107,6 +103,8 @@ def get_mock_enriched_gamestate(
 
     return EnrichedGameState(
         game=game,
+        board_height=board_height,
+        board_width=board_width,
         current_turn=current_turn,
         turns=turns,
         snake_defs=snake_defs,
