@@ -3,7 +3,7 @@ import os
 import requests
 import boto3
 
-from battle_python.api_types import SnakeDetails
+from battle_python.api_types import SnakeDetails, Coord
 from ..mocks.mock_api_types import (
     get_mock_snake,
     get_mock_gamestate,
@@ -44,9 +44,15 @@ def test_populated_battlesnake_details(battlesnake_url: str):
 def test_populated_api_endpoints(battlesnake_url: str, turn: int, path: str):
     data = get_mock_gamestate(
         turn,
-        food_coords=[(1, 1), (10, 10)],
+        food_coords=[Coord(x=1, y=1), Coord(x=10, y=10)],
         snakes=[
-            get_mock_snake(body_coords=[(0, 0), (0, 1), (0, 2)]),
+            get_mock_snake(
+                body_coords=[
+                    Coord(x=0, y=0),
+                    Coord(x=0, y=1),
+                    Coord(x=0, y=2),
+                ]
+            ),
         ],
     )
 

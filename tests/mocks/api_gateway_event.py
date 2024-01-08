@@ -1,6 +1,3 @@
-import dataclasses
-import json
-
 from battle_python.api import RestMethod
 from battle_python.api_types import GameState
 
@@ -96,7 +93,7 @@ def get_mock_api_gateway_event(
     method: RestMethod, path: str, body: [object | GameState] = ""
 ):
     if isinstance(body, GameState):
-        body = json.dumps(dataclasses.asdict(body))
+        body = body.model_dump_json()
     return {
         "body": body,
         "headers": get_mock_api_gateway_headers(),

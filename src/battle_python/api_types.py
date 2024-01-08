@@ -51,6 +51,18 @@ class Coord(FrozenBaseModel):
             Coord(x=self.x + 1, y=self.y),
         ]
 
+    def __lt__(self, other):
+        return f"{self.x}, {self.y}" < f"{other.x}, {other.y}"
+
+    def __le__(self, other):
+        return f"{self.x}, {self.y}" <= f"{other.x}, {other.y}"
+
+    def __gt__(self, other):
+        return f"{self.x}, {self.y}" > f"{other.x}, {other.y}"
+
+    def __ge__(self, other):
+        return f"{self.x}, {self.y}" >= f"{other.x}, {other.y}"
+
 
 class MoveResponse(FrozenBaseModel):
     move: Direction

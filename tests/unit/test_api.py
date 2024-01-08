@@ -5,7 +5,8 @@ from unittest import mock
 import pytest
 
 from battle_python import api
-from ..mocks.mock_game_state import (
+from battle_python.api_types import Coord
+from ..mocks.mock_api_types import (
     get_mock_snake,
     get_mock_gamestate,
 )
@@ -46,9 +47,15 @@ def test_populated_battlesnake_details(lambda_context):
 def test_game_started(lambda_context):
     body = get_mock_gamestate(
         turn=0,
-        food_coords=[(1, 1), (10, 10)],
+        food_coords=[Coord(x=1, y=1), Coord(x=10, y=10)],
         snakes=[
-            get_mock_snake(is_self=True, body_coords=[(0, 0), (0, 1), (0, 2)]),
+            get_mock_snake(
+                body_coords=[
+                    Coord(x=0, y=0),
+                    Coord(x=0, y=1),
+                    Coord(x=0, y=2),
+                ]
+            ),
         ],
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
@@ -59,9 +66,15 @@ def test_game_started(lambda_context):
 def test_move(lambda_context):
     body = get_mock_gamestate(
         turn=100,
-        food_coords=[(1, 1), (10, 10)],
+        food_coords=[Coord(x=1, y=1), Coord(x=10, y=10)],
         snakes=[
-            get_mock_snake(is_self=True, body_coords=[(0, 0), (0, 1), (0, 2)]),
+            get_mock_snake(
+                body_coords=[
+                    Coord(x=0, y=0),
+                    Coord(x=0, y=1),
+                    Coord(x=0, y=2),
+                ]
+            ),
         ],
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/move", body=body)
@@ -72,9 +85,15 @@ def test_move(lambda_context):
 def test_end(lambda_context):
     body = get_mock_gamestate(
         turn=200,
-        food_coords=[(1, 1), (10, 10)],
+        food_coords=[Coord(x=1, y=1), Coord(x=10, y=10)],
         snakes=[
-            get_mock_snake(is_self=True, body_coords=[(0, 0), (0, 1), (0, 2)]),
+            get_mock_snake(
+                body_coords=[
+                    Coord(x=0, y=0),
+                    Coord(x=0, y=1),
+                    Coord(x=0, y=2),
+                ]
+            ),
         ],
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/end", body=body)

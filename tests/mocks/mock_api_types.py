@@ -33,34 +33,8 @@ def get_mock_standard_game(
     )
 
 
-def get_mock_board(
-    food_coords: list[tuple[int, int]] | None = None,
-    hazard_coords: list[tuple[int, int]] | None = None,
-    snakes: list[Snake] | None = None,
-    board_height: int = 11,
-    board_width: int = 11,
-) -> Board:
-    if not food_coords:
-        food_coords = []
-    if not hazard_coords:
-        hazard_coords = []
-    if not snakes:
-        snakes = []
-
-    food = [Coord(x=x, y=y) for x, y in food_coords if food_coords is not None]
-    hazards = [Coord(x=x, y=y) for x, y in hazard_coords if hazard_coords is not None]
-
-    return Board(
-        height=board_height,
-        width=board_width,
-        food=food,
-        hazards=hazards,
-        snakes=snakes,
-    )
-
-
 def get_mock_snake(
-    body_coords: list[tuple[int, int]] | list[Coord],
+    body_coords: list[Coord],
     snake_id: str | None = None,
     health: int = 60,
     latency: int = 456,
@@ -84,10 +58,33 @@ def get_mock_snake(
     )
 
 
+def get_mock_board(
+    food_coords: list[Coord] | None = None,
+    hazard_coords: list[Coord] | None = None,
+    snakes: list[Snake] | None = None,
+    board_height: int = 11,
+    board_width: int = 11,
+) -> Board:
+    if not food_coords:
+        food_coords = []
+    if not hazard_coords:
+        hazard_coords = []
+    if not snakes:
+        snakes = []
+
+    return Board(
+        height=board_height,
+        width=board_width,
+        food=food_coords,
+        hazards=hazard_coords,
+        snakes=snakes,
+    )
+
+
 def get_mock_gamestate(
     turn: int,
-    food_coords: list[tuple[int, int]] | None = None,
-    hazard_coords: list[tuple[int, int]] | None = None,
+    food_coords: list[Coord] | None = None,
+    hazard_coords: list[Coord] | None = None,
     snakes: list[Snake] | None = None,
     board_height: int = 11,
     board_width: int = 11,

@@ -9,7 +9,7 @@ from aws_lambda_powertools import Logger
 from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 
-from battle_python.game_state import SnakeDetails, MoveResponse, GameState
+from battle_python.api_types import SnakeDetails, MoveResponse, GameState
 from battle_python.pathfinder import resolve_collisions
 
 RestMethod = Literal["GET", "POST"]
