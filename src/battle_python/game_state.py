@@ -8,6 +8,7 @@ from battle_python.api_types import (
     SnakeCustomizations,
     Coord,
     Game,
+    Direction,
 )
 
 
@@ -35,6 +36,17 @@ class SnakeState(FrozenBaseModel):
         """
         return self.body[-1] == self.body[-2]
 
+    def is_collision(self, coord: Coord) -> bool:
+        # Avoid self collision.
+        if coord in self.body[0:-1]:
+            return True
+
+        # Avoid your tail if it won't move
+        if coord == self.body[-1] and self.is_growing():
+            return True
+
+        return False
+
 
 class EnrichedBoard(FrozenBaseModel):
     height: NonNegativeInt
@@ -49,6 +61,11 @@ class EnrichedBoard(FrozenBaseModel):
     def get_legal_adjacent_coords(self, coord: Coord) -> list[Coord]:
         adj_coords = coord.get_adjacent()
         return [coord for coord in adj_coords if self.is_legal(coord)]
+
+    def get_body_evading_moves(self, snake_id) -> list[Coord]:
+        snake = self.snake_states[snake_id]
+        coords = self.get_legal_adjacent_coords(snake.head)
+        return [coord for coord in coords if not snake.is_collision(coord=coord)]
 
 
 class EnrichedGameState(BaseModel):

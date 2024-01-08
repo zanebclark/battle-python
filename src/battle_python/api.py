@@ -1,5 +1,4 @@
 import os
-import random
 from typing import Literal
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -10,7 +9,6 @@ from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 
 from battle_python.api_types import SnakeDetails, MoveResponse, GameState
-from battle_python.pathfinder import resolve_collisions
 
 RestMethod = Literal["GET", "POST"]
 api = APIGatewayRestResolver()
@@ -57,13 +55,7 @@ def move() -> dict[str, int | str]:
     except ValidationError:
         return {"status_code": 400, "message": "Invalid order"}
 
-    resolve_collisions(gs=gs, turn=gs.turn)
-    turn_prob = gs.board.snake_dict[gs.you.id].turn_prob[gs.turn]
-    available_moves = [
-        spam.direction for spam in turn_prob.values() if spam.body_index == 0
-    ]
-
-    return MoveResponse(move=random.choice(available_moves)).model_dump()
+    return MoveResponse(move="up").model_dump()
 
 
 @api.post("/end")

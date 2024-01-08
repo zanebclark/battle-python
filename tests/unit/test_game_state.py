@@ -48,6 +48,49 @@ def test_snake_is_growing(snake: SnakeState, expected: bool):
 
 
 @pytest.mark.parametrize(
+    "snake, coord, expected",
+    [
+        (
+            get_mock_snake_state(
+                [
+                    Coord(x=0, y=2),
+                    Coord(x=0, y=1),
+                    Coord(x=0, y=0),
+                    Coord(x=0, y=0),
+                ],
+            ),
+            Coord(x=0, y=0),
+            True,
+        ),
+        (
+            get_mock_snake_state(
+                [
+                    Coord(x=0, y=2),
+                    Coord(x=0, y=1),
+                    Coord(x=0, y=0),
+                ],
+            ),
+            Coord(x=0, y=0),
+            False,
+        ),
+        (
+            get_mock_snake_state(
+                [
+                    Coord(x=0, y=2),
+                    Coord(x=0, y=1),
+                    Coord(x=0, y=0),
+                ],
+            ),
+            Coord(x=0, y=2),
+            True,
+        ),
+    ],
+)
+def test_snake_is_collision(snake: SnakeState, coord: Coord, expected: bool):
+    assert snake.is_collision(coord) is expected
+
+
+@pytest.mark.parametrize(
     "coord, expected",
     [
         # Left Border
