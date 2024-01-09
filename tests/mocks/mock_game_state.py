@@ -12,11 +12,17 @@ from mocks.mock_api_types import get_mock_standard_game
 
 def get_mock_snake_state(
     body_coords: list[Coord],
+    probability: float = 100,
+    snake_id: str | None = None,
     health: int = 60,
-    latency: int = 456,
+    latency: int | None = 456,
     shout: str | None = None,
 ) -> SnakeState:
+    if snake_id is None:
+        snake_id = str(uuid.uuid4())
     return SnakeState(
+        snake_id=snake_id,
+        probability=probability,
         health=health,
         body=body_coords,
         latency=str(latency),

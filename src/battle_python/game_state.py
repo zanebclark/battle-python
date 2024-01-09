@@ -8,14 +8,13 @@ from battle_python.api_types import (
     SnakeCustomizations,
     Coord,
     Game,
-    Direction,
 )
 
 
 def get_legal_adjacent_coords(
     coord: Coord,
-    board_width: int,
-    board_height: int,
+    board_width: NonNegativeInt,
+    board_height: NonNegativeInt,
 ) -> list[Coord]:
     adj_coords = coord.get_adjacent()
     return [
@@ -33,13 +32,16 @@ class SnakeDef(FrozenBaseModel):
 
 
 class SnakeState(FrozenBaseModel):
+    snake_id: str
+    probability: float
     health: NonNegativeInt
     body: list[Coord]
-    latency: str
     head: Coord
     length: NonNegativeInt
-    shout: str | None
+    latency: NonNegativeInt | None = None
+    shout: str | None = None
     is_self: bool = False
+    prev_state: SnakeState | None = None
 
     def is_growing(self):
         """
@@ -62,59 +64,60 @@ class SnakeState(FrozenBaseModel):
 
     def get_self_evading_moves(
         self,
-        board_width: int,
-        board_height: int,
+        board_width: NonNegativeInt,
+        board_height: NonNegativeInt,
     ) -> list[Coord]:
         coords = get_legal_adjacent_coords(
             board_width=board_width, board_height=board_height, coord=self.head
         )
         return [coord for coord in coords if not self.is_collision(coord=coord)]
 
+    def get_next_body_sans_head(self) -> list[Coord]:
+        next_body_sans_head: list[Coord] = []
+        for current_body_index, coord in enumerate(self.body):
+            if coord == self.body[-1] and not self.is_growing():
+                continue
+            next_body_sans_head.append(coord)
 
-class Spam(FrozenBaseModel):
-    probability: float
-    body_index: int = None
-    direction: Direction | None = None
+        return next_body_sans_head
+
+    def get_next_states(
+        self,
+        board_width: NonNegativeInt,
+        board_height: NonNegativeInt,
+    ) -> list[SnakeState]:
+        safe_moves = self.get_self_evading_moves(
+            board_width=board_width, board_height=board_height
+        )
+        option_count = float(len(safe_moves))
+
+        if option_count == 0:
+            return []  # TODO: How do I reflect that the snake will die?
+
+        next_body_sans_head: list[Coord] = self.get_next_body_sans_head()
+
+        safe_snake_coords = [
+            SnakeState(
+                snake_id=self.snake_id,
+                probability=self.probability / option_count,
+                health=self.health - 1,
+                body=[coord, *next_body_sans_head],
+                head=coord,
+                length=self.length,
+                is_self=self.is_self,
+                prev_state=self,
+            )
+            for coord in safe_moves
+        ]
+
+        return safe_snake_coords
 
 
 class EnrichedBoard(FrozenBaseModel):
     turn: NonNegativeInt
     food: list[Coord]
     hazards: list[Coord]
-    snake_states: dict[str, SnakeState]
-
-    def get_coord_prob_dict(
-        self,
-        snake_id: str,
-        state_prob: float,
-    ):
-        coord_prob_dict: dict[Coord, Spam] = {}
-        snake = self.snake_states[snake_id]
-
-        for current_body_index, coord in enumerate(snake.body):
-            body_index = current_body_index + 1
-            if coord == snake.body[-1] and not snake.is_growing():
-                continue
-
-            coord_prob_dict[coord] = Spam(
-                probability=state_prob,
-                body_index=body_index,
-            )
-
-        safe_moves = self.get_body_evading_moves(snake_id=snake_id)
-        options = float(len(safe_moves))
-
-        if options == 0:
-            return coord_prob_dict
-
-        prob = state_prob / options
-        for coord in safe_moves:
-            coord_prob_dict[coord] = Spam(
-                probability=prob,
-                body_index=0,
-            )
-
-        return coord_prob_dict
+    snake_states: list[SnakeState]
 
 
 class EnrichedGameState(BaseModel):
@@ -142,8 +145,10 @@ class EnrichedGameState(BaseModel):
             for snake in payload["board"]["snakes"]
         }
 
-        snake_states = {
-            snake["id"]: SnakeState(
+        snake_states: list[SnakeState] = [
+            SnakeState(
+                snake_id=snake["id"],
+                probability=100,
                 health=snake["health"],
                 body=snake["body"],
                 latency=snake["latency"],
@@ -153,7 +158,7 @@ class EnrichedGameState(BaseModel):
                 is_self=snake["id"] == my_snake_id,
             )
             for snake in payload["board"]["snakes"]
-        }
+        ]
 
         board = EnrichedBoard(
             turn=payload["turn"],

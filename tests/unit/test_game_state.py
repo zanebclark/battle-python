@@ -319,218 +319,328 @@ def test_board_init():
     assert e_gs.turns[0].hazards == board.hazards
     assert e_gs.turns[0].turn == gs.turn
     assert len(e_gs.snake_defs.keys()) == len(snakes)
+    gs_snakes = [*e_gs.turns[0].snake_states]
     for snake in snakes:
         assert e_gs.snake_defs[snake.id].name == snake.name
         assert e_gs.snake_defs[snake.id].customizations == snake.customizations
         assert e_gs.snake_defs[snake.id].is_self == (snake.id == you.id)
 
-        assert e_gs.turns[0].snake_states[snake.id].health == snake.health
-        assert e_gs.turns[0].snake_states[snake.id].body == snake.body
-        assert e_gs.turns[0].snake_states[snake.id].latency == snake.latency
-        assert e_gs.turns[0].snake_states[snake.id].head == snake.head
-        assert e_gs.turns[0].snake_states[snake.id].length == snake.length
-        assert e_gs.turns[0].snake_states[snake.id].shout == snake.shout
-        assert e_gs.turns[0].snake_states[snake.id].is_self == (snake.id == you.id)
+        gs_snake: SnakeState | None = None
+        for index, some_snake in enumerate(gs_snakes):
+            if some_snake.snake_id == snake.id:
+                gs_snake = gs_snakes.pop(index)
+                break
+
+        if not gs_snake:
+            raise Exception(f"snake not found: {snake.id}")
+
+        assert gs_snake.probability == 100
+        assert gs_snake.health == snake.health
+        assert gs_snake.body == snake.body
+        assert gs_snake.latency == int(snake.latency)
+        assert gs_snake.head == snake.head
+        assert gs_snake.length == snake.length
+        assert gs_snake.shout == snake.shout
+        assert gs_snake.is_self == (snake.id == you.id)
 
     # Game-level assertions
     assert e_gs.game == gs.game
 
 
-#
-# @pytest.mark.parametrize(
-#     "state_prob, body_coords, health, turn, expected",
-#     [
-#         (  # Left Border: Up -> Right
-#             float(100),
-#             [
-#                 Coord(x=0, y=10),
-#                 Coord(x=0, y=9),
-#                 Coord(x=0, y=8),
-#             ],
-#             100,
-#             0,
-#             {
-#                 Coord(x=1, y=10): 100,
-#                 Coord(x=0, y=10): 100,
-#                 Coord(x=0, y=9): 100,
-#             },
-#         ),
-#         (  # Left Border: Down -> Right
-#             float(100),
-#             [
-#                 Coord(x=0, y=0),
-#                 Coord(x=0, y=1),
-#                 Coord(x=0, y=2),
-#             ],
-#             100,
-#             0,
-#             {
-#                 Coord(x=1, y=0): 100,
-#                 Coord(x=0, y=0): 100,
-#                 Coord(x=0, y=1): 100,
-#             },
-#         ),
-#         (  # Right Border: Up -> Left
-#             float(100),
-#             [
-#                 Coord(x=10, y=10),
-#                 Coord(x=10, y=9),
-#                 Coord(x=10, y=8),
-#             ],
-#             100,
-#             0,
-#             {
-#                 Coord(x=9, y=10): 100,
-#                 Coord(x=10, y=10): 100,
-#                 Coord(x=10, y=9): 100,
-#             },
-#         ),
-#         (  # Right Border: Down -> Left
-#             float(100),
-#             [
-#                 Coord(x=10, y=0),
-#                 Coord(x=10, y=1),
-#                 Coord(x=10, y=2),
-#             ],
-#             100,
-#             0,
-#             {
-#                 Coord(x=9, y=0): 100,
-#                 Coord(x=10, y=0): 100,
-#                 Coord(x=10, y=1): 100,
-#             },
-#         ),
-#         (  # Bottom Border: Left -> Up
-#             float(100),
-#             [
-#                 Coord(x=0, y=0),
-#                 Coord(x=1, y=0),
-#                 Coord(x=2, y=0),
-#             ],
-#             100,
-#             0,
-#             {
-#                 Coord(x=0, y=1): 100,
-#                 Coord(x=0, y=0): 100,
-#                 Coord(x=1, y=0): 100,
-#             },
-#         ),
-#         (  # Bottom Border: Right -> Up
-#             float(100),
-#             [
-#                 Coord(x=10, y=0),
-#                 Coord(x=9, y=0),
-#                 Coord(x=8, y=0),
-#             ],
-#             100,
-#             0,
-#             {
-#                 Coord(x=10, y=1): 100,
-#                 Coord(x=10, y=0): 100,
-#                 Coord(x=9, y=0): 100,
-#             },
-#         ),
-#         (  # Top Border: Left -> Down
-#             float(100),
-#             [
-#                 Coord(x=0, y=10),
-#                 Coord(x=1, y=10),
-#                 Coord(x=2, y=10),
-#             ],
-#             100,
-#             0,
-#             {
-#                 Coord(x=0, y=9): 100,
-#                 Coord(x=0, y=10): 100,
-#                 Coord(x=1, y=10): 100,
-#             },
-#         ),
-#         (  # TopBorder:  Right -> Down
-#             float(100),
-#             [
-#                 Coord(x=10, y=10),
-#                 Coord(x=9, y=10),
-#                 Coord(x=8, y=10),
-#             ],
-#             100,
-#             0,
-#             {
-#                 Coord(x=10, y=9): 100,
-#                 Coord(x=10, y=10): 100,
-#                 Coord(x=9, y=10): 100,
-#             },
-#         ),
-#         (  # Two Options
-#             float(100),
-#             [
-#                 Coord(x=1, y=10),
-#                 Coord(x=2, y=10),
-#                 Coord(x=3, y=10),
-#             ],
-#             100,
-#             0,
-#             {
-#                 Coord(x=1, y=9): 50,
-#                 Coord(x=0, y=10): 50,
-#                 Coord(x=1, y=10): 100,
-#                 Coord(x=2, y=10): 100,
-#             },
-#         ),
-#         (  # Three Options
-#             float(100),
-#             [
-#                 Coord(x=1, y=9),
-#                 Coord(x=2, y=9),
-#                 Coord(x=3, y=9),
-#             ],
-#             100,
-#             0,
-#             {
-#                 Coord(x=1, y=8): float(100 / 3),
-#                 Coord(x=0, y=9): float(100 / 3),
-#                 Coord(x=1, y=10): float(100 / 3),
-#                 Coord(x=1, y=9): 100,
-#                 Coord(x=2, y=9): 100,
-#             },
-#         ),
-#         (  # Ouroboros
-#             float(100),
-#             [
-#                 Coord(x=0, y=10),
-#                 Coord(x=0, y=9),
-#                 Coord(x=1, y=9),
-#                 Coord(x=1, y=10),
-#             ],
-#             85,
-#             7,
-#             {
-#                 Coord(x=1, y=10): 100,
-#                 Coord(x=0, y=10): 100,
-#                 Coord(x=0, y=9): 100,
-#                 Coord(x=1, y=9): 100,
-#             },
-#         ),
-#     ],
-# )
-# def test_battlesnake_get_coord_prob_dict(
-#     state_prob: float,
-#     body_coords: list[Coord],
-#     health: int,
-#     turn: int,
-#     expected: dict[Coord, int],
-# ):
-#     board_width = 11
-#     board_height = 11
-#
-#     coord_prob_dict = get_coord_prob_dict(
-#         state_prob,
-#         body_coords=body_coords,
-#         health=health,
-#         turn=turn,
-#         board_width=board_width,
-#         board_height=board_height,
-#     )
-#
-#     assert len(coord_prob_dict.keys()) == len(expected.keys())
-#     for coord, spam in coord_prob_dict.items():
-#         assert expected[coord] == spam.probability
+@pytest.mark.parametrize(
+    "snake_state, expected",
+    [
+        (  # Left Border: Up -> Right
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=0, y=10),
+                    Coord(x=0, y=9),
+                    Coord(x=0, y=8),
+                ],
+                health=100,
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(100),
+                    body_coords=[
+                        Coord(x=1, y=10),
+                        Coord(x=0, y=10),
+                        Coord(x=0, y=9),
+                    ],
+                    health=99,
+                )
+            ],
+        ),
+        (  # Left Border: Down -> Right
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=0, y=0),
+                    Coord(x=0, y=1),
+                    Coord(x=0, y=2),
+                ],
+                health=100,
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(100),
+                    body_coords=[
+                        Coord(x=1, y=0),
+                        Coord(x=0, y=0),
+                        Coord(x=0, y=1),
+                    ],
+                    health=99,
+                )
+            ],
+        ),
+        (  # Right Border: Up -> Left
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=10, y=10),
+                    Coord(x=10, y=9),
+                    Coord(x=10, y=8),
+                ],
+                health=100,
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(100),
+                    body_coords=[
+                        Coord(x=9, y=10),
+                        Coord(x=10, y=10),
+                        Coord(x=10, y=9),
+                    ],
+                    health=99,
+                )
+            ],
+        ),
+        (  # Right Border: Down -> Left
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=10, y=0),
+                    Coord(x=10, y=1),
+                    Coord(x=10, y=2),
+                ],
+                health=100,
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(100),
+                    body_coords=[
+                        Coord(x=9, y=0),
+                        Coord(x=10, y=0),
+                        Coord(x=10, y=1),
+                    ],
+                    health=99,
+                )
+            ],
+        ),
+        (  # Bottom Border: Left -> Up
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=0, y=0),
+                    Coord(x=1, y=0),
+                    Coord(x=2, y=0),
+                ],
+                health=100,
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(100),
+                    body_coords=[
+                        Coord(x=0, y=1),
+                        Coord(x=0, y=0),
+                        Coord(x=1, y=0),
+                    ],
+                    health=99,
+                )
+            ],
+        ),
+        (  # Bottom Border: Right -> Up
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=10, y=0),
+                    Coord(x=9, y=0),
+                    Coord(x=8, y=0),
+                ],
+                health=100,
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(100),
+                    body_coords=[
+                        Coord(x=10, y=1),
+                        Coord(x=10, y=0),
+                        Coord(x=9, y=0),
+                    ],
+                    health=99,
+                )
+            ],
+        ),
+        (  # Top Border: Left -> Down
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=0, y=10),
+                    Coord(x=1, y=10),
+                    Coord(x=2, y=10),
+                ],
+                health=100,
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(100),
+                    body_coords=[
+                        Coord(x=0, y=9),
+                        Coord(x=0, y=10),
+                        Coord(x=1, y=10),
+                    ],
+                    health=100,
+                )
+            ],
+        ),
+        (  # TopBorder:  Right -> Down
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=10, y=10),
+                    Coord(x=9, y=10),
+                    Coord(x=8, y=10),
+                ],
+                health=100,
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(100),
+                    body_coords=[
+                        Coord(x=10, y=9),
+                        Coord(x=10, y=10),
+                        Coord(x=9, y=10),
+                    ],
+                    health=99,
+                )
+            ],
+        ),
+        (  # Two Options
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=1, y=10),
+                    Coord(x=2, y=10),
+                    Coord(x=3, y=10),
+                ],
+                health=100,
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(50),
+                    body_coords=[
+                        Coord(x=1, y=9),
+                        Coord(x=1, y=10),
+                        Coord(x=2, y=10),
+                    ],
+                    health=99,
+                ),
+                get_mock_snake_state(
+                    probability=float(50),
+                    body_coords=[
+                        Coord(x=0, y=10),
+                        Coord(x=1, y=10),
+                        Coord(x=2, y=10),
+                    ],
+                    health=99,
+                ),
+            ],
+        ),
+        (  # Three Options
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=1, y=9),
+                    Coord(x=2, y=9),
+                    Coord(x=3, y=9),
+                ],
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(100 / 3),
+                    body_coords=[
+                        Coord(x=1, y=8),
+                        Coord(x=1, y=9),
+                        Coord(x=2, y=9),
+                    ],
+                    health=99,
+                ),
+                get_mock_snake_state(
+                    probability=float(100 / 3),
+                    body_coords=[
+                        Coord(x=0, y=9),
+                        Coord(x=1, y=9),
+                        Coord(x=2, y=9),
+                    ],
+                    health=99,
+                ),
+                get_mock_snake_state(
+                    probability=float(100 / 3),
+                    body_coords=[
+                        Coord(x=1, y=10),
+                        Coord(x=1, y=9),
+                        Coord(x=2, y=9),
+                    ],
+                    health=99,
+                ),
+            ],
+        ),
+        (  # Ouroboros
+            get_mock_snake_state(
+                probability=float(100),
+                body_coords=[
+                    Coord(x=0, y=10),
+                    Coord(x=0, y=9),
+                    Coord(x=1, y=9),
+                    Coord(x=1, y=10),
+                ],
+            ),
+            [
+                get_mock_snake_state(
+                    probability=float(100),
+                    body_coords=[
+                        Coord(x=1, y=10),
+                        Coord(x=0, y=10),
+                        Coord(x=0, y=9),
+                        Coord(x=1, y=9),
+                    ],
+                )
+            ],
+        ),
+    ],
+)  # TODO: Test no health prob
+def test_snake_get_next_states(
+    snake_state: SnakeState,
+    expected: list[SnakeState],
+):
+    board_width = 11
+    board_height = 11
+
+    next_states = snake_state.get_next_states(
+        board_width=board_width,
+        board_height=board_height,
+    )
+
+    assert len(next_states) == len(expected)
+    for next_state in next_states:
+        for expected_state in expected:
+            if expected_state.snake_id != next_state.snake_id:
+                continue
+
+            assert next_state.probability == expected_state.probability
+            assert next_state.health == expected_state.health
+            assert next_state.body == expected_state.body
+            assert next_state.head == expected_state.head
+            assert next_state.length == expected_state.length
+            assert next_state.prev_state == snake_state
