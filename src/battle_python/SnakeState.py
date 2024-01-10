@@ -5,7 +5,7 @@ from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt
 
 if TYPE_CHECKING:
-    from battle_python.EnrichedBoard import EnrichedBoard
+    from battle_python.BoardState import BoardState
 from battle_python.api_types import Coord
 
 DEATH = Coord(x=1000, y=1000)
@@ -26,7 +26,7 @@ class SnakeState(BaseModel):
     is_self: bool = False
     prev_state: SnakeState | None = None
 
-    def get_reasonable_moves(self, board: EnrichedBoard) -> list[Coord]:
+    def get_reasonable_moves(self, board: BoardState) -> list[Coord]:
         coords = board.get_legal_adjacent_coords(coord=self.head)
 
         snake_body_coords = [
@@ -54,7 +54,7 @@ class SnakeState(BaseModel):
 
     def get_next_states(
         self,
-        board: EnrichedBoard,
+        board: BoardState,
     ) -> list[SnakeState]:
         reasonable_moves = self.get_reasonable_moves(board=board)
         option_count = float(len(reasonable_moves))

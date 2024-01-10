@@ -3,7 +3,7 @@ from __future__ import annotations
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt
 
-from battle_python.EnrichedBoard import EnrichedBoard
+from battle_python.BoardState import BoardState
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import (
     FrozenBaseModel,
@@ -22,17 +22,17 @@ class SnakeDef(FrozenBaseModel):
     is_self: bool = False
 
 
-class EnrichedGameState(BaseModel):
+class GameState(BaseModel):
     game: Game
     board_height: NonNegativeInt
     board_width: NonNegativeInt
     current_turn: NonNegativeInt
-    turns: list[EnrichedBoard]
+    turns: list[BoardState]
     snake_defs: dict[str, SnakeDef]
 
     # noinspection PyNestedDecorators
     @classmethod
-    def from_payload(cls, payload: dict) -> EnrichedGameState:
+    def from_payload(cls, payload: dict) -> GameState:
         game = Game(**payload["game"])
 
         my_snake_id = payload["you"]["id"]
@@ -65,7 +65,7 @@ class EnrichedGameState(BaseModel):
             for snake in payload["board"]["snakes"]
         ]
 
-        board = EnrichedBoard(
+        board = BoardState(
             board_width=payload["board"]["width"],
             board_height=payload["board"]["height"],
             turn=payload["turn"],
@@ -80,7 +80,7 @@ class EnrichedGameState(BaseModel):
             snake_states=snake_states,
         )
 
-        return EnrichedGameState(
+        return GameState(
             game=game,
             board_width=payload["board"]["width"],
             board_height=payload["board"]["height"],

@@ -2,17 +2,17 @@ import uuid
 
 import pytest
 
-from battle_python.EnrichedBoard import EnrichedBoard
-from battle_python.EnrichedGameState import EnrichedGameState
+from battle_python.BoardState import BoardState
+from battle_python.GameState import GameState
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import (
     Coord,
-    GameState,
+    SnakeRequest,
     Game,
     Ruleset,
     Board,
 )
-from mocks.get_mock_enriched_board import get_mock_enriched_board
+from mocks.get_mock_board_state import get_mock_board_state
 from mocks.get_mock_snake_state import get_mock_snake_state
 
 from mocks.mock_api_types import get_mock_snake
@@ -42,8 +42,8 @@ from mocks.mock_api_types import get_mock_snake
         ),
     ],
 )
-def test_board_get_legal_adjacent_coords(coord: Coord, expected: list[Coord]):
-    board = get_mock_enriched_board(
+def test_board_state_get_legal_adjacent_coords(coord: Coord, expected: list[Coord]):
+    board = get_mock_board_state(
         board_height=11,
         board_width=11,
     )
@@ -51,7 +51,7 @@ def test_board_get_legal_adjacent_coords(coord: Coord, expected: list[Coord]):
     assert sorted(legal_adjacent_coords) == sorted(expected)
 
 
-def test_board_init():
+def test_board_state_init():
     you = get_mock_snake(
         body_coords=[
             Coord(x=0, y=0),
@@ -75,7 +75,11 @@ def test_board_init():
         ruleset=Ruleset(
             name=str(uuid.uuid4()),
             version=str(uuid.uuid4()),
-            settings={"some_key": str(uuid.uuid4())},
+            settings={
+                "foodSpawnChance": 10,
+                "minimumFood": 11,
+                "hazardDamagePerTurn": 12,
+            },
         ),
         map=str(uuid.uuid4()),
         timeout=123,
@@ -90,14 +94,14 @@ def test_board_init():
         snakes=snakes,
     )
 
-    gs = GameState(
+    gs = SnakeRequest(
         game=game,
         turn=12,
         board=board,
         you=you,
     )
 
-    e_gs = EnrichedGameState.from_payload(payload=gs.model_dump())
+    e_gs = GameState.from_payload(payload=gs.model_dump())
 
     # GameState-level assertions
     assert e_gs.current_turn == gs.turn
@@ -146,7 +150,7 @@ def test_board_init():
     [
         (
             "Equal length snakes. Avoidable body collision and head collision",
-            get_mock_enriched_board(
+            get_mock_board_state(
                 board_height=11,
                 board_width=11,
                 turn=0,
@@ -170,7 +174,7 @@ def test_board_init():
                     ),
                 ],
             ),
-            get_mock_enriched_board(
+            get_mock_board_state(
                 board_height=11,
                 board_width=11,
                 turn=1,
@@ -396,10 +400,10 @@ def test_board_init():
         # ),
     ],
 )
-def test_board_get_next_board(
+def test_board_state_get_next_board(
     description: str,
-    board: EnrichedBoard,
-    expected: EnrichedBoard,
+    board: BoardState,
+    expected: BoardState,
 ):
     next_board = board.get_next_board()
     assert next_board.turn == expected.turn

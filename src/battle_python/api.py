@@ -8,7 +8,7 @@ from aws_lambda_powertools import Logger
 from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 
-from battle_python.api_types import SnakeDetails, MoveResponse, GameState
+from battle_python.api_types import SnakeMetadataResponse, MoveResponse, SnakeRequest
 
 RestMethod = Literal["GET", "POST"]
 api = APIGatewayRestResolver()
@@ -20,7 +20,7 @@ metrics = Metrics(namespace="Powertools")
 @api.get("/")
 @tracer.capture_method
 def battlesnake_details() -> dict:
-    return SnakeDetails(
+    return SnakeMetadataResponse(
         author=os.environ.get("BATTLESNAKE_AUTHOR"),
         color=os.environ.get("BATTLESNAKE_COLOR"),
         head=os.environ.get("BATTLESNAKE_HEAD"),
@@ -36,7 +36,7 @@ def game_started() -> dict[str, int | str]:
     logger.append_keys(game_id=body["game"]["id"])
     logger.append_keys(turn=body["turn"])
     try:
-        gs = parse(event=body, model=GameState)
+        gs = parse(event=body, model=SnakeRequest)
     except ValidationError:
         return {"status_code": 400, "message": "Invalid order"}
     return {"status_code": 200, "message": "Let's get to it!"}
@@ -51,7 +51,7 @@ def move() -> dict[str, int | str]:
     logger.append_keys(turn=body["turn"])
 
     try:
-        gs = parse(event=body, model=GameState)
+        gs = parse(event=body, model=SnakeRequest)
     except ValidationError:
         return {"status_code": 400, "message": "Invalid order"}
 
@@ -67,7 +67,7 @@ def game_over() -> dict[str, int | str]:
     logger.append_keys(turn=body["turn"])
 
     try:
-        gs = parse(event=body, model=GameState)
+        gs = parse(event=body, model=SnakeRequest)
     except ValidationError:
         return {"status_code": 400, "message": "Invalid order"}
 

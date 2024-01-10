@@ -1,10 +1,10 @@
 import uuid
 
-from battle_python.EnrichedBoard import EnrichedBoard
-from battle_python.EnrichedGameState import SnakeDef, EnrichedGameState
+from battle_python.BoardState import BoardState
+from battle_python.GameState import SnakeDef, GameState
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import Coord, SnakeCustomizations
-from mocks.get_mock_enriched_board import get_mock_enriched_board
+from mocks.get_mock_board_state import get_mock_board_state
 
 from mocks.mock_api_types import get_mock_standard_game
 
@@ -28,7 +28,7 @@ def get_mock_snake_def(
 def get_mock_enriched_gamestate(
     snakes: dict[SnakeDef, SnakeState],
     current_turn: int = 0,
-    turns: list[EnrichedBoard] | None = None,
+    turns: list[BoardState] | None = None,
     # get_mock_standard_game args
     food_spawn_chance: int = 15,
     minimum_food: int = 1,
@@ -39,7 +39,7 @@ def get_mock_enriched_gamestate(
     board_width: int = 11,
     food_coords: list[Coord] | None = None,
     hazard_coords: list[Coord] | None = None,
-) -> EnrichedGameState:
+) -> GameState:
     snake_states: list[SnakeState] = []
     snake_defs: dict[str, SnakeDef] = {}
 
@@ -56,7 +56,7 @@ def get_mock_enriched_gamestate(
 
     if not turns:
         turns = [
-            get_mock_enriched_board(
+            get_mock_board_state(
                 board_height=board_height,
                 board_width=board_width,
                 food_prob=food_coords,
@@ -65,7 +65,7 @@ def get_mock_enriched_gamestate(
             )
         ]
 
-    return EnrichedGameState(
+    return GameState(
         game=game,
         board_height=board_height,
         board_width=board_width,

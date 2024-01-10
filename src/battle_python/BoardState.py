@@ -9,7 +9,7 @@ from battle_python.SnakeState import SnakeState
 from battle_python.api_types import FrozenBaseModel, Coord
 
 
-class EnrichedBoard(FrozenBaseModel):
+class BoardState(FrozenBaseModel):
     turn: NonNegativeInt
     board_height: NonNegativeInt
     board_width: NonNegativeInt
@@ -26,7 +26,7 @@ class EnrichedBoard(FrozenBaseModel):
             and 0 <= coord.y <= self.board_height - 1
         ]
 
-    def get_next_board(self) -> EnrichedBoard:
+    def get_next_board(self) -> BoardState:
         next_food_prob: dict[Coord, float] = {**self.food_prob}
         next_snake_states = [
             state
@@ -47,14 +47,17 @@ class EnrichedBoard(FrozenBaseModel):
                 for other_snake in snake_states[1:]:
                     if longest_snake.length == other_snake.length:
                         longest_snake.death_prob += (
-                            longest_snake.state_prob * other_snake.state_prob
+                            longest_snake.state_prob
+                            * other_snake.state_prob  # TODO: Suspect
                         )
                     else:
                         longest_snake.murder_prob += (
-                            longest_snake.state_prob * other_snake.state_prob
+                            longest_snake.state_prob
+                            * other_snake.state_prob  # TODO: Suspect
                         )
                     other_snake.death_prob += (
-                        longest_snake.state_prob * other_snake.state_prob
+                        longest_snake.state_prob
+                        * other_snake.state_prob  # TODO: Suspect
                     )
 
             if coord in next_food_prob.keys():
@@ -67,7 +70,7 @@ class EnrichedBoard(FrozenBaseModel):
                     snake.body.append(snake.body[-1])
                     snake.length += 1
 
-        return EnrichedBoard(
+        return BoardState(
             turn=self.turn + 1,
             board_width=self.board_width,
             board_height=self.board_height,

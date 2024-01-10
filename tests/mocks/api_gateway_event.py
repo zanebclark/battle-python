@@ -1,5 +1,5 @@
 from battle_python.api import RestMethod
-from battle_python.api_types import GameState
+from battle_python.api_types import SnakeRequest
 
 
 def get_mock_api_gateway_headers() -> dict[str, str]:
@@ -90,9 +90,9 @@ def get_mock_request_context(method: RestMethod, path: str):
 
 
 def get_mock_api_gateway_event(
-    method: RestMethod, path: str, body: [object | GameState] = ""
+    method: RestMethod, path: str, body: [object | SnakeRequest] = ""
 ):
-    if isinstance(body, GameState):
+    if isinstance(body, SnakeRequest):
         body = body.model_dump_json()
     return {
         "body": body,

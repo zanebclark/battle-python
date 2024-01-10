@@ -6,14 +6,14 @@ from battle_python.api_types import (
     Ruleset,
     Board,
     Snake,
-    GameState,
+    SnakeRequest,
 )
 
 
 def get_mock_standard_game(
-    food_spawn_chance: int = 15,
-    minimum_food: int = 1,
-    hazard_damage_per_turn: int = 14,
+    food_spawn_chance: int = 10,
+    minimum_food: int = 20,
+    hazard_damage_per_turn: int = 30,
     timeout: int = 500,
 ) -> Game:
     return Game(
@@ -92,7 +92,7 @@ def get_mock_gamestate(
     minimum_food: int = 1,
     hazard_damage_per_turn: int = 14,
     timeout: int = 500,
-) -> GameState:
+) -> SnakeRequest:
     game = get_mock_standard_game(
         food_spawn_chance=food_spawn_chance,
         minimum_food=minimum_food,
@@ -108,7 +108,7 @@ def get_mock_gamestate(
         board_width=board_width,
     )
 
-    return GameState(
+    return SnakeRequest(
         game=game,
         turn=turn,
         board=board,

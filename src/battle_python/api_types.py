@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Literal
-from aws_lambda_powertools.utilities.parser import BaseModel, Field
+from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt, ConfigDict
 
 Direction = Literal["up", "down", "left", "right"]
@@ -19,16 +19,27 @@ class SnakeCustomizations(FrozenBaseModel):
     tail: str | None
 
 
-class SnakeDetails(SnakeCustomizations):
+class SnakeMetadataResponse(SnakeCustomizations):
     author: str | None
     version: str | None
     apiversion: Literal["1"] = "1"
 
 
+class RoyaleSettings(FrozenBaseModel):
+    shrinkEveryNTurns: int
+
+
+class RulesetSettings(FrozenBaseModel):
+    foodSpawnChance: int
+    minimumFood: int
+    hazardDamagePerTurn: int
+    royale: RoyaleSettings | None = None
+
+
 class Ruleset(FrozenBaseModel):
     name: str
     version: str
-    settings: dict
+    settings: RulesetSettings
 
 
 class Game(FrozenBaseModel):
@@ -89,7 +100,7 @@ class Board(FrozenBaseModel):
     snakes: list[Snake]
 
 
-class GameState(BaseModel):
+class SnakeRequest(BaseModel):
     game: Game
     turn: NonNegativeInt
     board: Board

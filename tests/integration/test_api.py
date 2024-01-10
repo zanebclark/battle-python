@@ -3,7 +3,7 @@ import os
 import requests
 import boto3
 
-from battle_python.api_types import SnakeDetails, Coord
+from battle_python.api_types import Coord, SnakeMetadataResponse
 from ..mocks.mock_api_types import (
     get_mock_snake,
     get_mock_gamestate,
@@ -29,7 +29,7 @@ def battlesnake_url() -> str:
 
 def test_populated_battlesnake_details(battlesnake_url: str):
     response = requests.get(battlesnake_url)
-    SnakeDetails(**response.json())
+    SnakeMetadataResponse(**response.json())
     assert response.status_code == 200
 
 

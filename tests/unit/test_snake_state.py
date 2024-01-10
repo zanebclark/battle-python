@@ -1,11 +1,12 @@
 import pytest
 
-from battle_python.EnrichedBoard import EnrichedBoard
+from battle_python.BoardState import BoardState
+from battle_python.GameState import GameState
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import (
     Coord,
 )
-from mocks.get_mock_enriched_board import get_mock_enriched_board
+from mocks.get_mock_board_state import get_mock_board_state
 from mocks.get_mock_snake_state import get_mock_snake_state
 
 
@@ -13,7 +14,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
     "board, expected",
     [
         (  # Left Border: Up -> Right
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -28,7 +29,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
             [Coord(x=1, y=10)],
         ),
         (  # Left Border: Down -> Right
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -43,7 +44,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
             [Coord(x=1, y=0)],
         ),
         (  # Right Border: Up -> Left
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -58,7 +59,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
             [Coord(x=9, y=10)],
         ),
         (  # Right Border: Down -> Left
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -73,7 +74,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
             [Coord(x=9, y=0)],
         ),
         (  # Bottom Border: Left -> Up
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -88,7 +89,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
             [Coord(x=0, y=1)],
         ),
         (  # Bottom Border: Right -> Up
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -103,7 +104,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
             [Coord(x=10, y=1)],
         ),
         (  # Top Border: Left -> Down
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -118,7 +119,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
             [Coord(x=0, y=9)],
         ),
         (  # TopBorder:  Right -> Down
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -134,7 +135,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
         ),
         # Two Options
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -153,7 +154,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
         ),
         # Three Options
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -173,7 +174,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
         ),
         # Ouroboros
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         is_self=True,
@@ -190,7 +191,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
         ),
         # Collision, equal length
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Sidecar",
@@ -215,7 +216,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
         ),
         # Collision, equal length, no good options
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Up -> Right",
@@ -240,7 +241,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
         ),
         # Collision, greater length
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Sidecar",
@@ -269,7 +270,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
         ),
     ],
 )
-def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[Coord]):
+def test_snake_state_get_reasonable_moves(board: BoardState, expected: list[Coord]):
     snake: SnakeState | None = None
     for potential_snake in board.snake_states:
         if potential_snake.is_self:
@@ -287,7 +288,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
     "board, expected",
     [
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Left Border: Up -> Right",
@@ -315,7 +316,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
             ],
         ),
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Left Border: Down -> Right",
@@ -343,7 +344,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
             ],
         ),
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Right Border: Up -> Left",
@@ -371,7 +372,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
             ],
         ),
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Right Border: Down -> Left",
@@ -399,7 +400,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
             ],
         ),
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Bottom Border: Left -> Up",
@@ -427,7 +428,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
             ],
         ),
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Bottom Border: Right -> Up",
@@ -455,7 +456,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
             ],
         ),
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Top Border: Left -> Down",
@@ -483,7 +484,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
             ],
         ),
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="TopBorder:  Right -> Down",
@@ -511,7 +512,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
             ],
         ),
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Two Options",
@@ -551,7 +552,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
             ],
         ),
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Three Options",
@@ -602,7 +603,7 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
             ],
         ),
         (
-            get_mock_enriched_board(
+            get_mock_board_state(
                 snake_states=[
                     get_mock_snake_state(
                         snake_id="Ouroboros",
@@ -633,8 +634,8 @@ def test_snake_state_get_reasonable_moves(board: EnrichedBoard, expected: list[C
         ),
     ],
 )  # TODO: Test no health prob
-def test_snake_get_next_states(
-    board: EnrichedBoard,
+def test_snake_state_get_next_states(
+    board: BoardState,
     expected: list[SnakeState],
 ):
     snake: SnakeState | None = None
