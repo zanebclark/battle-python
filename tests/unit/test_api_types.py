@@ -1,4 +1,4 @@
-from battle_python.game_state import Coord
+from battle_python.api_types import Coord
 
 
 def test_coord_get_adjacent():

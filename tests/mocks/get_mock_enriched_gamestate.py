@@ -1,43 +1,12 @@
 import uuid
 
+from battle_python.EnrichedBoard import EnrichedBoard
+from battle_python.EnrichedGameState import SnakeDef, EnrichedGameState
+from battle_python.SnakeState import SnakeState
 from battle_python.api_types import Coord, SnakeCustomizations
-from battle_python.game_state import (
-    SnakeState,
-    EnrichedBoard,
-    EnrichedGameState,
-    SnakeDef,
-)
+from mocks.get_mock_enriched_board import get_mock_enriched_board
+
 from mocks.mock_api_types import get_mock_standard_game
-
-
-def get_mock_snake_state(
-    body_coords: list[Coord],
-    state_prob: float = 1,
-    death_prob: float = 0,
-    food_prob: float = 0,
-    murder_prob: float = 0,
-    snake_id: str | None = None,
-    health: int = 60,
-    latency: int | None = 456,
-    shout: str | None = None,
-    is_self: bool = False,
-) -> SnakeState:
-    if snake_id is None:
-        snake_id = str(uuid.uuid4())
-    return SnakeState(
-        snake_id=snake_id,
-        state_prob=state_prob,
-        death_prob=death_prob,
-        food_prob=food_prob,
-        murder_prob=murder_prob,
-        health=health,
-        body=body_coords,
-        latency=str(latency),
-        head=body_coords[0],
-        length=len(body_coords),
-        shout=shout,
-        is_self=is_self,
-    )
 
 
 def get_mock_snake_def(
@@ -53,31 +22,6 @@ def get_mock_snake_def(
             color="#888888", head="all-seeing", tail="curled"
         ),
         is_self=is_self,
-    )
-
-
-def get_mock_enriched_board(
-    turn: int = 0,
-    board_height: int = 11,
-    board_width: int = 11,
-    food_prob: dict[Coord, float] | None = None,
-    hazard_prob: dict[Coord, float] | None = None,
-    snake_states: list[SnakeState] | None = None,
-) -> EnrichedBoard:
-    if not food_prob:
-        food_prob = {}
-    if not hazard_prob:
-        hazard_prob = {}
-    if not snake_states:
-        snake_states = []
-
-    return EnrichedBoard(
-        turn=turn,
-        board_width=board_width,
-        board_height=board_height,
-        food_prob=food_prob,
-        hazard_prob=hazard_prob,
-        snake_states=snake_states,
     )
 
 
