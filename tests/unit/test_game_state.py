@@ -13,9 +13,10 @@ from battle_python.game_state import (
     SnakeState,
     EnrichedGameState,
     get_legal_adjacent_coords,
+    EnrichedBoard,
 )
 from mocks.mock_api_types import get_mock_snake
-from mocks.mock_game_state import get_mock_snake_state
+from mocks.mock_game_state import get_mock_snake_state, get_mock_enriched_board
 
 
 @pytest.mark.parametrize(
@@ -52,170 +53,115 @@ def test_get_legal_adjacent_coords(coord: Coord, expected: list[Coord]):
 
 
 @pytest.mark.parametrize(
-    "snake, expected",
-    [
-        (
-            get_mock_snake_state(
-                [
-                    Coord(x=0, y=2),
-                    Coord(x=0, y=1),
-                    Coord(x=0, y=0),
-                    Coord(x=0, y=0),
-                ],
-            ),
-            True,
-        ),
-        (
-            get_mock_snake_state(
-                [
-                    Coord(x=0, y=2),
-                    Coord(x=0, y=1),
-                    Coord(x=0, y=0),
-                ],
-            ),
-            False,
-        ),
-    ],
-)
-def test_snake_state_is_growing(snake: SnakeState, expected: bool):
-    assert snake.is_growing() is expected
-
-
-@pytest.mark.parametrize(
-    "snake, coord, expected",
-    [
-        (
-            get_mock_snake_state(
-                [
-                    Coord(x=0, y=2),
-                    Coord(x=0, y=1),
-                    Coord(x=0, y=0),
-                    Coord(x=0, y=0),
-                ],
-            ),
-            Coord(x=0, y=0),
-            True,
-        ),
-        (
-            get_mock_snake_state(
-                [
-                    Coord(x=0, y=2),
-                    Coord(x=0, y=1),
-                    Coord(x=0, y=0),
-                ],
-            ),
-            Coord(x=0, y=0),
-            False,
-        ),
-        (
-            get_mock_snake_state(
-                [
-                    Coord(x=0, y=2),
-                    Coord(x=0, y=1),
-                    Coord(x=0, y=0),
-                ],
-            ),
-            Coord(x=0, y=2),
-            True,
-        ),
-    ],
-)
-def test_snake_state_is_collision(snake: SnakeState, coord: Coord, expected: bool):
-    assert snake.is_collision(coord) is expected
-
-
-@pytest.mark.parametrize(
-    "snake, expected",
+    "snake, extra_snake_states, expected",
     [
         (  # Left Border: Up -> Right
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=0, y=10),
                     Coord(x=0, y=9),
                     Coord(x=0, y=8),
-                ]
+                ],
             ),
+            [],
             [Coord(x=1, y=10)],
         ),
         (  # Left Border: Down -> Right
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=0, y=0),
                     Coord(x=0, y=1),
                     Coord(x=0, y=2),
-                ]
+                ],
             ),
+            [],
             [Coord(x=1, y=0)],
         ),
         (  # Right Border: Up -> Left
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=10, y=10),
                     Coord(x=10, y=9),
                     Coord(x=10, y=8),
-                ]
+                ],
             ),
+            [],
             [Coord(x=9, y=10)],
         ),
         (  # Right Border: Down -> Left
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=10, y=0),
                     Coord(x=10, y=1),
                     Coord(x=10, y=2),
-                ]
+                ],
             ),
+            [],
             [Coord(x=9, y=0)],
         ),
         (  # Bottom Border: Left -> Up
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=0, y=0),
                     Coord(x=1, y=0),
                     Coord(x=2, y=0),
-                ]
+                ],
             ),
+            [],
             [Coord(x=0, y=1)],
         ),
         (  # Bottom Border: Right -> Up
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=10, y=0),
                     Coord(x=9, y=0),
                     Coord(x=8, y=0),
-                ]
+                ],
             ),
+            [],
             [Coord(x=10, y=1)],
         ),
         (  # Top Border: Left -> Down
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=0, y=10),
                     Coord(x=1, y=10),
                     Coord(x=2, y=10),
-                ]
+                ],
             ),
+            [],
             [Coord(x=0, y=9)],
         ),
         (  # TopBorder:  Right -> Down
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=10, y=10),
                     Coord(x=9, y=10),
                     Coord(x=8, y=10),
-                ]
+                ],
             ),
+            [],
             [Coord(x=10, y=9)],
         ),
         # Two Options
         (
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=1, y=10),
                     Coord(x=2, y=10),
                     Coord(x=3, y=10),
-                ]
+                ],
             ),
+            [],
             [
                 Coord(x=0, y=10),
                 Coord(x=1, y=9),
@@ -224,12 +170,14 @@ def test_snake_state_is_collision(snake: SnakeState, coord: Coord, expected: boo
         # Three Options
         (
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=1, y=9),
                     Coord(x=2, y=9),
                     Coord(x=3, y=9),
-                ]
+                ],
             ),
+            [],
             [
                 Coord(x=1, y=10),
                 Coord(x=0, y=9),
@@ -239,23 +187,101 @@ def test_snake_state_is_collision(snake: SnakeState, coord: Coord, expected: boo
         # Ouroboros
         (
             get_mock_snake_state(
+                is_self=True,
                 body_coords=[
                     Coord(x=0, y=10),
                     Coord(x=0, y=9),
                     Coord(x=1, y=9),
                     Coord(x=1, y=10),
-                ]
+                ],
             ),
+            [],
             [Coord(x=1, y=10)],
+        ),
+        # Collision, equal length
+        (
+            get_mock_snake_state(
+                snake_id="Sidecar",
+                is_self=True,
+                body_coords=[
+                    Coord(x=1, y=9),
+                    Coord(x=1, y=8),
+                    Coord(x=1, y=7),
+                ],
+            ),
+            [
+                get_mock_snake_state(
+                    snake_id="Up -> Right",
+                    body_coords=[
+                        Coord(x=0, y=10),
+                        Coord(x=0, y=9),
+                        Coord(x=0, y=8),
+                    ],
+                )
+            ],
+            [Coord(x=2, y=9)],
+        ),
+        # Collision, equal length, no good options
+        (
+            get_mock_snake_state(
+                snake_id="Up -> Right",
+                body_coords=[
+                    Coord(x=0, y=10),
+                    Coord(x=0, y=9),
+                    Coord(x=0, y=8),
+                ],
+            ),
+            [
+                get_mock_snake_state(
+                    snake_id="Sidecar",
+                    is_self=True,
+                    body_coords=[
+                        Coord(x=1, y=9),
+                        Coord(x=1, y=8),
+                        Coord(x=1, y=7),
+                    ],
+                ),
+            ],
+            [],
+        ),
+        # Collision, greater length
+        (
+            get_mock_snake_state(
+                snake_id="Sidecar",
+                is_self=True,
+                body_coords=[
+                    Coord(x=1, y=9),
+                    Coord(x=1, y=8),
+                    Coord(x=1, y=7),
+                    Coord(x=1, y=6),
+                ],
+            ),
+            [
+                get_mock_snake_state(
+                    snake_id="Up -> Right",
+                    body_coords=[
+                        Coord(x=0, y=10),
+                        Coord(x=0, y=9),
+                        Coord(x=0, y=8),
+                    ],
+                )
+            ],
+            [
+                Coord(x=2, y=9),
+                Coord(x=1, y=10),
+            ],
         ),
     ],
 )
-def test_snake_state_get_self_evading_moves(snake: SnakeState, expected: list[Coord]):
+def test_snake_state_get_reasonable_moves(
+    snake: SnakeState, extra_snake_states: list[SnakeState], expected: list[Coord]
+):
     board_width = 11
     board_height = 11
-    moves = snake.get_self_evading_moves(
+    moves = snake.get_reasonable_moves(
         board_height=board_height,
         board_width=board_width,
+        snake_states=[snake, *extra_snake_states],
     )
     assert sorted(moves) == sorted(expected)
 
@@ -315,8 +341,8 @@ def test_board_init():
     # Board-level assertions
     assert e_gs.board_height == board.height
     assert e_gs.board_width == board.width
-    assert e_gs.turns[0].food == board.food
-    assert e_gs.turns[0].hazards == board.hazards
+    assert list(e_gs.turns[0].food_prob.keys()) == board.food
+    assert list(e_gs.turns[0].hazard_prob.keys()) == board.hazards
     assert e_gs.turns[0].turn == gs.turn
     assert len(e_gs.snake_defs.keys()) == len(snakes)
     gs_snakes = [*e_gs.turns[0].snake_states]
@@ -334,7 +360,10 @@ def test_board_init():
         if not gs_snake:
             raise Exception(f"snake not found: {snake.id}")
 
-        assert gs_snake.probability == 100
+        assert gs_snake.state_prob == 1
+        assert gs_snake.death_prob == 0
+        assert gs_snake.food_prob == 0
+        assert gs_snake.murder_prob == 0
         assert gs_snake.health == snake.health
         assert gs_snake.body == snake.body
         assert gs_snake.latency == int(snake.latency)
@@ -350,9 +379,10 @@ def test_board_init():
 @pytest.mark.parametrize(
     "snake_state, expected",
     [
-        (  # Left Border: Up -> Right
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="Left Border: Up -> Right",
+                is_self=True,
                 body_coords=[
                     Coord(x=0, y=10),
                     Coord(x=0, y=9),
@@ -362,7 +392,8 @@ def test_board_init():
             ),
             [
                 get_mock_snake_state(
-                    probability=float(100),
+                    snake_id="Left Border: Up -> Right",
+                    is_self=True,
                     body_coords=[
                         Coord(x=1, y=10),
                         Coord(x=0, y=10),
@@ -372,9 +403,10 @@ def test_board_init():
                 )
             ],
         ),
-        (  # Left Border: Down -> Right
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="Left Border: Down -> Right",
+                is_self=True,
                 body_coords=[
                     Coord(x=0, y=0),
                     Coord(x=0, y=1),
@@ -384,7 +416,8 @@ def test_board_init():
             ),
             [
                 get_mock_snake_state(
-                    probability=float(100),
+                    snake_id="Left Border: Down -> Right",
+                    is_self=True,
                     body_coords=[
                         Coord(x=1, y=0),
                         Coord(x=0, y=0),
@@ -394,9 +427,10 @@ def test_board_init():
                 )
             ],
         ),
-        (  # Right Border: Up -> Left
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="Right Border: Up -> Left",
+                is_self=True,
                 body_coords=[
                     Coord(x=10, y=10),
                     Coord(x=10, y=9),
@@ -406,7 +440,8 @@ def test_board_init():
             ),
             [
                 get_mock_snake_state(
-                    probability=float(100),
+                    snake_id="Right Border: Up -> Left",
+                    is_self=True,
                     body_coords=[
                         Coord(x=9, y=10),
                         Coord(x=10, y=10),
@@ -416,9 +451,10 @@ def test_board_init():
                 )
             ],
         ),
-        (  # Right Border: Down -> Left
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="Right Border: Down -> Left",
+                is_self=True,
                 body_coords=[
                     Coord(x=10, y=0),
                     Coord(x=10, y=1),
@@ -428,7 +464,8 @@ def test_board_init():
             ),
             [
                 get_mock_snake_state(
-                    probability=float(100),
+                    snake_id="Right Border: Down -> Left",
+                    is_self=True,
                     body_coords=[
                         Coord(x=9, y=0),
                         Coord(x=10, y=0),
@@ -438,9 +475,10 @@ def test_board_init():
                 )
             ],
         ),
-        (  # Bottom Border: Left -> Up
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="Bottom Border: Left -> Up",
+                is_self=True,
                 body_coords=[
                     Coord(x=0, y=0),
                     Coord(x=1, y=0),
@@ -450,7 +488,8 @@ def test_board_init():
             ),
             [
                 get_mock_snake_state(
-                    probability=float(100),
+                    snake_id="Bottom Border: Left -> Up",
+                    is_self=True,
                     body_coords=[
                         Coord(x=0, y=1),
                         Coord(x=0, y=0),
@@ -460,9 +499,10 @@ def test_board_init():
                 )
             ],
         ),
-        (  # Bottom Border: Right -> Up
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="Bottom Border: Right -> Up",
+                is_self=True,
                 body_coords=[
                     Coord(x=10, y=0),
                     Coord(x=9, y=0),
@@ -472,7 +512,8 @@ def test_board_init():
             ),
             [
                 get_mock_snake_state(
-                    probability=float(100),
+                    snake_id="Bottom Border: Right -> Up",
+                    is_self=True,
                     body_coords=[
                         Coord(x=10, y=1),
                         Coord(x=10, y=0),
@@ -482,9 +523,10 @@ def test_board_init():
                 )
             ],
         ),
-        (  # Top Border: Left -> Down
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="Top Border: Left -> Down",
+                is_self=True,
                 body_coords=[
                     Coord(x=0, y=10),
                     Coord(x=1, y=10),
@@ -494,19 +536,21 @@ def test_board_init():
             ),
             [
                 get_mock_snake_state(
-                    probability=float(100),
+                    snake_id="Top Border: Left -> Down",
+                    is_self=True,
                     body_coords=[
                         Coord(x=0, y=9),
                         Coord(x=0, y=10),
                         Coord(x=1, y=10),
                     ],
-                    health=100,
+                    health=99,
                 )
             ],
         ),
-        (  # TopBorder:  Right -> Down
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="TopBorder:  Right -> Down",
+                is_self=True,
                 body_coords=[
                     Coord(x=10, y=10),
                     Coord(x=9, y=10),
@@ -516,7 +560,8 @@ def test_board_init():
             ),
             [
                 get_mock_snake_state(
-                    probability=float(100),
+                    snake_id="TopBorder:  Right -> Down",
+                    is_self=True,
                     body_coords=[
                         Coord(x=10, y=9),
                         Coord(x=10, y=10),
@@ -526,9 +571,10 @@ def test_board_init():
                 )
             ],
         ),
-        (  # Two Options
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="Two Options",
+                is_self=True,
                 body_coords=[
                     Coord(x=1, y=10),
                     Coord(x=2, y=10),
@@ -538,7 +584,9 @@ def test_board_init():
             ),
             [
                 get_mock_snake_state(
-                    probability=float(50),
+                    snake_id="Two Options",
+                    is_self=True,
+                    state_prob=float(1 / 2),
                     body_coords=[
                         Coord(x=1, y=9),
                         Coord(x=1, y=10),
@@ -547,7 +595,9 @@ def test_board_init():
                     health=99,
                 ),
                 get_mock_snake_state(
-                    probability=float(50),
+                    snake_id="Two Options",
+                    is_self=True,
+                    state_prob=float(1 / 2),
                     body_coords=[
                         Coord(x=0, y=10),
                         Coord(x=1, y=10),
@@ -557,18 +607,22 @@ def test_board_init():
                 ),
             ],
         ),
-        (  # Three Options
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="Three Options",
+                is_self=True,
                 body_coords=[
                     Coord(x=1, y=9),
                     Coord(x=2, y=9),
                     Coord(x=3, y=9),
                 ],
+                health=100,
             ),
             [
                 get_mock_snake_state(
-                    probability=float(100 / 3),
+                    snake_id="Three Options",
+                    is_self=True,
+                    state_prob=float(1 / 3),
                     body_coords=[
                         Coord(x=1, y=8),
                         Coord(x=1, y=9),
@@ -577,7 +631,9 @@ def test_board_init():
                     health=99,
                 ),
                 get_mock_snake_state(
-                    probability=float(100 / 3),
+                    snake_id="Three Options",
+                    is_self=True,
+                    state_prob=float(1 / 3),
                     body_coords=[
                         Coord(x=0, y=9),
                         Coord(x=1, y=9),
@@ -586,7 +642,9 @@ def test_board_init():
                     health=99,
                 ),
                 get_mock_snake_state(
-                    probability=float(100 / 3),
+                    snake_id="Three Options",
+                    is_self=True,
+                    state_prob=float(1 / 3),
                     body_coords=[
                         Coord(x=1, y=10),
                         Coord(x=1, y=9),
@@ -596,25 +654,29 @@ def test_board_init():
                 ),
             ],
         ),
-        (  # Ouroboros
+        (
             get_mock_snake_state(
-                probability=float(100),
+                snake_id="Ouroboros",
+                is_self=True,
                 body_coords=[
                     Coord(x=0, y=10),
                     Coord(x=0, y=9),
                     Coord(x=1, y=9),
                     Coord(x=1, y=10),
                 ],
+                health=100,
             ),
             [
                 get_mock_snake_state(
-                    probability=float(100),
+                    snake_id="Ouroboros",
+                    is_self=True,
                     body_coords=[
                         Coord(x=1, y=10),
                         Coord(x=0, y=10),
                         Coord(x=0, y=9),
                         Coord(x=1, y=9),
                     ],
+                    health=99,
                 )
             ],
         ),
@@ -628,19 +690,311 @@ def test_snake_get_next_states(
     board_height = 11
 
     next_states = snake_state.get_next_states(
-        board_width=board_width,
-        board_height=board_height,
+        board_width=board_width, board_height=board_height, snake_states=[snake_state]
     )
 
     assert len(next_states) == len(expected)
     for next_state in next_states:
-        for expected_state in expected:
-            if expected_state.snake_id != next_state.snake_id:
-                continue
+        expected_state: SnakeState | None = None
+        for some_expected_state in expected:
+            if (
+                some_expected_state.snake_id == next_state.snake_id
+                and some_expected_state.body == next_state.body
+            ):
+                expected_state = some_expected_state
+                break
 
-            assert next_state.probability == expected_state.probability
-            assert next_state.health == expected_state.health
-            assert next_state.body == expected_state.body
-            assert next_state.head == expected_state.head
-            assert next_state.length == expected_state.length
-            assert next_state.prev_state == snake_state
+        if expected_state is None:
+            raise Exception()
+
+        assert next_state.state_prob == expected_state.state_prob
+        assert next_state.health == expected_state.health
+        assert next_state.body == expected_state.body
+        assert next_state.head == expected_state.head
+        assert next_state.length == expected_state.length
+        assert next_state.prev_state == snake_state
+
+
+@pytest.mark.parametrize(
+    "description, board, expected",
+    [
+        (
+            "Equal length snakes. Avoidable body collision and head collision",
+            get_mock_enriched_board(
+                board_height=11,
+                board_width=11,
+                turn=0,
+                snake_states=[
+                    get_mock_snake_state(
+                        is_self=True,
+                        snake_id="Up -> Right",
+                        body_coords=[
+                            Coord(x=0, y=10),
+                            Coord(x=0, y=9),
+                            Coord(x=0, y=8),
+                        ],
+                    ),
+                    get_mock_snake_state(
+                        snake_id="Sidecar",
+                        body_coords=[
+                            Coord(x=1, y=9),
+                            Coord(x=1, y=8),
+                            Coord(x=1, y=7),
+                        ],
+                    ),
+                ],
+            ),
+            get_mock_enriched_board(
+                board_height=11,
+                board_width=11,
+                turn=1,
+                snake_states=[
+                    get_mock_snake_state(
+                        is_self=True,
+                        snake_id="Up -> Right",
+                        body_coords=[
+                            Coord(x=1, y=10),
+                            Coord(x=0, y=10),
+                            Coord(x=0, y=9),
+                        ],
+                    ),
+                    get_mock_snake_state(
+                        snake_id="Sidecar",
+                        body_coords=[
+                            Coord(x=2, y=9),
+                            Coord(x=1, y=9),
+                            Coord(x=1, y=8),
+                        ],
+                    ),
+                ],
+            ),
+        ),
+        # (
+        #     "Different length snakes. Avoidable body collision. Allow head collision",
+        #     get_mock_enriched_board(
+        #         turn=0,
+        #         snake_states=[
+        #             get_mock_snake_state(
+        #                 is_self=True,
+        #                 snake_id="Up -> Right",
+        #                 body_coords=[
+        #                     Coord(x=0, y=10),
+        #                     Coord(x=0, y=9),
+        #                     Coord(x=0, y=8),
+        #                 ],
+        #             ),
+        #             get_mock_snake_state(
+        #                 snake_id="Sidecar",
+        #                 body_coords=[
+        #                     Coord(x=1, y=9),
+        #                     Coord(x=1, y=8),
+        #                     Coord(x=1, y=7),
+        #                     Coord(x=1, y=6),
+        #                 ],
+        #             ),
+        #         ],
+        #     ),
+        #     {
+        #         "Up -> Right": {
+        #             Coord(x=1, y=10): Spam(
+        #                 state_prob=100, direction="right", body_index=0
+        #             ),
+        #             Coord(x=0, y=10): Spam(state_prob=100, body_index=1),
+        #             Coord(x=0, y=9): Spam(state_prob=100, body_index=2),
+        #         },
+        #         "Sidecar": {
+        #             Coord(x=2, y=9): Spam(
+        #                 state_prob=50, direction="right", body_index=0
+        #             ),
+        #             Coord(x=1, y=10): Spam(
+        #                 state_prob=50, direction="up", body_index=0
+        #             ),
+        #             Coord(x=1, y=9): Spam(state_prob=100, body_index=1),
+        #             Coord(x=1, y=8): Spam(state_prob=100, body_index=2),
+        #             Coord(x=1, y=7): Spam(state_prob=100, body_index=3),
+        #         },
+        #     },
+        # ),
+        # (
+        #     "A ménage à trois. Equal lengths",
+        #     get_mock_enriched_board(
+        #         turn=0,
+        #         snake_states=[
+        #             get_mock_snake_state(
+        #                 is_self=True,
+        #                 snake_id="Up -> Right",
+        #                 body_coords=[
+        #                     Coord(x=0, y=10),
+        #                     Coord(x=0, y=9),
+        #                     Coord(x=0, y=8),
+        #                 ],
+        #             ),
+        #             get_mock_snake_state(
+        #                 snake_id="Sidecar",
+        #                 body_coords=[
+        #                     Coord(x=1, y=9),
+        #                     Coord(x=1, y=8),
+        #                     Coord(x=1, y=7),
+        #                 ],
+        #                 health=100,
+        #             ),
+        #             get_mock_snake_state(
+        #                 snake_id="Up -> Left",
+        #                 body_coords=[
+        #                     Coord(x=2, y=10),
+        #                     Coord(x=2, y=9),
+        #                     Coord(x=2, y=8),
+        #                 ],
+        #             ),
+        #         ],
+        #     ),
+        #     {
+        #         "Up -> Right": {
+        #             Coord(x=1, y=10): Spam(
+        #                 state_prob=100, direction="right", body_index=0
+        #             ),
+        #             Coord(x=0, y=10): Spam(state_prob=100, body_index=1),
+        #             Coord(x=0, y=9): Spam(state_prob=100, body_index=2),
+        #         },
+        #         "Sidecar": {
+        #             Coord(x=1, y=10): Spam(
+        #                 state_prob=100, direction="up", body_index=0
+        #             ),
+        #             Coord(x=1, y=9): Spam(state_prob=100, body_index=1),
+        #             Coord(x=1, y=8): Spam(state_prob=100, body_index=2),
+        #         },
+        #         "Up -> Left": {
+        #             Coord(x=3, y=10): Spam(
+        #                 state_prob=100, direction="right", body_index=0
+        #             ),
+        #             Coord(x=2, y=10): Spam(state_prob=100, body_index=1),
+        #             Coord(x=2, y=9): Spam(state_prob=100, body_index=2),
+        #         },
+        #     },
+        # ),
+        # (
+        #     "A ménage à trois. Allow head collision",
+        #     get_mock_enriched_board(
+        #         turn=0,
+        #         snake_states=[
+        #             get_mock_snake_state(
+        #                 is_self=True,
+        #                 snake_id="Up -> Right",
+        #                 body_coords=[
+        #                     Coord(x=0, y=10),
+        #                     Coord(x=0, y=9),
+        #                     Coord(x=0, y=8),
+        #                 ],
+        #             ),
+        #             get_mock_snake_state(
+        #                 snake_id="Sidecar",
+        #                 body_coords=[
+        #                     Coord(x=1, y=9),
+        #                     Coord(x=1, y=8),
+        #                     Coord(x=1, y=7),
+        #                 ],
+        #             ),
+        #             get_mock_snake_state(
+        #                 snake_id="Up -> Left",
+        #                 body_coords=[
+        #                     Coord(x=2, y=10),
+        #                     Coord(x=2, y=9),
+        #                     Coord(x=2, y=8),
+        #                     Coord(x=2, y=7),
+        #                 ],
+        #             ),
+        #         ],
+        #     ),
+        #     {
+        #         "Up -> Right": {
+        #             Coord(x=1, y=10): Spam(
+        #                 state_prob=100, direction="right", body_index=0
+        #             ),
+        #             Coord(x=0, y=10): Spam(state_prob=100, body_index=1),
+        #             Coord(x=0, y=9): Spam(state_prob=100, body_index=2),
+        #         },
+        #         "Sidecar": {
+        #             Coord(x=1, y=10): Spam(
+        #                 state_prob=100, direction="up", body_index=0
+        #             ),
+        #             Coord(x=1, y=9): Spam(state_prob=100, body_index=1),
+        #             Coord(x=1, y=8): Spam(state_prob=100, body_index=2),
+        #         },
+        #         "Up -> Left": {
+        #             Coord(x=1, y=10): Spam(
+        #                 state_prob=50, direction="left", body_index=0
+        #             ),
+        #             Coord(x=3, y=10): Spam(
+        #                 state_prob=50, direction="right", body_index=0
+        #             ),
+        #             Coord(x=2, y=10): Spam(state_prob=100, body_index=1),
+        #             Coord(x=2, y=9): Spam(state_prob=100, body_index=2),
+        #             Coord(x=2, y=8): Spam(state_prob=100, body_index=3),
+        #         },
+        #     },
+        # ),
+        # (
+        #     "One snake. Three options",
+        #     get_mock_enriched_board(
+        #         board_height=11,
+        #         board_width=11,
+        #         turn=0,
+        #         food_prob=[Coord(x=1, y=1), Coord(x=10, y=10)],
+        #         snake_states=[
+        #             get_mock_snake_state(
+        #                 is_self=True,
+        #                 snake_id="Highlander",
+        #                 body_coords=[
+        #                     Coord(x=1, y=9),
+        #                     Coord(x=1, y=8),
+        #                     Coord(x=1, y=7),
+        #                 ],
+        #             ),
+        #         ],
+        #     ),
+        #     {
+        #         "Highlander": {
+        #             Coord(x=1, y=10): Spam(
+        #                 state_prob=float(100 / 3), direction="up", body_index=0
+        #             ),
+        #             Coord(x=0, y=9): Spam(
+        #                 state_prob=float(100 / 3), direction="left", body_index=0
+        #             ),
+        #             Coord(x=2, y=9): Spam(
+        #                 state_prob=float(100 / 3), direction="right", body_index=0
+        #             ),
+        #             Coord(x=1, y=9): Spam(state_prob=100, body_index=1),
+        #             Coord(x=1, y=8): Spam(state_prob=100, body_index=2),
+        #         },
+        #     },
+        # ),
+    ],
+)
+def test_resolve_collisions(
+    description: str,
+    board: EnrichedBoard,
+    expected: EnrichedBoard,
+):
+    next_board = board.get_next_board()
+    assert next_board.turn == expected.turn
+    assert next_board.board_height == expected.board_height
+    assert next_board.board_width == expected.board_width
+    assert sorted(next_board.food_prob) == sorted(expected.food_prob)
+    assert sorted(next_board.hazard_prob) == sorted(expected.hazard_prob)
+    assert len(next_board.snake_states) == len(expected.snake_states)
+    for snake_state in next_board.snake_states:
+        expected_state: SnakeState | None = None
+        for some_expected_state in expected.snake_states:
+            if some_expected_state.snake_id == snake_state.snake_id:
+                expected_state = some_expected_state
+                break
+
+        if expected_state is None:
+            raise Exception()
+
+        assert snake_state.state_prob == expected_state.state_prob
+        assert snake_state.health == expected_state.health
+        assert snake_state.body == expected_state.body
+        assert snake_state.head == expected_state.head
+        assert snake_state.length == expected_state.length
+        assert snake_state.prev_state == snake_state

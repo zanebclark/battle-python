@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections import defaultdict
+import random
+
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt
 
@@ -9,6 +12,8 @@ from battle_python.api_types import (
     Coord,
     Game,
 )
+
+DEATH = Coord(x=1000, y=1000)
 
 
 def get_legal_adjacent_coords(
@@ -31,9 +36,12 @@ class SnakeDef(FrozenBaseModel):
     is_self: bool = False
 
 
-class SnakeState(FrozenBaseModel):
+class SnakeState(BaseModel):
     snake_id: str
-    probability: float
+    state_prob: float
+    death_prob: float
+    food_prob: float
+    murder_prob: float
     health: NonNegativeInt
     body: list[Coord]
     head: Coord
@@ -43,71 +51,71 @@ class SnakeState(FrozenBaseModel):
     is_self: bool = False
     prev_state: SnakeState | None = None
 
-    def is_growing(self):
-        """
-        If the snake consumed food on the previous round, the last two coordinates of its body will be equal.
-        The snake's tail won't move on the next round.
-        :return:
-        """
-        return self.body[-1] == self.body[-2]
-
-    def is_collision(self, coord: Coord) -> bool:
-        # Avoid self collision.
-        if coord in self.body[0:-1]:
-            return True
-
-        # Avoid your tail if it won't move
-        if coord == self.body[-1] and self.is_growing():
-            return True
-
-        return False
-
-    def get_self_evading_moves(
+    def get_reasonable_moves(
         self,
         board_width: NonNegativeInt,
         board_height: NonNegativeInt,
+        snake_states: list[SnakeState],
     ) -> list[Coord]:
         coords = get_legal_adjacent_coords(
             board_width=board_width, board_height=board_height, coord=self.head
         )
-        return [coord for coord in coords if not self.is_collision(coord=coord)]
 
-    def get_next_body_sans_head(self) -> list[Coord]:
-        next_body_sans_head: list[Coord] = []
-        for current_body_index, coord in enumerate(self.body):
-            if coord == self.body[-1] and not self.is_growing():
-                continue
-            next_body_sans_head.append(coord)
+        snake_body_coords = [
+            coord
+            for snake in snake_states
+            for coord in snake.body[:-1]
+            if snake.state_prob == 1  # TODO: Make this configurable
+        ]
 
-        return next_body_sans_head
+        potential_snake_head_coords = [
+            coord
+            for snake in snake_states
+            for coord in snake.head.get_adjacent()
+            if not snake.is_self
+            and snake.length >= self.length
+            and snake.state_prob >= float(1 / 3)  # TODO: Make this configurable
+        ]
+
+        return [
+            coord
+            for coord in coords
+            if coord not in snake_body_coords
+            and coord not in potential_snake_head_coords
+        ]
 
     def get_next_states(
         self,
         board_width: NonNegativeInt,
         board_height: NonNegativeInt,
+        snake_states: list[SnakeState],
     ) -> list[SnakeState]:
-        safe_moves = self.get_self_evading_moves(
-            board_width=board_width, board_height=board_height
+        reasonable_moves = self.get_reasonable_moves(
+            board_width=board_width,
+            board_height=board_height,
+            snake_states=snake_states,
         )
-        option_count = float(len(safe_moves))
+        option_count = float(len(reasonable_moves))
 
         if option_count == 0:
-            return []  # TODO: How do I reflect that the snake will die?
-
-        next_body_sans_head: list[Coord] = self.get_next_body_sans_head()
+            reasonable_moves = [DEATH]
+            option_count = 1
 
         safe_snake_coords = [
             SnakeState(
                 snake_id=self.snake_id,
-                probability=self.probability / option_count,
-                health=self.health - 1,
-                body=[coord, *next_body_sans_head],
+                state_prob=self.state_prob / option_count,
+                death_prob=self.death_prob if coord is not DEATH else 1,
+                food_prob=self.food_prob,
+                murder_prob=self.murder_prob,
+                health=self.health - 1,  # TODO: Address hazard zones
+                body=[coord, *self.body[:-1]],
                 head=coord,
                 length=self.length,
                 is_self=self.is_self,
                 prev_state=self,
             )
-            for coord in safe_moves
+            for coord in reasonable_moves
         ]
 
         return safe_snake_coords
@@ -115,9 +123,65 @@ class SnakeState(FrozenBaseModel):
 
 class EnrichedBoard(FrozenBaseModel):
     turn: NonNegativeInt
-    food: list[Coord]
-    hazards: list[Coord]
+    board_height: NonNegativeInt
+    board_width: NonNegativeInt
+    food_prob: dict[Coord, float]
+    hazard_prob: dict[Coord, float]
     snake_states: list[SnakeState]
+
+    def get_next_board(self) -> EnrichedBoard:
+        next_food_prob: dict[Coord, float] = {**self.food_prob}
+        next_snake_states = [
+            state
+            for next_states in self.snake_states
+            for state in next_states.get_next_states(
+                board_width=self.board_width,
+                board_height=self.board_height,
+                snake_states=self.snake_states,
+            )
+        ]
+
+        heads_at_coord: dict[Coord, list[SnakeState]] = defaultdict(list)
+        for next_snake_state in next_snake_states:
+            heads_at_coord[next_snake_state.head].append(next_snake_state)
+
+        # Resolve head collisions and food_prob consumption
+        for coord, snake_states in heads_at_coord.items():
+            # Resolve head collisions
+            if len(snake_states) > 1:
+                snake_states.sort(key=lambda snake: snake.length)
+                longest_snake = snake_states[0]
+                for other_snake in snake_states[1:]:
+                    if longest_snake.length == other_snake.length:
+                        longest_snake.death_prob += (
+                            longest_snake.state_prob * other_snake.state_prob
+                        )
+                    else:
+                        longest_snake.murder_prob += (
+                            longest_snake.state_prob * other_snake.state_prob
+                        )
+                    other_snake.death_prob += (
+                        longest_snake.state_prob * other_snake.state_prob
+                    )
+
+            if coord in next_food_prob.keys():
+                for snake in snake_states:
+                    next_food_prob[coord] -= snake.state_prob
+                    snake.food_prob += next_food_prob[
+                        coord
+                    ]  # TODO: This isn't quite right
+                    snake.health = 100
+                    snake.body.append(snake.body[-1])
+                    snake.length += 1
+
+        return EnrichedBoard(
+            turn=self.turn + 1,
+            board_width=self.board_width,
+            board_height=self.board_height,
+            food=next_food_prob,
+            hazards=self.hazard_prob,  # TODO: Predict hazard zones
+            snake_states=next_snake_states,
+        )
 
 
 class EnrichedGameState(BaseModel):
@@ -148,7 +212,10 @@ class EnrichedGameState(BaseModel):
         snake_states: list[SnakeState] = [
             SnakeState(
                 snake_id=snake["id"],
-                probability=100,
+                state_prob=1,
+                death_prob=0,
+                food_prob=0,
+                murder_prob=0,
                 health=snake["health"],
                 body=snake["body"],
                 latency=snake["latency"],
@@ -161,9 +228,17 @@ class EnrichedGameState(BaseModel):
         ]
 
         board = EnrichedBoard(
+            board_width=payload["board"]["width"],
+            board_height=payload["board"]["height"],
             turn=payload["turn"],
-            food=payload["board"]["food"],
-            hazards=payload["board"]["hazards"],
+            food_prob={
+                Coord(x=coord["x"], y=coord["y"]): 1
+                for coord in payload["board"]["food"]
+            },
+            hazard_prob={
+                Coord(x=coord["x"], y=coord["y"]): 1
+                for coord in payload["board"]["hazards"]
+            },
             snake_states=snake_states,
         )
 
