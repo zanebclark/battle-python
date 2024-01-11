@@ -27,7 +27,7 @@ class GameState(BaseModel):
     board_height: NonNegativeInt
     board_width: NonNegativeInt
     current_turn: NonNegativeInt
-    turns: list[BoardState]
+    turns: dict[int, list[BoardState]]
     snake_defs: dict[str, SnakeDef]
 
     # noinspection PyNestedDecorators
@@ -86,6 +86,6 @@ class GameState(BaseModel):
             board_width=payload["board"]["width"],
             board_height=payload["board"]["height"],
             current_turn=payload["turn"],
-            turns=[board],
+            turns={0: [board]},
             snake_defs=snake_defs,
         )

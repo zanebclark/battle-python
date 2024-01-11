@@ -28,7 +28,7 @@ def get_mock_snake_def(
 def get_mock_enriched_gamestate(
     snakes: dict[SnakeDef, SnakeState],
     current_turn: int = 0,
-    turns: list[BoardState] | None = None,
+    turns: dict[int, list[BoardState]] | None = None,
     # get_mock_standard_game args
     food_spawn_chance: int = 15,
     minimum_food: int = 1,
@@ -55,16 +55,18 @@ def get_mock_enriched_gamestate(
     )
 
     if not turns:
-        turns = [
-            get_mock_board_state(
-                board_height=board_height,
-                board_width=board_width,
-                food_prob=food_coords,
-                hazard_prob=hazard_coords,
-                snake_states=snake_states,
-                hazard_damage_rate=hazard_damage_per_turn,
-            )
-        ]
+        turns = {
+            0: [
+                get_mock_board_state(
+                    board_height=board_height,
+                    board_width=board_width,
+                    food_prob=food_coords,
+                    hazard_prob=hazard_coords,
+                    snake_states=snake_states,
+                    hazard_damage_rate=hazard_damage_per_turn,
+                )
+            ]
+        }
 
     return GameState(
         game=game,
