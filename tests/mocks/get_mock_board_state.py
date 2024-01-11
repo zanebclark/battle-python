@@ -7,6 +7,7 @@ def get_mock_board_state(
     turn: int = 0,
     board_height: int = 11,
     board_width: int = 11,
+    hazard_damage_rate: int = 14,
     food_prob: dict[Coord, float] | None = None,
     hazard_prob: dict[Coord, float] | None = None,
     snake_states: list[SnakeState] | None = None,
@@ -25,4 +26,5 @@ def get_mock_board_state(
         food_prob=food_prob,
         hazard_prob=hazard_prob,
         snake_states=snake_states,
+        hazard_damage_rate=hazard_damage_rate,
     )

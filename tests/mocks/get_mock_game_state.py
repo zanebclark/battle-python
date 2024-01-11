@@ -62,6 +62,7 @@ def get_mock_enriched_gamestate(
                 food_prob=food_coords,
                 hazard_prob=hazard_coords,
                 snake_states=snake_states,
+                hazard_damage_rate=hazard_damage_per_turn,
             )
         ]
 

@@ -78,6 +78,7 @@ class GameState(BaseModel):
                 for coord in payload["board"]["hazards"]
             },
             snake_states=snake_states,
+            hazard_damage_rate=game.ruleset.settings.hazardDamagePerTurn,
         )
 
         return GameState(

@@ -4,9 +4,29 @@ from typing import Literal
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt, ConfigDict
 
-Direction = Literal["up", "down", "left", "right"]
+Direction = Literal[
+    "up",
+    "down",
+    "left",
+    "right",
+]
 
-GameSource = Literal["tournament", "league", "arena", "challenge", "custom"]
+GameSource = Literal[
+    "tournament",
+    "league",
+    "arena",
+    "challenge",
+    "custom",
+]
+
+RulesetName = Literal[
+    "constrictor",
+    "royale",
+    "solo",
+    "standard",
+    "wrapped",
+    "wrapped_constrictor",
+]
 
 
 class FrozenBaseModel(BaseModel):
@@ -37,7 +57,7 @@ class RulesetSettings(FrozenBaseModel):
 
 
 class Ruleset(FrozenBaseModel):
-    name: str
+    name: RulesetName
     version: str
     settings: RulesetSettings
 
