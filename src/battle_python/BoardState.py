@@ -25,6 +25,7 @@ class BoardState(BaseModel):
     hazard_coords: list[Coord]
     snake_states: list[SnakeState]
     hazard_damage_rate: int
+    prev_state: BoardState | None = None
 
     def get_legal_adjacent_coords(self, coord: Coord) -> list[Coord]:
         adj_coords = coord.get_adjacent()
@@ -178,6 +179,7 @@ class BoardState(BaseModel):
                 hazard_coords=self.hazard_coords,
                 snake_states=[state.model_copy() for state in potential_snake_states],
                 hazard_damage_rate=self.hazard_damage_rate,
+                prev_state=self,
             )
 
             snake_heads_at_coord = potential_board.get_snake_heads_at_coord()
