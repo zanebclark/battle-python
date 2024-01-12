@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from itertools import product
+
 from aws_lambda_powertools.utilities.parser import BaseModel
 from aws_lambda_powertools import Logger
 
@@ -17,10 +19,10 @@ DEATH = Coord(x=1000, y=1000)
 
 class BoardState(BaseModel):
     turn: NonNegativeInt
-    board_height: NonNegativeInt
     board_width: NonNegativeInt
-    food_prob: dict[Coord, float]
-    hazard_prob: dict[Coord, float]
+    board_height: NonNegativeInt
+    food_coords: list[Coord]
+    hazard_coords: list[Coord]
     snake_states: list[SnakeState]
     hazard_damage_rate: int
 
@@ -33,18 +35,27 @@ class BoardState(BaseModel):
             and 0 <= coord.y <= self.board_height - 1
         ]
 
-    def get_next_body(self, next_body: list[Coord]) -> list[Coord]:
-        if next_body[0] in self.food_prob.keys():
-            next_body.append(next_body[-1])
-        return next_body
+    def get_next_body(self, current_body: list[Coord]) -> list[Coord]:
+        if current_body[0] in self.food_coords:
+            current_body.append(current_body[-1])
+        return current_body
 
-    def get_next_health(self, next_body: list[Coord], snake: SnakeState) -> int:
+    def is_food_consumed(self, next_body: list[Coord]) -> bool:
+        if next_body[0] in self.food_coords:
+            return True
+        return False
+
+    def get_next_health(
+        self,
+        next_body: list[Coord],
+        food_consumed: bool,
+        snake: SnakeState,
+    ) -> int:
         next_health = snake.health - 1
 
-        if next_body[0] in self.food_prob.keys():
+        if food_consumed:
             next_health = 100
-
-        if next_body[0] in self.hazard_prob.keys():
+        elif next_body[0] in self.hazard_coords:
             next_health -= self.hazard_damage_rate
 
         if next_health <= 0:
@@ -59,73 +70,53 @@ class BoardState(BaseModel):
 
         return next_health
 
-    def get_next_snake_state(
-        self, snake: SnakeState, move: Coord, option_count: int
-    ) -> SnakeState:
-        next_state_prob = snake.state_prob / option_count
-        next_body = self.get_next_body(next_body=[move, *snake.body[:-1]])
-        next_health = self.get_next_health(next_body=next_body, snake=snake)
-        next_death_prob = snake.death_prob
-        if next_health == 0 or move is DEATH:
-            next_death_prob = next_state_prob
+    def get_next_snake_state(self, snake: SnakeState, move: Coord) -> SnakeState:
+        next_body = self.get_next_body(current_body=[move, *snake.body[:-1]])
+        food_consumed = self.is_food_consumed(next_body=next_body)
+        next_health = self.get_next_health(
+            next_body=next_body, food_consumed=food_consumed, snake=snake
+        )
 
         return snake.model_copy(
             update={
-                "state_prob": next_state_prob,
-                "death_prob": next_death_prob,
-                "food_prob": next_death_prob,  # TODO: Fix this
-                "murder_prob": next_death_prob,  # TODO: Fix this
                 "health": next_health,
                 "body": next_body,
                 "head": next_body[0],
                 "length": len(next_body),
+                "food_consumed": [next_body[0], *snake.food_consumed]
+                if food_consumed
+                else snake.food_consumed,
+                "is_eliminated": next_health == 0 or move is DEATH,
                 "prev_state": snake,
             },
             deep=True,
         )
 
-    def get_next_snake_states(self) -> list[SnakeState]:
-        next_states: list[SnakeState] = []
+    def get_next_snake_states_per_snake(self) -> dict[str, list[SnakeState]]:
+        next_states: dict[str, list[SnakeState]] = defaultdict(list)
 
         snake_body_coords = [
             coord
             for snake in self.snake_states
             for coord in snake.body[:-1]
-            if snake.state_prob == 1  # TODO: Make this configurable
-        ]
-
-        potential_snake_head_coords = [
-            coord
-            for snake in self.snake_states
-            for coord in snake.head.get_adjacent()
-            if not snake.is_self
-            and snake.length >= snake.length
-            and snake.state_prob >= float(1 / 3)  # TODO: Make this configurable
+            if not snake.is_eliminated
         ]
 
         for snake in self.snake_states:
+            if snake.is_eliminated:
+                continue
+
             moves = self.get_legal_adjacent_coords(coord=snake.head)
 
-            # Exclude body collisions and head collisions with larger snakes
-            reasonable_moves = [
-                move
-                for move in moves
-                if move not in snake_body_coords
-                and move not in potential_snake_head_coords
-            ]
+            # Exclude body collisions
+            reasonable_moves = [move for move in moves if move not in snake_body_coords]
 
             if len(reasonable_moves) == 0:
                 reasonable_moves.append(DEATH)
 
-            option_count = len(snake.reasonable_moves)
-
-            for move in snake.reasonable_moves:
-                next_states.append(
-                    self.get_next_snake_state(
-                        snake=snake,
-                        move=move,
-                        option_count=option_count,
-                    )
+            for move in reasonable_moves:
+                next_states[snake.snake_id].append(
+                    self.get_next_snake_state(snake=snake, move=move)
                 )
 
         return next_states
@@ -133,63 +124,70 @@ class BoardState(BaseModel):
     def get_snake_heads_at_coord(self):
         snake_heads_at_coord: dict[Coord, list[SnakeState]] = defaultdict(list)
         for snake_state in self.snake_states:
+            if snake_state.is_eliminated:
+                continue
             snake_heads_at_coord[snake_state.head].append(snake_state)
         return snake_heads_at_coord
 
     @staticmethod
-    def resolve_head_collision(snake_heads_at_coord: list[SnakeState]):
+    def resolve_head_collision(snake_heads_at_coord: list[SnakeState]) -> None:
         if len(snake_heads_at_coord) <= 1:
             return
 
-        snake_heads_at_coord.sort(key=lambda snk: snk.length)
+        snake_heads_at_coord.sort(key=lambda snk: snk.length, reverse=True)
         longest_snake = snake_heads_at_coord[0]
         for other_snake in snake_heads_at_coord[1:]:
             if longest_snake.length == other_snake.length:
-                longest_snake.death_prob += (
-                    longest_snake.state_prob * other_snake.state_prob  # TODO: Suspect
-                )
+                longest_snake.is_eliminated = True
             else:
-                longest_snake.murder_prob += (
-                    longest_snake.state_prob * other_snake.state_prob  # TODO: Suspect
-                )
-            other_snake.death_prob += (
-                longest_snake.state_prob * other_snake.state_prob  # TODO: Suspect
-            )
+                longest_snake.murder_count += 1
+            other_snake.is_eliminated = True
 
-    def resolve_food_probability(
+    def resolve_food_consumption(
         self,
         coord: Coord,
         snake_heads_at_coord: list[SnakeState],
     ):
-        if coord in self.food_prob.keys():
-            snake_heads_at_coord.sort(key=lambda snk: snk.length)
-            longest_snake = snake_heads_at_coord[0]
+        if coord not in self.food_coords:
+            # Not a food coord
+            return
+        survivors = [snake for snake in snake_heads_at_coord if not snake.is_eliminated]
+        if len(survivors) == 0:
+            # Collision killed all of the snakes
+            return
+        if len(survivors) > 1:
+            logger.warning(
+                f"More than one snake at a food coord", {"survivors": survivors}
+            )
+        survivor = survivors[0]
+        self.food_coords.remove(coord)
+        survivor.food_consumed.append(coord)
 
-            self.food_prob[coord] -= longest_snake.state_prob
-            longest_snake.food_prob += self.food_prob[
-                coord
-            ]  # TODO: This isn't quite right
+    def get_next_boards(self) -> list[BoardState]:
+        next_boards: list[BoardState] = []
+        next_snake_states_per_snake = self.get_next_snake_states_per_snake()
+        all_potential_snake_states = product(*next_snake_states_per_snake.values())
 
-    def get_next_board(self) -> BoardState:
-        next_board = BoardState(
-            turn=self.turn + 1,
-            board_width=self.board_width,
-            board_height=self.board_height,
-            food={**self.food_prob},
-            hazards={
-                **self.hazard_prob
-            },  # TODO: Predict hazard zones: https://github.com/BattlesnakeOfficial/rules/blob/main/standard.go#L130
-            snake_states=self.snake_states,
-            hazard_damage_rate=self.hazard_damage_rate,
-        )
-
-        next_board.snake_states = next_board.get_next_snake_states()
-
-        snake_heads_at_coord = next_board.get_snake_heads_at_coord()
-        for coord, snake_heads_at_coord in snake_heads_at_coord.items():
-            next_board.resolve_head_collision(snake_heads_at_coord=snake_heads_at_coord)
-            next_board.resolve_food_probability(
-                coord=coord, snake_heads_at_coord=snake_heads_at_coord
+        for potential_snake_states in all_potential_snake_states:
+            # TODO: Predict hazard zones: https://github.com/BattlesnakeOfficial/rules/blob/main/standard.go#L130
+            potential_board = BoardState(
+                turn=self.turn + 1,
+                board_width=self.board_width,
+                board_height=self.board_height,
+                food_coords=self.food_coords,
+                hazard_coords=self.hazard_coords,
+                snake_states=[state.model_copy() for state in potential_snake_states],
+                hazard_damage_rate=self.hazard_damage_rate,
             )
 
-        return next_board
+            snake_heads_at_coord = potential_board.get_snake_heads_at_coord()
+            for coord, snake_heads_at_coord in snake_heads_at_coord.items():
+                potential_board.resolve_head_collision(
+                    snake_heads_at_coord=snake_heads_at_coord
+                )
+                potential_board.resolve_food_consumption(
+                    coord=coord, snake_heads_at_coord=snake_heads_at_coord
+                )
+
+            next_boards.append(potential_board)
+        return next_boards

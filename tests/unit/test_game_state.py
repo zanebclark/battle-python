@@ -1,8 +1,4 @@
 import uuid
-
-import pytest
-
-from battle_python.BoardState import BoardState
 from battle_python.GameState import GameState
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import (
@@ -12,8 +8,6 @@ from battle_python.api_types import (
     Ruleset,
     Board,
 )
-from mocks.get_mock_board_state import get_mock_board_state
-from mocks.get_mock_snake_state import get_mock_snake_state
 
 from mocks.mock_api_types import get_mock_snake
 
@@ -77,8 +71,8 @@ def test_game_state_init():
     # Board-level assertions
     assert e_gs.board_height == board.height
     assert e_gs.board_width == board.width
-    assert list(e_gs.turns[0][0].food_prob.keys()) == board.food
-    assert list(e_gs.turns[0][0].hazard_prob.keys()) == board.hazards
+    assert e_gs.turns[0][0].food_coords == board.food
+    assert e_gs.turns[0][0].hazard_coords == board.hazards
     assert e_gs.turns[0][0].turn == gs.turn
     assert len(e_gs.snake_defs.keys()) == len(snakes)
     gs_snakes = [*e_gs.turns[0][0].snake_states]
@@ -96,17 +90,17 @@ def test_game_state_init():
         if not gs_snake:
             raise Exception(f"snake not found: {snake.id}")
 
-        assert gs_snake.state_prob == 1
-        assert gs_snake.death_prob == 0
-        assert gs_snake.food_prob == 0
-        assert gs_snake.murder_prob == 0
         assert gs_snake.health == snake.health
         assert gs_snake.body == snake.body
-        assert gs_snake.latency == int(snake.latency)
         assert gs_snake.head == snake.head
         assert gs_snake.length == snake.length
+        assert gs_snake.latency == int(snake.latency)
         assert gs_snake.shout == snake.shout
         assert gs_snake.is_self == (snake.id == you.id)
+        assert gs_snake.murder_count == 0
+        assert gs_snake.food_consumed == []
+        assert gs_snake.is_eliminated is False
+        assert gs_snake.prev_state is None
 
     # Game-level assertions
     assert e_gs.game == gs.game

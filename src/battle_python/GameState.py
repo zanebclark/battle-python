@@ -50,15 +50,11 @@ class GameState(BaseModel):
         snake_states: list[SnakeState] = [
             SnakeState(
                 snake_id=snake["id"],
-                state_prob=1,
-                death_prob=0,
-                food_prob=0,
-                murder_prob=0,
                 health=snake["health"],
                 body=snake["body"],
-                latency=snake["latency"],
                 head=snake["head"],
                 length=snake["length"],
+                latency=snake["latency"],
                 shout=snake["shout"],
                 is_self=snake["id"] == my_snake_id,
             )
@@ -66,17 +62,11 @@ class GameState(BaseModel):
         ]
 
         board = BoardState(
+            turn=payload["turn"],
             board_width=payload["board"]["width"],
             board_height=payload["board"]["height"],
-            turn=payload["turn"],
-            food_prob={
-                Coord(x=coord["x"], y=coord["y"]): 1
-                for coord in payload["board"]["food"]
-            },
-            hazard_prob={
-                Coord(x=coord["x"], y=coord["y"]): 1
-                for coord in payload["board"]["hazards"]
-            },
+            food_coords=payload["board"]["food"],
+            hazard_coords=payload["board"]["hazards"],
             snake_states=snake_states,
             hazard_damage_rate=game.ruleset.settings.hazardDamagePerTurn,
         )

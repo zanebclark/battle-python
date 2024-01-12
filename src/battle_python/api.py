@@ -17,6 +17,11 @@ logger = Logger()
 metrics = Metrics(namespace="Powertools")
 
 
+# TODO: Layer coordinate weights on top of this. Favor the center of the board
+# TODO: Google "Oct tree"
+# TODO: Anticipate hazard progression
+
+
 @api.get("/")
 @tracer.capture_method
 def battlesnake_details() -> dict:
