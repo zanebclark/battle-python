@@ -25,7 +25,7 @@ def get_mock_snake_def(
     )
 
 
-def get_mock_enriched_gamestate(
+def get_mock_game_state(
     snakes: dict[SnakeDef, SnakeState],
     current_turn: int = 0,
     turns: dict[int, list[BoardState]] | None = None,

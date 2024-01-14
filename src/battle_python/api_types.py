@@ -34,14 +34,14 @@ class FrozenBaseModel(BaseModel):
 
 
 class SnakeCustomizations(FrozenBaseModel):
-    color: str | None
-    head: str | None
-    tail: str | None
+    color: str | None = None
+    head: str | None = None
+    tail: str | None = None
 
 
 class SnakeMetadataResponse(SnakeCustomizations):
-    author: str | None
-    version: str | None
+    author: str | None = None
+    version: str | None = None
     apiversion: Literal["1"] = "1"
 
 

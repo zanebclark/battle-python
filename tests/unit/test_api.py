@@ -8,7 +8,7 @@ from battle_python import api
 from battle_python.api_types import Coord
 from ..mocks.mock_api_types import (
     get_mock_snake,
-    get_mock_gamestate,
+    get_mock_snake_request,
 )
 from ..mocks.MockLambdaContext import MockLambdaContext
 from ..mocks.api_gateway_event import get_mock_api_gateway_event
@@ -45,7 +45,7 @@ def test_populated_battlesnake_details(lambda_context):
 
 
 def test_game_started(lambda_context):
-    body = get_mock_gamestate(
+    body = get_mock_snake_request(
         turn=0,
         food_coords=[Coord(x=1, y=1), Coord(x=10, y=10)],
         snakes=[
@@ -64,7 +64,7 @@ def test_game_started(lambda_context):
 
 
 def test_move(lambda_context):
-    body = get_mock_gamestate(
+    body = get_mock_snake_request(
         turn=100,
         food_coords=[Coord(x=1, y=1), Coord(x=10, y=10)],
         snakes=[
@@ -83,7 +83,7 @@ def test_move(lambda_context):
 
 
 def test_end(lambda_context):
-    body = get_mock_gamestate(
+    body = get_mock_snake_request(
         turn=200,
         food_coords=[Coord(x=1, y=1), Coord(x=10, y=10)],
         snakes=[

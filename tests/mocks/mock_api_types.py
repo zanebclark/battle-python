@@ -81,7 +81,7 @@ def get_mock_board(
     )
 
 
-def get_mock_gamestate(
+def get_mock_snake_request(
     turn: int,
     food_coords: list[Coord] | None = None,
     hazard_coords: list[Coord] | None = None,
