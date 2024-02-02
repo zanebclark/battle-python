@@ -1,3 +1,4 @@
+import time
 import uuid
 from battle_python.GameState import GameState
 from battle_python.SnakeState import SnakeState
@@ -7,7 +8,11 @@ from battle_python.api_types import (
     Game,
     Ruleset,
     Board,
+    SnakeCustomizations,
+    SnakeDef,
 )
+from mocks.get_mock_game_state import get_mock_game_state
+from mocks.get_mock_snake_state import get_mock_snake_state
 
 from mocks.mock_api_types import get_mock_snake
 
@@ -64,18 +69,14 @@ def test_game_state_init():
 
     e_gs = GameState.from_payload(payload=gs.model_dump())
 
-    # GameState-level assertions
-    assert e_gs.current_turn == gs.turn
-    assert len(e_gs.turns.keys()) == 1
-
     # Board-level assertions
     assert e_gs.board_height == board.height
     assert e_gs.board_width == board.width
-    assert e_gs.turns[0][0].food_coords == board.food
-    assert e_gs.turns[0][0].hazard_coords == board.hazards
-    assert e_gs.turns[0][0].turn == gs.turn
+    assert e_gs.current_board.food_coords == board.food
+    assert e_gs.current_board.hazard_coords == board.hazards
+    assert e_gs.current_board.turn == gs.turn
     assert len(e_gs.snake_defs.keys()) == len(snakes)
-    gs_snakes = [*e_gs.turns[0][0].snake_states]
+    gs_snakes = [*e_gs.current_board.snake_states]
     for snake in snakes:
         assert e_gs.snake_defs[snake.id].name == snake.name
         assert e_gs.snake_defs[snake.id].customizations == snake.customizations

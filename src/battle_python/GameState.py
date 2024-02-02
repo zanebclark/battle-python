@@ -1,34 +1,29 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt
 
-from battle_python.BoardState import BoardState
+from battle_python.BoardState import BoardState, print_explored_states_count
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import (
-    FrozenBaseModel,
-    SnakeCustomizations,
     Coord,
     Game,
+    SnakeDef,
 )
 
 DEATH = Coord(x=1000, y=1000)
-
-
-class SnakeDef(FrozenBaseModel):
-    id: str
-    name: str
-    customizations: SnakeCustomizations
-    is_self: bool = False
 
 
 class GameState(BaseModel):
     game: Game
     board_height: NonNegativeInt
     board_width: NonNegativeInt
-    current_turn: NonNegativeInt
-    turns: dict[int, list[BoardState]]
+    current_board: BoardState
     snake_defs: dict[str, SnakeDef]
+    my_snake_id: str
 
     # noinspection PyNestedDecorators
     @classmethod
@@ -75,7 +70,7 @@ class GameState(BaseModel):
             game=game,
             board_width=payload["board"]["width"],
             board_height=payload["board"]["height"],
-            current_turn=payload["turn"],
-            turns={0: [board]},
+            current_board=board,
             snake_defs=snake_defs,
+            my_snake_id=my_snake_id,
         )

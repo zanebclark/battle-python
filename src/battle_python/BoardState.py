@@ -2,30 +2,58 @@ from __future__ import annotations
 
 from collections import defaultdict
 from itertools import product
+from typing import ClassVar
 
 from aws_lambda_powertools.utilities.parser import BaseModel
 from aws_lambda_powertools import Logger
 
 
-from pydantic import NonNegativeInt
+from pydantic import NonNegativeInt, Field, model_validator
 
 from battle_python.SnakeState import SnakeState
-from battle_python.api_types import Coord
+from battle_python.api_types import Coord, Game, SnakeDef
 
 logger = Logger()
 
-DEATH = Coord(x=1000, y=1000)
+DEATH_SCORE = float("inf")
+FOOD_SCORE = 100
+MURDER_SCORE = 100
+DEATH_COORD = Coord(x=1000, y=1000)
+explored_states_count = 0
+
+
+def print_explored_states_count():
+    print(f"explored_states_count: {explored_states_count}")
 
 
 class BoardState(BaseModel):
+    explored_states: ClassVar[set[tuple]] = set()
+
     turn: NonNegativeInt
     board_width: NonNegativeInt
     board_height: NonNegativeInt
     food_coords: list[Coord]
     hazard_coords: list[Coord]
     snake_states: list[SnakeState]
+    my_snake_state: SnakeState | None = None
     hazard_damage_rate: int
     prev_state: BoardState | None = None
+    next_boards: list[BoardState] = Field(default_factory=list)
+    is_terminal: bool = False
+    score: float = 0
+
+    def get_dict_key(self) -> tuple:
+        food_coords = tuple((coord.x, coord.y) for coord in sorted(self.food_coords))
+        snake_states = tuple(
+            (
+                snake.snake_id,
+                snake.health,
+                tuple((coord.x, coord.y) for coord in snake.body),
+            )
+            for snake in sorted(self.snake_states, key=lambda snake: snake.snake_id)
+        )
+
+        return self.turn, food_coords, snake_states
 
     def get_legal_adjacent_coords(self, coord: Coord) -> list[Coord]:
         adj_coords = coord.get_adjacent()
@@ -72,11 +100,15 @@ class BoardState(BaseModel):
         return next_health
 
     def get_next_snake_state(self, snake: SnakeState, move: Coord) -> SnakeState:
+        # TODO: Add an eliminated by object. Mirror what they're doing with board and rules
         next_body = self.get_next_body(current_body=[move, *snake.body[:-1]])
         food_consumed = self.is_food_consumed(next_body=next_body)
         next_health = self.get_next_health(
             next_body=next_body, food_consumed=food_consumed, snake=snake
         )
+        food_consumed_coords = [*snake.food_consumed]
+        if food_consumed:
+            food_consumed_coords.append(next_body[0])
 
         return snake.model_copy(
             update={
@@ -84,10 +116,8 @@ class BoardState(BaseModel):
                 "body": next_body,
                 "head": next_body[0],
                 "length": len(next_body),
-                "food_consumed": [next_body[0], *snake.food_consumed]
-                if food_consumed
-                else snake.food_consumed,
-                "is_eliminated": next_health == 0 or move is DEATH,
+                "food_consumed": food_consumed_coords,
+                "is_eliminated": next_health == 0 or move is DEATH_COORD,
                 "prev_state": snake,
             },
             deep=True,
@@ -102,7 +132,6 @@ class BoardState(BaseModel):
             for coord in snake.body[:-1]
             if not snake.is_eliminated
         ]
-
         for snake in self.snake_states:
             if snake.is_eliminated:
                 continue
@@ -113,16 +142,25 @@ class BoardState(BaseModel):
             reasonable_moves = [move for move in moves if move not in snake_body_coords]
 
             if len(reasonable_moves) == 0:
-                reasonable_moves.append(DEATH)
+                reasonable_moves.append(DEATH_COORD)
+            if len(reasonable_moves) > 1 and not snake.is_self:
+                reasonable_moves = [
+                    move
+                    for move in reasonable_moves
+                    if self.my_snake_state.head.get_manhattan_distance(move)
+                    < self.my_snake_state.head.get_manhattan_distance(snake.head)
+                ]
 
-            for move in reasonable_moves:
+            [
                 next_states[snake.snake_id].append(
                     self.get_next_snake_state(snake=snake, move=move)
                 )
+                for move in reasonable_moves
+            ]
 
         return next_states
 
-    def get_snake_heads_at_coord(self):
+    def get_snake_heads_at_coord(self) -> dict[Coord, list[SnakeState]]:
         snake_heads_at_coord: dict[Coord, list[SnakeState]] = defaultdict(list)
         for snake_state in self.snake_states:
             if snake_state.is_eliminated:
@@ -164,10 +202,47 @@ class BoardState(BaseModel):
         self.food_coords.remove(coord)
         survivor.food_consumed.append(coord)
 
-    def get_next_boards(self) -> list[BoardState]:
-        next_boards: list[BoardState] = []
+    @model_validator(mode="after")
+    def post_init(self):
+        snake_heads_at_coord = self.get_snake_heads_at_coord()
+        for coord, snake_heads_at_coord in snake_heads_at_coord.items():
+            self.resolve_head_collision(snake_heads_at_coord=snake_heads_at_coord)
+            self.resolve_food_consumption(
+                coord=coord, snake_heads_at_coord=snake_heads_at_coord
+            )
+
+        dict_key = self.get_dict_key()
+        if (
+            self.turn != 0
+        ):  # TODO: I'm not sure why this is being visited twice on the first turn
+            if dict_key in self.explored_states:
+                self.is_terminal = True
+            else:
+                self.explored_states.add(dict_key)
+
+        for snake in self.snake_states:
+            if snake.is_self:
+                self.my_snake_state = snake
+                break
+
+        if self.my_snake_state is None or self.my_snake_state.is_eliminated:
+            self.is_terminal = True
+
+        if len(self.snake_states) == 1:
+            self.is_terminal = True
+
+        self.score = self.score_state()
+
+        return self
+
+    def populate_next_boards(self, max_turn: int) -> None:
+        if self.turn >= max_turn or self.is_terminal:
+            return None
+
         next_snake_states_per_snake = self.get_next_snake_states_per_snake()
-        all_potential_snake_states = product(*next_snake_states_per_snake.values())
+        all_potential_snake_states: tuple[list[SnakeState]] = product(
+            *next_snake_states_per_snake.values()
+        )
 
         for potential_snake_states in all_potential_snake_states:
             # TODO: Predict hazard zones: https://github.com/BattlesnakeOfficial/rules/blob/main/standard.go#L130
@@ -182,14 +257,76 @@ class BoardState(BaseModel):
                 prev_state=self,
             )
 
-            snake_heads_at_coord = potential_board.get_snake_heads_at_coord()
-            for coord, snake_heads_at_coord in snake_heads_at_coord.items():
-                potential_board.resolve_head_collision(
-                    snake_heads_at_coord=snake_heads_at_coord
-                )
-                potential_board.resolve_food_consumption(
-                    coord=coord, snake_heads_at_coord=snake_heads_at_coord
-                )
+            self.next_boards.append(potential_board)
+            potential_board.populate_next_boards(max_turn=max_turn)
 
-            next_boards.append(potential_board)
-        return next_boards
+        self.score = sum([board.score for board in self.next_boards]) / len(
+            self.next_boards
+        )
+        return None
+
+    def score_state(self) -> float:
+        if self.my_snake_state is None or self.my_snake_state.is_eliminated:
+            return 0
+        if len(self.snake_states) == 1:
+            return 100000  # You've won!
+        return 1
+
+    def get_snake_payload(
+        self,
+        snake_defs: dict[str, SnakeDef],
+        snake_id: str | None = None,
+        me: bool = False,
+    ) -> dict:
+        if snake_id:
+            snake = [snake for snake in self.snake_states if snake.snake_id == snake_id]
+        elif me:
+            snake = [snake for snake in self.snake_states if snake.is_self]
+        else:
+            raise Exception("either the snake_id or me must be supplied")
+        if len(snake) == 0:
+            return {
+                "id": snake_id,
+                "name": snake_defs[snake_id].name,
+                "health": 0,
+                "body": [],
+                "latency": 0,
+                "length": 0,
+                "customizations": snake_defs[snake_id].customizations.model_dump(),
+            }
+        snake = snake[0]
+        snake_id = snake.snake_id
+        return {
+            "id": snake.snake_id,
+            "name": snake_defs[snake_id].name,
+            "health": snake.health,
+            "body": [coord.model_dump() for coord in snake.body],
+            "latency": str(snake.latency),
+            "length": snake.length,
+            "customizations": snake_defs[snake_id].customizations.model_dump(),
+        }
+
+    def get_board_payload(self, snake_defs: dict[str, SnakeDef], game: Game) -> dict:
+        global explored_states_count
+        explored_states_count += 1
+        return {
+            "game": game.model_dump(),
+            "turn": self.turn,
+            "board": {
+                "height": self.board_height,
+                "width": self.board_width,
+                "food": [coord.model_dump() for coord in self.food_coords],
+                "hazards": [coord.model_dump() for coord in self.hazard_coords],
+                "snakes": [
+                    self.get_snake_payload(
+                        snake_id=snake.snake_id, snake_defs=snake_defs
+                    )
+                    for snake in self.snake_states
+                ],
+            },
+            "you": self.get_snake_payload(me=True, snake_defs=snake_defs),
+            "descendents": [
+                next_board.get_board_payload(snake_defs=snake_defs, game=game)
+                for next_board in self.next_boards
+            ],
+        }

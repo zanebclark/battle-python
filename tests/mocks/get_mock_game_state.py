@@ -1,9 +1,9 @@
 import uuid
 
 from battle_python.BoardState import BoardState
-from battle_python.GameState import SnakeDef, GameState
+from battle_python.GameState import GameState
 from battle_python.SnakeState import SnakeState
-from battle_python.api_types import Coord, SnakeCustomizations
+from battle_python.api_types import Coord, SnakeCustomizations, SnakeDef
 from mocks.get_mock_board_state import get_mock_board_state
 
 from mocks.mock_api_types import get_mock_standard_game
@@ -26,9 +26,9 @@ def get_mock_snake_def(
 
 
 def get_mock_game_state(
+    my_snake_id: str,
     snakes: dict[SnakeDef, SnakeState],
-    current_turn: int = 0,
-    turns: dict[int, list[BoardState]] | None = None,
+    current_board: BoardState | None = None,
     # get_mock_standard_game args
     food_spawn_chance: int = 15,
     minimum_food: int = 1,
@@ -54,25 +54,21 @@ def get_mock_game_state(
         timeout=timeout,
     )
 
-    if not turns:
-        turns = {
-            0: [
-                get_mock_board_state(
-                    board_height=board_height,
-                    board_width=board_width,
-                    food_coords=food_coords,
-                    hazard_coords=hazard_coords,
-                    snake_states=snake_states,
-                    hazard_damage_rate=hazard_damage_per_turn,
-                )
-            ]
-        }
+    if not current_board:
+        current_board = get_mock_board_state(
+            board_height=board_height,
+            board_width=board_width,
+            food_coords=food_coords,
+            hazard_coords=hazard_coords,
+            snake_states=snake_states,
+            hazard_damage_rate=hazard_damage_per_turn,
+        )
 
     return GameState(
         game=game,
         board_height=board_height,
         board_width=board_width,
-        current_turn=current_turn,
-        turns=turns,
+        current_board=current_board,
         snake_defs=snake_defs,
+        my_snake_id=my_snake_id,
     )

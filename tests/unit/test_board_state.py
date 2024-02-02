@@ -34,6 +34,12 @@ from mocks.get_mock_snake_state import get_mock_snake_state
 )
 def test_board_state_get_legal_adjacent_coords(coord: Coord, expected: list[Coord]):
     board = get_mock_board_state(
+        snake_states=[
+            get_mock_snake_state(
+                snake_id="placeholder",
+                body_coords=[Coord(x=1000, y=1000)],
+            )
+        ],
         board_height=11,
         board_width=11,
     )
@@ -56,7 +62,15 @@ def test_board_state_get_legal_adjacent_coords(coord: Coord, expected: list[Coor
     ids=str,
 )
 def test_board_state_get_next_body(current_body: list[Coord], expected: list[Coord]):
-    board_state = get_mock_board_state(food_coords=[Coord(x=1, y=1)])
+    board_state = get_mock_board_state(
+        food_coords=[Coord(x=1, y=1)],
+        snake_states=[
+            get_mock_snake_state(
+                snake_id="placeholder",
+                body_coords=[Coord(x=1000, y=1000)],
+            )
+        ],
+    )
     next_body = board_state.get_next_body(current_body=current_body)
     assert next_body == expected
 
@@ -74,6 +88,7 @@ def test_board_state_is_food_consumed(next_body: list[Coord], expected: bool):
         hazard_damage_rate=15,
         snake_states=[
             get_mock_snake_state(
+                snake_id="placeholder",
                 body_coords=[Coord(x=1000, y=1000)],
             )
         ],
@@ -134,7 +149,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "Left Border: Up -> Right": [
@@ -164,7 +179,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "Left Border: Down -> Right": [
@@ -194,7 +209,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "Right Border: Up -> Left": [
@@ -224,7 +239,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "Right Border: Down -> Left": [
@@ -254,7 +269,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "Bottom Border: Left -> Up": [
@@ -284,7 +299,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "Bottom Border: Right -> Up": [
@@ -314,7 +329,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "Top Border: Left -> Down": [
@@ -344,7 +359,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "TopBorder:  Right -> Down": [
@@ -374,7 +389,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "Two Options": [
@@ -414,7 +429,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "Three Options": [
@@ -465,7 +480,7 @@ def test_board_state_get_next_health(
                         ],
                         health=100,
                     )
-                ]
+                ],
             ),
             {
                 "Ouroboros": [
@@ -1200,30 +1215,18 @@ def test_board_state_resolve_food_consumption(
         ),
     ],
 )
-def test_board_state_get_next_boards(
+def test_board_state_populate_next_boards(
     description: str,
     board: BoardState,
     expected_boards: list[BoardState],
 ):
-    next_boards = board.get_next_boards()
-    for next_board in next_boards:
+    # Since I'm using a class variable, the test has the potential to fail with repeated states
+    board.__class__.explored_states = set()
+    board.populate_next_boards(max_turn=1)
+    for next_board in board.next_boards:
         expected_board = None
-        next_board_sort_key = sorted(
-            [
-                coord
-                for snake_state in next_board.snake_states
-                for coord in snake_state.body
-            ]
-        )
         for some_board in expected_boards:
-            some_board_sort_key = sorted(
-                [
-                    coord
-                    for snake_state in some_board.snake_states
-                    for coord in snake_state.body
-                ]
-            )
-            if some_board_sort_key == next_board_sort_key:
+            if next_board.get_dict_key() == some_board.get_dict_key():
                 expected_board = some_board
 
         if expected_board is None:

@@ -11,6 +11,7 @@ def get_mock_board_state(
     food_coords: list[Coord] | None = None,
     hazard_coords: list[Coord] | None = None,
     snake_states: list[SnakeState] | None = None,
+    my_snake_state: SnakeState | None = None,
 ) -> BoardState:
     if not food_coords:
         food_coords = []
@@ -18,6 +19,10 @@ def get_mock_board_state(
         hazard_coords = []
     if not snake_states:
         snake_states = []
+    if not my_snake_state:
+        if not snake_states:
+            raise Exception("No snakes defined")
+        my_snake_state = snake_states[0]
 
     return BoardState(
         turn=turn,
@@ -27,4 +32,5 @@ def get_mock_board_state(
         hazard_coords=hazard_coords,
         snake_states=snake_states,
         hazard_damage_rate=hazard_damage_rate,
+        my_snake_state=my_snake_state,
     )

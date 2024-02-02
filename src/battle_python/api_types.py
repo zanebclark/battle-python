@@ -34,15 +34,22 @@ class FrozenBaseModel(BaseModel):
 
 
 class SnakeCustomizations(FrozenBaseModel):
-    color: str | None = None
-    head: str | None = None
-    tail: str | None = None
+    color: str = "#888888"
+    head: str = "default"
+    tail: str = "default"
 
 
 class SnakeMetadataResponse(SnakeCustomizations):
     author: str | None = None
     version: str | None = None
     apiversion: Literal["1"] = "1"
+
+
+class SnakeDef(FrozenBaseModel):
+    id: str
+    name: str
+    customizations: SnakeCustomizations
+    is_self: bool = False
 
 
 class RoyaleSettings(FrozenBaseModel):
@@ -81,6 +88,12 @@ class Coord(FrozenBaseModel):
             Coord(x=self.x - 1, y=self.y),
             Coord(x=self.x + 1, y=self.y),
         ]
+
+    def get_relative_distance(self, other: Coord) -> int:
+        return abs(self.x - other.x) ** 2 + abs(self.y - other.y) ** 2
+
+    def get_manhattan_distance(self, other: Coord) -> int:
+        return abs(self.x - other.x) + abs(self.y - other.y)
 
     def __lt__(self, other):
         return f"{self.x}, {self.y}" < f"{other.x}, {other.y}"
