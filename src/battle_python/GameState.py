@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt
 
-from battle_python.BoardState import BoardState, print_explored_states_count
+from battle_python.BoardState import BoardState
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import (
     Coord,
@@ -67,6 +64,7 @@ class GameState(BaseModel):
             snake_states=snake_states,
             hazard_damage_rate=game.ruleset.settings.hazardDamagePerTurn,
         )
+        board.post_init()
 
         return GameState(
             game=game,

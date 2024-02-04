@@ -8,7 +8,7 @@ from aws_lambda_powertools.utilities.parser import BaseModel
 from aws_lambda_powertools import Logger
 
 
-from pydantic import NonNegativeInt, Field, model_validator
+from pydantic import NonNegativeInt, Field
 
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import Coord, Game, SnakeDef
@@ -29,6 +29,8 @@ def print_explored_states_count():
 
 
 class BoardState(BaseModel):
+    terminal_counter: ClassVar[int] = 0
+    counter: ClassVar[int] = 0
     explored_states: ClassVar[set[tuple]] = set()
 
     turn: NonNegativeInt
@@ -218,8 +220,8 @@ class BoardState(BaseModel):
         ):
             self.score += FOOD_SCORE
 
-    @model_validator(mode="after")
     def post_init(self):
+        self.__class__.counter += 1
         snake_heads_at_coord = self.get_snake_heads_at_coord()
         for coord, snake_heads_at_coord in snake_heads_at_coord.items():
             self.resolve_head_collision(snake_heads_at_coord=snake_heads_at_coord)
@@ -228,13 +230,11 @@ class BoardState(BaseModel):
             )
 
         dict_key = self.get_dict_key()
-        if (
-            self.turn != 0
-        ):  # TODO: I'm not sure why this is being visited twice on the first turn
-            if dict_key in self.explored_states:
-                self.is_terminal = True
-            else:
-                self.explored_states.add(dict_key)
+        if dict_key in self.explored_states:
+            self.__class__.terminal_counter += 1
+            self.is_terminal = True
+        else:
+            self.explored_states.add(dict_key)
 
         for snake in self.snake_states:
             if snake.is_self:
@@ -251,10 +251,15 @@ class BoardState(BaseModel):
 
         return self
 
-    def populate_next_boards(self, max_turn: int) -> None:
-        if self.turn >= max_turn or self.is_terminal:
-            return None
+    def increment_projection(self) -> None:
+        if self.is_terminal:
+            return
+        if self.next_boards:
+            [board.increment_projection() for board in self.next_boards]
+        else:
+            self.populate_next_boards()
 
+    def populate_next_boards(self) -> None:
         next_snake_states_per_snake = self.get_next_snake_states_per_snake()
         all_potential_snake_states: tuple[list[SnakeState]] = product(
             *next_snake_states_per_snake.values()
@@ -272,14 +277,8 @@ class BoardState(BaseModel):
                 hazard_damage_rate=self.hazard_damage_rate,
                 prev_state=self,
             )
-
+            potential_board.post_init()
             self.next_boards.append(potential_board)
-            potential_board.populate_next_boards(max_turn=max_turn)
-
-        self.score = sum([board.score for board in self.next_boards]) / len(
-            self.next_boards
-        )
-        return None
 
     def score_state(self) -> float:
         if self.my_snake_state is None or self.my_snake_state.is_eliminated:

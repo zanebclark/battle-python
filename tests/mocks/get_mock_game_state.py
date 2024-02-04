@@ -63,6 +63,7 @@ def get_mock_game_state(
             snake_states=snake_states,
             hazard_damage_rate=hazard_damage_per_turn,
         )
+        current_board.post_init()
 
     return GameState(
         game=game,
