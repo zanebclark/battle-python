@@ -41,7 +41,7 @@ def game_started() -> dict[str, int | str]:
     logger.append_keys(game_id=body["game"]["id"])
     logger.append_keys(turn=body["turn"])
     try:
-        gs = parse(event=body, model=SnakeRequest)
+        parse(event=body, model=SnakeRequest)
     except ValidationError:
         return {"status_code": 400, "message": "Invalid order"}
     return {"status_code": 200, "message": "Let's get to it!"}
@@ -56,7 +56,7 @@ def move() -> dict[str, int | str]:
     logger.append_keys(turn=body["turn"])
 
     try:
-        gs = parse(event=body, model=SnakeRequest)
+        parse(event=body, model=SnakeRequest)
     except ValidationError:
         return {"status_code": 400, "message": "Invalid order"}
 
@@ -72,7 +72,7 @@ def game_over() -> dict[str, int | str]:
     logger.append_keys(turn=body["turn"])
 
     try:
-        gs = parse(event=body, model=SnakeRequest)
+        parse(event=body, model=SnakeRequest)
     except ValidationError:
         return {"status_code": 400, "message": "Invalid order"}
 

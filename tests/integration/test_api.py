@@ -44,14 +44,14 @@ def test_populated_battlesnake_details(battlesnake_url: str):
 def test_populated_api_endpoints(battlesnake_url: str, turn: int, path: str):
     data = get_mock_snake_request(
         turn,
-        food_coords=[Coord(x=1, y=1), Coord(x=10, y=10)],
+        food_coords=(Coord(x=1, y=1), Coord(x=10, y=10)),
         snakes=[
             get_mock_snake(
-                body_coords=[
+                body_coords=(
                     Coord(x=0, y=0),
                     Coord(x=0, y=1),
                     Coord(x=0, y=2),
-                ]
+                )
             ),
         ],
     )

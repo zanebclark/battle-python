@@ -37,15 +37,15 @@ def get_mock_game_state(
     # get_mock_enriched_board args
     board_height: int = 11,
     board_width: int = 11,
-    food_coords: list[Coord] | None = None,
-    hazard_coords: list[Coord] | None = None,
+    food_coords: tuple[Coord, ...] = tuple(),
+    hazard_coords: tuple[Coord, ...] = tuple(),
 ) -> GameState:
-    snake_states: list[SnakeState] = []
-    snake_defs: dict[str, SnakeDef] = {}
-
-    for snake_def, snake_state in snakes.items():
-        snake_states.append(snake_state)
-        snake_defs[snake_def.id] = snake_def
+    snake_states: tuple[SnakeState, ...] = tuple(
+        (snake_state for snake_state in snakes.values())
+    )
+    snake_defs: dict[str, SnakeDef] = {
+        snake_def.id: snake_def for snake_def in snakes.keys()
+    }
 
     game = get_mock_standard_game(
         food_spawn_chance=food_spawn_chance,

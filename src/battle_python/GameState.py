@@ -42,19 +42,21 @@ class GameState(BaseModel):
             for snake in payload["board"]["snakes"]
         }
 
-        snake_states: list[SnakeState] = [
-            SnakeState(
-                snake_id=snake["id"],
-                health=snake["health"],
-                body=snake["body"],
-                head=snake["head"],
-                length=snake["length"],
-                latency=snake["latency"],
-                shout=snake["shout"],
-                is_self=snake["id"] == my_snake_id,
+        snake_states: tuple[SnakeState, ...] = tuple(
+            (
+                SnakeState(
+                    snake_id=snake["id"],
+                    health=snake["health"],
+                    body=snake["body"],
+                    head=snake["head"],
+                    length=snake["length"],
+                    latency=snake["latency"],
+                    shout=snake["shout"],
+                    is_self=snake["id"] == my_snake_id,
+                )
+                for snake in payload["board"]["snakes"]
             )
-            for snake in payload["board"]["snakes"]
-        ]
+        )
 
         board = BoardState(
             turn=payload["turn"],

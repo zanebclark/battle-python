@@ -34,7 +34,7 @@ def get_mock_standard_game(
 
 
 def get_mock_snake(
-    body_coords: list[Coord],
+    body_coords: tuple[Coord, ...],
     snake_id: str | None = None,
     health: int = 60,
     latency: int = 456,
@@ -42,7 +42,7 @@ def get_mock_snake(
     if snake_id is None:
         snake_id = str(uuid.uuid4())
     if not isinstance(body_coords[0], Coord):
-        body_coords = [Coord(x=x, y=y) for x, y in body_coords]
+        body_coords = tuple((Coord(x=x, y=y) for x, y in body_coords))
     return Snake(
         id=snake_id,
         name=f"mock_battlesnake_{snake_id}",
@@ -59,16 +59,12 @@ def get_mock_snake(
 
 
 def get_mock_board(
-    food_coords: list[Coord] | None = None,
-    hazard_coords: list[Coord] | None = None,
+    food_coords: tuple[Coord, ...] = tuple(),
+    hazard_coords: tuple[Coord, ...] = tuple(),
     snakes: list[Snake] | None = None,
     board_height: int = 11,
     board_width: int = 11,
 ) -> Board:
-    if not food_coords:
-        food_coords = []
-    if not hazard_coords:
-        hazard_coords = []
     if not snakes:
         snakes = []
 
@@ -83,8 +79,8 @@ def get_mock_board(
 
 def get_mock_snake_request(
     turn: int,
-    food_coords: list[Coord] | None = None,
-    hazard_coords: list[Coord] | None = None,
+    food_coords: tuple[Coord, ...] = tuple(),
+    hazard_coords: tuple[Coord, ...] = tuple(),
     snakes: list[Snake] | None = None,
     board_height: int = 11,
     board_width: int = 11,

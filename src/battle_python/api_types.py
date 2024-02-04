@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, NamedTuple
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt, ConfigDict
 
@@ -77,9 +77,12 @@ class Game(FrozenBaseModel):
     source: GameSource
 
 
-class Coord(FrozenBaseModel):
+class Coord(NamedTuple):
     x: int
     y: int
+
+    def __repr__(self) -> str:
+        return f"<Coord {self.x}, {self.y}>"
 
     def get_adjacent(self) -> list[Coord]:
         return [

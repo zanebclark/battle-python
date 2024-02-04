@@ -47,6 +47,7 @@ pluggy==1.4.0 ; python_version >= "3.11" and python_version < "4.0"
 poetry-core==1.8.1 ; python_version >= "3.11" and python_version < "4.0"
 poetry-plugin-export==1.6.0 ; python_version >= "3.11" and python_version < "4.0"
 poetry==1.7.1 ; python_version >= "3.11" and python_version < "4.0"
+pprofile==2.1.0 ; python_version >= "3.11" and python_version < "4.0"
 pre-commit==3.6.0 ; python_version >= "3.11" and python_version < "4.0"
 ptyprocess==0.7.0 ; python_version >= "3.11" and python_version < "4.0"
 pycparser==2.21 ; python_version >= "3.11" and python_version < "4.0" and (sys_platform == "darwin" or sys_platform == "linux") and (sys_platform == "darwin" or platform_python_implementation != "PyPy")

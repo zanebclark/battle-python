@@ -5,21 +5,19 @@ from battle_python.api_types import Coord
 
 
 def get_mock_snake_state(
-    body_coords: list[Coord],
+    body_coords: tuple[Coord, ...],
     snake_id: str | None = None,
     health: int = 60,
     latency: int | None = 456,
     shout: str | None = None,
     is_self: bool = False,
     murder_count: int = 0,
-    food_consumed: list[Coord] | None = None,
+    food_consumed: tuple[Coord, ...] = tuple(),
     is_eliminated: bool = False,
     prev_state: SnakeState | None = None,
 ) -> SnakeState:
     if snake_id is None:
         snake_id = str(uuid.uuid4())
-    if food_consumed is None:
-        food_consumed = []
     return SnakeState(
         snake_id=snake_id,
         health=health,

@@ -8,17 +8,17 @@ def get_mock_board_state(
     board_height: int = 11,
     board_width: int = 11,
     hazard_damage_rate: int = 14,
-    food_coords: list[Coord] | None = None,
-    hazard_coords: list[Coord] | None = None,
-    snake_states: list[SnakeState] | None = None,
+    food_coords: tuple[Coord, ...] | None = None,
+    hazard_coords: tuple[Coord, ...] | None = None,
+    snake_states: tuple[SnakeState, ...] | None = None,
     my_snake_state: SnakeState | None = None,
 ) -> BoardState:
     if not food_coords:
-        food_coords = []
+        food_coords = tuple()
     if not hazard_coords:
-        hazard_coords = []
+        hazard_coords = tuple()
     if not snake_states:
-        snake_states = []
+        snake_states = tuple()
     if not my_snake_state:
         if not snake_states:
             raise Exception("No snakes defined")
