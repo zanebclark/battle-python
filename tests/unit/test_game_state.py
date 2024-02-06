@@ -1,6 +1,9 @@
+import json
 import time
 import uuid
-import pprofile
+from pathlib import Path
+
+from battle_python.BoardState import BoardState
 from battle_python.GameState import GameState
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import (
@@ -79,8 +82,8 @@ def test_game_state_init():
     # Board-level assertions
     assert e_gs.board_height == board.height
     assert e_gs.board_width == board.width
-    assert [coord for coord in e_gs.current_board.food_coords] == board.food
-    assert [coord for coord in e_gs.current_board.hazard_coords] == board.hazards
+    assert e_gs.current_board.food_coords == board.food
+    assert e_gs.current_board.hazard_coords == board.hazards
     assert e_gs.current_board.turn == gs.turn
     assert len(e_gs.snake_defs.keys()) == len(snakes)
     gs_snakes = [*e_gs.current_board.snake_states]
@@ -99,14 +102,14 @@ def test_game_state_init():
             raise Exception(f"snake not found: {snake.id}")
 
         assert gs_snake.health == snake.health
-        assert [coord for coord in gs_snake.body] == snake.body
+        assert gs_snake.body == snake.body
         assert gs_snake.head == snake.head
         assert gs_snake.length == snake.length
         assert gs_snake.latency == int(snake.latency)
         assert gs_snake.shout == snake.shout
         assert gs_snake.is_self == (snake.id == you.id)
         assert gs_snake.murder_count == 0
-        assert [coord for coord in gs_snake.food_consumed] == []
+        assert gs_snake.food_consumed == tuple()
         assert gs_snake.is_eliminated is False
         assert gs_snake.prev_state is None
 

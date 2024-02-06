@@ -18,3 +18,9 @@ class SnakeState(BaseModel):
     food_consumed: tuple[Coord, ...] = Field(default_factory=tuple)
     is_eliminated: bool = False
     prev_state: SnakeState | None = None
+
+    @property
+    def last_move(self):
+        return Coord(
+            x=(self.body[0].x - self.body[1].x), y=self.body[0].y - self.body[1].y
+        )

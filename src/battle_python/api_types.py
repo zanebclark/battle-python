@@ -84,13 +84,13 @@ class Coord(NamedTuple):
     def __repr__(self) -> str:
         return f"<Coord {self.x}, {self.y}>"
 
-    def get_adjacent(self) -> list[Coord]:
-        return [
+    def get_adjacent(self) -> set[Coord]:
+        return {
             Coord(x=self.x, y=self.y + 1),
             Coord(x=self.x, y=self.y - 1),
             Coord(x=self.x - 1, y=self.y),
             Coord(x=self.x + 1, y=self.y),
-        ]
+        }
 
     def get_relative_distance(self, other: Coord) -> int:
         return abs(self.x - other.x) ** 2 + abs(self.y - other.y) ** 2
@@ -110,6 +110,9 @@ class Coord(NamedTuple):
     def __ge__(self, other):
         return f"{self.x}, {self.y}" >= f"{other.x}, {other.y}"
 
+    def __add__(self, other):
+        return Coord(x=self.x + other.x, y=self.y + other.y)
+
 
 class MoveResponse(FrozenBaseModel):
     move: Direction
@@ -120,7 +123,7 @@ class Snake(BaseModel):
     id: str
     name: str
     health: NonNegativeInt
-    body: list[Coord]
+    body: tuple[Coord, ...]
     latency: str
     head: Coord
     length: NonNegativeInt
@@ -131,9 +134,9 @@ class Snake(BaseModel):
 class Board(FrozenBaseModel):
     height: NonNegativeInt
     width: NonNegativeInt
-    food: list[Coord]
-    hazards: list[Coord]
-    snakes: list[Snake]
+    food: tuple[Coord, ...]
+    hazards: tuple[Coord, ...]
+    snakes: tuple[Snake, ...]
 
 
 class SnakeRequest(BaseModel):

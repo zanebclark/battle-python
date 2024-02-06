@@ -61,7 +61,7 @@ def get_mock_snake(
 def get_mock_board(
     food_coords: tuple[Coord, ...] = tuple(),
     hazard_coords: tuple[Coord, ...] = tuple(),
-    snakes: list[Snake] | None = None,
+    snakes: tuple[Snake, ...] | None = None,
     board_height: int = 11,
     board_width: int = 11,
 ) -> Board:
@@ -81,7 +81,7 @@ def get_mock_snake_request(
     turn: int,
     food_coords: tuple[Coord, ...] = tuple(),
     hazard_coords: tuple[Coord, ...] = tuple(),
-    snakes: list[Snake] | None = None,
+    snakes: tuple[Snake, ...] | None = None,
     board_height: int = 11,
     board_width: int = 11,
     food_spawn_chance: int = 15,

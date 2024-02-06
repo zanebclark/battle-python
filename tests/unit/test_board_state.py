@@ -663,6 +663,7 @@ def test_board_state_post_init(
         snake_states=snake_states,
         food_coords=(Coord(x=0, y=10),),
     )
+    board_state.post_init()
     assert board_state.food_coords == expected_food_coords
     for snake_state in snake_states:
         expected_snake_state = None
@@ -1091,7 +1092,7 @@ def test_board_state_populate_next_boards(
 ):
     # Since I'm using a class variable, the test has the potential to fail with repeated states
     board.__class__.explored_states = set()
-    board.populate_next_boards(max_turn=1)
+    board.populate_next_boards()
     for next_board in board.next_boards:
         expected_board = None
         for some_board in expected_boards:

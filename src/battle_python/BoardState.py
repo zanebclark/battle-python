@@ -21,11 +21,6 @@ WIN_SCORE = abs(DEATH_SCORE)
 FOOD_SCORE = 100
 MURDER_SCORE = 100
 DEATH_COORD = Coord(x=1000, y=1000)
-explored_states_count = 0
-
-
-def print_explored_states_count():
-    print(f"explored_states_count: {explored_states_count}")
 
 
 class BoardState(BaseModel):
@@ -150,12 +145,19 @@ class BoardState(BaseModel):
             if len(reasonable_moves) == 0:
                 reasonable_moves.append(DEATH_COORD)
             if len(reasonable_moves) > 1 and not snake.is_self:
-                reasonable_moves = [
-                    move
-                    for move in reasonable_moves
-                    if self.my_snake_state.head.get_manhattan_distance(move)
-                    < self.my_snake_state.head.get_manhattan_distance(snake.head)
-                ]
+                if (
+                    self.my_snake_state.head.get_manhattan_distance(snake.head) > 4
+                    and self.turn % 2 == 1
+                    and snake.body[0] + snake.last_move in reasonable_moves
+                ):
+                    reasonable_moves = [snake.body[0] + snake.last_move]
+                else:
+                    reasonable_moves = [
+                        move
+                        for move in reasonable_moves
+                        if self.my_snake_state.head.get_manhattan_distance(move)
+                        < self.my_snake_state.head.get_manhattan_distance(snake.head)
+                    ]
 
             [
                 next_states[snake.snake_id].append(
@@ -322,8 +324,6 @@ class BoardState(BaseModel):
         }
 
     def get_board_payload(self, snake_defs: dict[str, SnakeDef], game: Game) -> dict:
-        global explored_states_count
-        explored_states_count += 1
         return {
             "game": game.model_dump(),
             "turn": self.turn,
