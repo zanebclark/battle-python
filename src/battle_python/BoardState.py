@@ -10,7 +10,7 @@ from aws_lambda_powertools import Logger
 
 from pydantic import NonNegativeInt, Field
 
-from battle_python.SnakeState import SnakeState
+from battle_python.SnakeState import SnakeState, Elimination
 from battle_python.api_types import Coord, Game, SnakeDef
 
 logger = Logger()
@@ -109,6 +109,13 @@ class BoardState(BaseModel):
         if food_consumed:
             food_consumed_coords.append(next_body[0])
 
+        elimination = None
+        if next_health == 0:
+            elimination = Elimination(cause="out-of-health")
+
+        if move is DEATH_COORD:
+            elimination = Elimination(cause="wall-collision")
+
         return SnakeState(
             snake_id=snake.snake_id,
             health=next_health,
@@ -120,7 +127,7 @@ class BoardState(BaseModel):
             is_self=snake.is_self,
             murder_count=snake.murder_count,
             food_consumed=food_consumed_coords,
-            is_eliminated=next_health == 0 or move is DEATH_COORD,
+            elimination=elimination,
             prev_state=snake,
         )
 
@@ -131,10 +138,10 @@ class BoardState(BaseModel):
             coord
             for snake in self.snake_states
             for coord in snake.body[:-1]
-            if not snake.is_eliminated
+            if snake.elimination is None
         ]
         for snake in self.snake_states:
-            if snake.is_eliminated:
+            if snake.elimination is not None:
                 continue
 
             moves = self.get_legal_adjacent_coords(coord=snake.head)
@@ -171,7 +178,7 @@ class BoardState(BaseModel):
     def get_snake_heads_at_coord(self) -> dict[Coord, list[SnakeState]]:
         snake_heads_at_coord: dict[Coord, list[SnakeState]] = defaultdict(list)
         for snake_state in self.snake_states:
-            if snake_state.is_eliminated:
+            if snake_state.elimination is not None:
                 continue
             snake_heads_at_coord[snake_state.head].append(snake_state)
         return snake_heads_at_coord
@@ -184,7 +191,9 @@ class BoardState(BaseModel):
         longest_snake = snake_heads_at_coord[0]
         for other_snake in snake_heads_at_coord[1:]:
             if longest_snake.length == other_snake.length:
-                longest_snake.is_eliminated = True
+                longest_snake.elimination = Elimination(
+                    cause="head-collision", by=other_snake.snake_id
+                )
             else:
                 longest_snake.murder_count += 1
                 if (
@@ -192,7 +201,9 @@ class BoardState(BaseModel):
                     and longest_snake.snake_id == self.my_snake_state.snake_id
                 ):
                     self.score += MURDER_SCORE
-            other_snake.is_eliminated = True
+            other_snake.elimination = Elimination(
+                cause="head-collision", by=longest_snake.snake_id
+            )
 
     def resolve_food_consumption(
         self,
@@ -202,7 +213,9 @@ class BoardState(BaseModel):
         if coord not in self.food_coords:
             # Not a food coordinate
             return
-        survivors = [snake for snake in snake_heads_at_coord if not snake.is_eliminated]
+        survivors = [
+            snake for snake in snake_heads_at_coord if snake.elimination is None
+        ]
         if len(survivors) == 0:
             # Collision killed all the snakes
             return
@@ -243,7 +256,7 @@ class BoardState(BaseModel):
                 self.my_snake_state = snake
                 break
 
-        if self.my_snake_state is None or self.my_snake_state.is_eliminated:
+        if self.my_snake_state is None or self.my_snake_state.elimination is not None:
             self.score = DEATH_SCORE
             self.is_terminal = True
 
@@ -283,7 +296,7 @@ class BoardState(BaseModel):
             self.next_boards.append(potential_board)
 
     def score_state(self) -> float:
-        if self.my_snake_state is None or self.my_snake_state.is_eliminated:
+        if self.my_snake_state is None or self.my_snake_state.elimination is not None:
             return 0
         if len(self.snake_states) == 1:
             return 100000  # You've won!

@@ -1,6 +1,6 @@
 import uuid
 
-from battle_python.SnakeState import SnakeState
+from battle_python.SnakeState import SnakeState, Elimination
 from battle_python.api_types import Coord
 
 
@@ -13,7 +13,7 @@ def get_mock_snake_state(
     is_self: bool = False,
     murder_count: int = 0,
     food_consumed: tuple[Coord, ...] = tuple(),
-    is_eliminated: bool = False,
+    elimination: Elimination | None = None,
     prev_state: SnakeState | None = None,
 ) -> SnakeState:
     if snake_id is None:
@@ -29,6 +29,6 @@ def get_mock_snake_state(
         is_self=is_self,
         murder_count=murder_count,
         food_consumed=food_consumed,
-        is_eliminated=is_eliminated,
+        elimination=elimination,
         prev_state=prev_state,
     )

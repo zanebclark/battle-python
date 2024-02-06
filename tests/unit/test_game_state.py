@@ -110,7 +110,7 @@ def test_game_state_init():
         assert gs_snake.is_self == (snake.id == you.id)
         assert gs_snake.murder_count == 0
         assert gs_snake.food_consumed == tuple()
-        assert gs_snake.is_eliminated is False
+        assert gs_snake.elimination is None
         assert gs_snake.prev_state is None
 
     # Game-level assertions

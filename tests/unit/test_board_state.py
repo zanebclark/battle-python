@@ -1,7 +1,7 @@
 import pytest
 
 from battle_python.BoardState import BoardState
-from battle_python.SnakeState import SnakeState
+from battle_python.SnakeState import SnakeState, Elimination
 from battle_python.api_types import Coord
 from mocks.get_mock_board_state import get_mock_board_state
 from mocks.get_mock_snake_state import get_mock_snake_state
@@ -567,7 +567,7 @@ def test_board_state_get_next_snake_states_per_snake(
                         Coord(x=0, y=9),
                         Coord(x=0, y=8),
                     ),
-                    is_eliminated=True,
+                    elimination=Elimination(cause="head-collision", by="Equal - 2"),
                 ),
                 get_mock_snake_state(
                     snake_id="Equal - 2",
@@ -576,7 +576,7 @@ def test_board_state_get_next_snake_states_per_snake(
                         Coord(x=1, y=10),
                         Coord(x=2, y=10),
                     ),
-                    is_eliminated=True,
+                    elimination=Elimination(cause="head-collision", by="Equal - 1"),
                 ),
             ),
             (Coord(x=0, y=10),),
@@ -609,7 +609,7 @@ def test_board_state_get_next_snake_states_per_snake(
                         Coord(x=0, y=9),
                         Coord(x=0, y=8),
                     ),
-                    is_eliminated=True,
+                    elimination=Elimination(cause="head-collision", by="Longer"),
                 ),
                 get_mock_snake_state(
                     snake_id="Longer",
@@ -695,7 +695,6 @@ def test_board_state_post_init(
                             Coord(x=0, y=9),
                             Coord(x=0, y=8),
                         ),
-                        is_eliminated=False,
                         murder_count=0,
                         health=89,
                     ),
@@ -706,7 +705,6 @@ def test_board_state_post_init(
                             Coord(x=1, y=8),
                             Coord(x=1, y=7),
                         ),
-                        is_eliminated=False,
                         murder_count=0,
                         health=64,
                     ),
@@ -726,7 +724,9 @@ def test_board_state_post_init(
                                 Coord(x=0, y=10),
                                 Coord(x=0, y=9),
                             ),
-                            is_eliminated=True,
+                            elimination=Elimination(
+                                cause="head-collision", by="Sidecar"
+                            ),
                             murder_count=0,
                             health=88,
                         ),
@@ -737,7 +737,9 @@ def test_board_state_post_init(
                                 Coord(x=1, y=9),
                                 Coord(x=1, y=8),
                             ),
-                            is_eliminated=True,
+                            elimination=Elimination(
+                                cause="head-collision", by="Up -> Right"
+                            ),
                             murder_count=0,
                             health=63,
                         ),
@@ -756,7 +758,6 @@ def test_board_state_post_init(
                                 Coord(x=0, y=10),
                                 Coord(x=0, y=9),
                             ),
-                            is_eliminated=False,
                             murder_count=0,
                             health=88,
                         ),
@@ -767,7 +768,6 @@ def test_board_state_post_init(
                                 Coord(x=1, y=9),
                                 Coord(x=1, y=8),
                             ),
-                            is_eliminated=False,
                             murder_count=0,
                             health=63,
                         ),
@@ -790,7 +790,6 @@ def test_board_state_post_init(
                             Coord(x=0, y=9),
                             Coord(x=0, y=8),
                         ),
-                        is_eliminated=False,
                         murder_count=0,
                         health=89,
                     ),
@@ -802,7 +801,6 @@ def test_board_state_post_init(
                             Coord(x=1, y=7),
                             Coord(x=1, y=6),
                         ),
-                        is_eliminated=False,
                         murder_count=0,
                         health=64,
                     ),
@@ -822,7 +820,9 @@ def test_board_state_post_init(
                                 Coord(x=0, y=10),
                                 Coord(x=0, y=9),
                             ),
-                            is_eliminated=True,
+                            elimination=Elimination(
+                                cause="head-collision", by="Sidecar"
+                            ),
                             murder_count=0,
                             health=88,
                         ),
@@ -834,7 +834,6 @@ def test_board_state_post_init(
                                 Coord(x=1, y=8),
                                 Coord(x=1, y=7),
                             ),
-                            is_eliminated=False,
                             murder_count=1,
                             health=63,
                         ),
@@ -853,7 +852,6 @@ def test_board_state_post_init(
                                 Coord(x=0, y=10),
                                 Coord(x=0, y=9),
                             ),
-                            is_eliminated=False,
                             murder_count=0,
                             health=88,
                         ),
@@ -865,7 +863,6 @@ def test_board_state_post_init(
                                 Coord(x=1, y=8),
                                 Coord(x=1, y=7),
                             ),
-                            is_eliminated=False,
                             murder_count=0,
                             health=63,
                         ),
@@ -888,7 +885,6 @@ def test_board_state_post_init(
                             Coord(x=0, y=9),
                             Coord(x=0, y=8),
                         ),
-                        is_eliminated=False,
                         murder_count=0,
                         health=89,
                     ),
@@ -899,7 +895,6 @@ def test_board_state_post_init(
                             Coord(x=1, y=8),
                             Coord(x=1, y=7),
                         ),
-                        is_eliminated=False,
                         murder_count=0,
                         health=64,
                     ),
@@ -910,7 +905,6 @@ def test_board_state_post_init(
                             Coord(x=2, y=9),
                             Coord(x=2, y=8),
                         ),
-                        is_eliminated=False,
                         murder_count=0,
                         health=22,
                     ),
@@ -930,7 +924,9 @@ def test_board_state_post_init(
                                 Coord(x=0, y=10),
                                 Coord(x=0, y=9),
                             ),
-                            is_eliminated=True,
+                            elimination=Elimination(
+                                cause="head-collision", by="Up -> Left"
+                            ),
                             murder_count=0,
                             health=88,
                         ),
@@ -941,7 +937,9 @@ def test_board_state_post_init(
                                 Coord(x=1, y=9),
                                 Coord(x=1, y=8),
                             ),
-                            is_eliminated=True,
+                            elimination=Elimination(
+                                cause="head-collision", by="Up -> Right"
+                            ),
                             murder_count=0,
                             health=63,
                         ),
@@ -952,7 +950,9 @@ def test_board_state_post_init(
                                 Coord(x=2, y=10),
                                 Coord(x=2, y=9),
                             ),
-                            is_eliminated=True,
+                            elimination=Elimination(
+                                cause="head-collision", by="Up -> Right"
+                            ),
                             murder_count=0,
                             health=21,
                         ),
@@ -971,7 +971,7 @@ def test_board_state_post_init(
                                 Coord(x=0, y=10),
                                 Coord(x=0, y=9),
                             ),
-                            is_eliminated=True,
+                            elimination=Elimination(cause="snake-collision", by="spam"),
                             murder_count=0,
                             health=88,
                         ),
@@ -982,7 +982,7 @@ def test_board_state_post_init(
                                 Coord(x=1, y=9),
                                 Coord(x=1, y=8),
                             ),
-                            is_eliminated=True,
+                            elimination=Elimination(cause="snake-collision", by="spam"),
                             murder_count=0,
                             health=63,
                         ),
@@ -993,7 +993,6 @@ def test_board_state_post_init(
                                 Coord(x=2, y=10),
                                 Coord(x=2, y=9),
                             ),
-                            is_eliminated=False,
                             murder_count=0,
                             health=21,
                         ),
@@ -1012,7 +1011,6 @@ def test_board_state_post_init(
                                 Coord(x=0, y=10),
                                 Coord(x=0, y=9),
                             ),
-                            is_eliminated=False,
                             murder_count=0,
                             health=88,
                         ),
@@ -1023,7 +1021,6 @@ def test_board_state_post_init(
                                 Coord(x=1, y=9),
                                 Coord(x=1, y=8),
                             ),
-                            is_eliminated=False,
                             murder_count=0,
                             health=63,
                         ),
@@ -1034,7 +1031,6 @@ def test_board_state_post_init(
                                 Coord(x=2, y=10),
                                 Coord(x=2, y=9),
                             ),
-                            is_eliminated=False,
                             murder_count=0,
                             health=21,
                         ),
@@ -1053,7 +1049,6 @@ def test_board_state_post_init(
                                 Coord(x=0, y=10),
                                 Coord(x=0, y=9),
                             ),
-                            is_eliminated=False,
                             murder_count=0,
                             health=88,
                         ),
@@ -1064,7 +1059,6 @@ def test_board_state_post_init(
                                 Coord(x=1, y=9),
                                 Coord(x=1, y=8),
                             ),
-                            is_eliminated=False,
                             murder_count=0,
                             health=63,
                         ),
@@ -1075,7 +1069,7 @@ def test_board_state_post_init(
                                 Coord(x=2, y=10),
                                 Coord(x=2, y=9),
                             ),
-                            is_eliminated=True,
+                            elimination=Elimination(cause="snake-collision", by="spam"),
                             murder_count=0,
                             health=21,
                         ),
@@ -1122,5 +1116,5 @@ def test_board_state_populate_next_boards(
             assert snake_state.body == expected_state.body
             assert snake_state.head == expected_state.head
             assert snake_state.length == expected_state.length
-            assert snake_state.is_eliminated == expected_state.is_eliminated
+            assert snake_state.elimination == expected_state.elimination
             assert snake_state.murder_count == expected_state.murder_count
