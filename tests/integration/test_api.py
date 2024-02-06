@@ -45,7 +45,7 @@ def test_populated_api_endpoints(battlesnake_url: str, turn: int, path: str):
     data = get_mock_snake_request(
         turn,
         food_coords=(Coord(x=1, y=1), Coord(x=10, y=10)),
-        snakes=[
+        snakes=(
             get_mock_snake(
                 body_coords=(
                     Coord(x=0, y=0),
@@ -53,7 +53,7 @@ def test_populated_api_endpoints(battlesnake_url: str, turn: int, path: str):
                     Coord(x=0, y=2),
                 )
             ),
-        ],
+        ),
     )
 
     response = requests.post(f"{battlesnake_url}/{path}", data=data.model_dump_json())
