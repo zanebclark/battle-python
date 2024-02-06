@@ -323,6 +323,7 @@ class BoardState(BaseModel):
                 "latency": 0,
                 "length": 0,
                 "customizations": snake_defs[snake_id].customizations.model_dump(),
+                "elimination": None,
             }
         snake = snake[0]
         snake_id = snake.snake_id
@@ -334,6 +335,9 @@ class BoardState(BaseModel):
             "latency": str(snake.latency),
             "length": snake.length,
             "customizations": snake_defs[snake_id].customizations.model_dump(),
+            "elimination": snake.elimination.model_dump()
+            if snake.elimination is not None
+            else None,
         }
 
     def get_board_payload(self, snake_defs: dict[str, SnakeDef], game: Game) -> dict:
