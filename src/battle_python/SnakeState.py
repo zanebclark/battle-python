@@ -20,7 +20,7 @@ class Elimination(BaseModel):
 
 
 class SnakeState(BaseModel):
-    snake_id: str
+    id: str
     health: NonNegativeInt
     body: tuple[Coord, ...]
     head: Coord

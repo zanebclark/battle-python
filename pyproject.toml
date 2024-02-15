@@ -10,6 +10,8 @@ packages = [{include = "battle_python", from = "src"}]
 python = "^3.11"
 aws-lambda-powertools = {extras = ["tracer", "validation"], version = "^2.30.2"}
 pydantic = "^2.5.3"
+numpy = "^1.26.4"
+scipy = "^1.12.0"
 
 [tool.poetry.group.dev.dependencies]
 aws_xray_sdk = "*"
@@ -21,6 +23,7 @@ poetry-plugin-export = "^1.6.0"
 pre-commit = "^3.6.0"
 pytest = "^7.4.3"
 pprofile = "^2.1.0"
+coverage = "^7.4.1"
 
 [build-system]
 requires = ["poetry-core"]

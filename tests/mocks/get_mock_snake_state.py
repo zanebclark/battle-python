@@ -19,7 +19,7 @@ def get_mock_snake_state(
     if snake_id is None:
         snake_id = str(uuid.uuid4())
     return SnakeState(
-        snake_id=snake_id,
+        id=snake_id,
         health=health,
         body=body_coords,
         head=body_coords[0],

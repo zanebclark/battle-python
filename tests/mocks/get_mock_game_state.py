@@ -40,12 +40,15 @@ def get_mock_game_state(
     food_coords: tuple[Coord, ...] = tuple(),
     hazard_coords: tuple[Coord, ...] = tuple(),
 ) -> GameState:
-    snake_states: tuple[SnakeState, ...] = tuple(
-        (snake_state for snake_state in snakes.values())
-    )
     snake_defs: dict[str, SnakeDef] = {
         snake_def.id: snake_def for snake_def in snakes.keys()
     }
+    my_snakes = [snake for snake in snakes.values() if snake.is_self]
+    if len(my_snakes) == 0:
+        raise Exception("Your snake is not defined")
+    elif len(my_snakes) > 1:
+        raise Exception("Your snake is defined multiple times")
+    my_snake = my_snakes[0]
 
     game = get_mock_standard_game(
         food_spawn_chance=food_spawn_chance,
@@ -60,10 +63,12 @@ def get_mock_game_state(
             board_width=board_width,
             food_coords=food_coords,
             hazard_coords=hazard_coords,
-            snake_states=snake_states,
+            other_snakes=tuple(
+                (snake for snake in snakes.values() if not snake.is_self)
+            ),
+            my_snake=my_snake,
             hazard_damage_rate=hazard_damage_per_turn,
         )
-        current_board.post_init()
 
     return GameState(
         game=game,
@@ -71,5 +76,5 @@ def get_mock_game_state(
         board_width=board_width,
         current_board=current_board,
         snake_defs=snake_defs,
-        my_snake_id=my_snake_id,
+        my_snake_id=my_snake.id,
     )
