@@ -4,26 +4,39 @@ from collections import defaultdict
 from itertools import product
 from typing import Literal
 
+import numpy as np
+import numpy.typing as npt
+import numpy.ma as ma
 from aws_lambda_powertools.utilities.parser import BaseModel
 from aws_lambda_powertools import Logger
 
-
-from pydantic import NonNegativeInt, Field
+from pydantic import NonNegativeInt, Field, ConfigDict
 
 from battle_python.SnakeState import SnakeState, Elimination
 from battle_python.api_types import Coord, Game, SnakeDef
+from battle_python.utils import get_aligned_masked_array
 
 logger = Logger()
 
-
+manhattan_moves = np.array(
+    [
+        [False, True, False],
+        [True, False, True],
+        [False, True, False],
+    ]
+)
 DEATH_SCORE = -1000
 WIN_SCORE = abs(DEATH_SCORE)
 FOOD_SCORE = 100
 MURDER_SCORE = 100
 DEATH_COORD = Coord(x=1000, y=1000)
+FOOD_WEIGHT = 5
+AREA_MULTIPLIER = 1
+CENTER_CONTROL_WEIGHT = 2
 
 
 class BoardState(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     turn: NonNegativeInt
     board_width: NonNegativeInt
     board_height: NonNegativeInt
@@ -38,6 +51,102 @@ class BoardState(BaseModel):
     is_terminal: bool = False
     terminal_reason: Literal["duplicate", "self_eliminated", "victory"] | None = None
     score: float = 0
+    board_array: npt.NDArray[np.int_]
+    food_array: npt.NDArray[np.int_]
+    snake_array: npt.NDArray[np.int_]
+    center_weight_array: npt.NDArray[np.int_]
+
+    @staticmethod
+    def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]:
+        debug = False  # TODO: Implement logging levels, make this debug
+        # The first element is the # of rows (y axis). The second element is the # of columns (x axis)
+        # Adding two supports padding the board with masked values. This supports calculations up to the
+        # edge of the grid without altering the array size
+        shape = (board_height + 2, board_width + 2)
+
+        board_array = np.full(shape=shape, fill_value=100, dtype=np.int8)
+
+        # Fill the actual board area with -1
+        board_array[1:-1, 1:-1] = -1
+
+        if debug:  # TODO: Implement logging levels, make this debug
+            print("board_array:")
+            print(get_aligned_masked_array(board_array))
+
+        return board_array
+
+    @staticmethod
+    def get_food_array(
+        board_array: npt.NDArray[np.int_], food_coords: tuple[Coord, ...]
+    ) -> npt.NDArray[np.int_]:
+        debug = False  # TODO: Implement logging levels, make this debug
+        food_array = np.copy(board_array, subok=True)
+
+        # Fill the actual board area with 1 to support element-wise multiplication
+        food_array[1:-1, 1:-1] = 1
+
+        rows, _ = food_array.shape
+        food_array[
+            [
+                (rows - 2 - coord.y) for coord in food_coords
+            ],  # Rows (y axis) are the first element. Indexing is top to bottom
+            [
+                coord.x + 1 for coord in food_coords
+            ],  # Rows (x axis) are the second element. +1 for the pad
+        ] = FOOD_WEIGHT
+
+        if debug:
+            print("food_array:")
+            print(get_aligned_masked_array(food_array))
+
+        return food_array
+
+    @staticmethod
+    def get_snake_array(
+        board_array: npt.NDArray[np.int_], snakes: tuple[SnakeState, ...]
+    ) -> npt.NDArray[np.int_]:
+        debug = False  # TODO: Implement logging levels, make this debug
+        snake_array = np.copy(board_array, subok=True)
+        rows, _ = snake_array.shape
+
+        for snake in snakes:
+            if snake.elimination is not None:
+                continue
+            snake_array[
+                [
+                    (rows - 2 - coord.y) for coord in snake.body
+                ],  # Rows (y axis) are the first element. Indexing is top to bottom
+                [
+                    coord.x + 1 for coord in snake.body
+                ],  # Rows (x axis) are the second element. +1 for the pad
+            ] = np.arange(
+                len(snake.body)
+            )  # Set the value equal to the index of the snake body
+
+        if debug:
+            print("snake_array:")
+            print(get_aligned_masked_array(snake_array))
+
+        return snake_array
+
+    @staticmethod
+    def get_center_weight_array(
+        board_array: npt.NDArray[np.int_],
+    ) -> npt.NDArray[np.int_]:
+        debug = False  # TODO: Implement logging levels, make this debug
+        center_weight = np.copy(board_array, subok=True)
+
+        # Fill the actual board area with 1 to support element-wise multiplication
+        center_weight[1:-1, 1:-1] = 1
+
+        # Fill the center 3x3 with center control weight
+        center_weight[5:-5, 5:-5] = CENTER_CONTROL_WEIGHT
+
+        if debug:
+            print("center_weight:")
+            print(get_aligned_masked_array(center_weight))
+
+        return center_weight
 
     def get_flood_fill_coords(
         self, coord: Coord, max_depth: int, depth: int = 0
@@ -58,14 +167,158 @@ class BoardState(BaseModel):
     @classmethod
     def factory(cls, **kwargs) -> BoardState:
         my_snake = kwargs["my_snake"]
+        food_coords = kwargs["food_coords"]
         other_snakes = kwargs["other_snakes"]
+        board_height = kwargs["board_height"]
+        board_width = kwargs["board_width"]
         snake_body_coords = [
             coord
             for snake in [my_snake, *other_snakes]
             for coord in snake.body[:-1]
             if snake.elimination is None
         ]
-        return cls(snake_body_coords=snake_body_coords, **kwargs)
+
+        board_array = cls.get_board_array(
+            board_width=board_width, board_height=board_height
+        )
+
+        food_array = cls.get_food_array(
+            board_array=board_array, food_coords=food_coords
+        )
+
+        snake_array = cls.get_snake_array(
+            board_array=board_array, snakes=(my_snake, *other_snakes)
+        )
+
+        center_weight_array = cls.get_center_weight_array(board_array=board_array)
+
+        return cls(
+            snake_body_coords=snake_body_coords,
+            board_array=board_array,
+            food_array=food_array,
+            snake_array=snake_array,
+            center_weight_array=center_weight_array,
+            **kwargs,
+        )
+
+    def get_snake_floodfill(self, snake: SnakeState) -> npt.NDArray[np.int_]:
+        debug = False  # TODO: Implement logging levels, make this debug
+        info = False
+
+        # Mask all snake bodies to treat them as obstacles
+        snake_moves = ma.masked_array(
+            np.array(self.board_array, copy=True), mask=(self.snake_array >= 0)
+        )
+        rows, _ = snake_moves.shape
+        # Set the snake's head as 0
+        # The first element references rows (y axis). The second argument references columns (x axis)
+        # Rows are indexed from top to bottom. Subtract y coord from rows to account for this
+        # Subtract 2 to account for board buffer rows on top and bottom
+        # Add 1 to x to account for left-most board buffer
+        snake_moves[rows - 2 - snake.head.y][snake.head.x + 1] = 0
+
+        # TODO: Consider forming the voronoi iteratively, breaking when all of the coordinates are accounted for.
+        move = 0
+        while True:
+            if debug:
+                print(f"move: {move}")
+
+            # Get indices of all elements == current move
+            move_indices = np.argwhere(snake_moves == move)
+            if len(move_indices) == 0:
+                break
+            for move_index in move_indices:
+                # Expand the array to form a 3x3 centered on the move_index
+                neighbors = snake_moves[
+                    move_index[0] - 1 : move_index[0] + 2,
+                    move_index[1] - 1 : move_index[1] + 2,
+                ]
+                if debug:
+                    print(get_aligned_masked_array(neighbors))
+
+                # Mask diagonal moves and moves that have been accounted for
+                mask = manhattan_moves & (neighbors < 0)
+                if debug:
+                    print(get_aligned_masked_array(mask))
+
+                # Set all unmasked cells to the next move count
+                np.putmask(
+                    neighbors,
+                    mask,
+                    move + 1,
+                )
+                if debug:
+                    print(get_aligned_masked_array(snake_moves))
+            move += 1
+
+        if info:
+            print("snake_moves:")
+            print(get_aligned_masked_array(snake_moves))
+
+        return snake_moves
+
+    def get_my_snake_area_of_control(self) -> npt.NDArray[np.int_]:
+        """
+        Returns a 2D array that represents my snake's "area of control".
+        Coordinates with a value of 0 are reachable by least one enemy snake before me.
+
+        For example:
+        Another snake can get to a coordinate at move 4
+        I can get to the same coordinate at move 14,
+        The element-wise subtraction will produce -10.
+        The value will be set to 0 at this coordinate to reflect that I can't reach it before my opponent
+
+        Another example:
+        Another snake can get to a coordinate at move 10
+        I can get to the same coordinate at move 3,
+        The element-wise subtraction will produce 7.
+        The value at this coordinate will be 7
+        """
+        debug = False  # TODO: Implement logging levels, make this debug
+        my_snake_floodfill = self.get_snake_floodfill(snake=self.my_snake)
+        my_snake_voronoi = np.copy(my_snake_floodfill, subok=True)
+
+        #
+        [
+            np.putmask(
+                my_snake_voronoi,
+                (self.get_snake_floodfill(snake=snake) - my_snake_floodfill) <= 0,
+                0,
+            )
+            for snake in self.other_snakes
+            if snake.elimination is None
+        ]
+        if debug:
+            print("my_snake_voronoi")
+            print(get_aligned_masked_array(my_snake_voronoi))
+
+        return my_snake_voronoi
+
+    def spam(self):
+        debug = False  # TODO: Implement logging levels, make this debug
+        area_of_control = self.get_my_snake_area_of_control()
+        my_snake_score = np.copy(area_of_control, subok=True)
+
+        # Replace non-zero values with an area multiplier
+        np.putmask(
+            my_snake_score,
+            my_snake_score > 0,
+            AREA_MULTIPLIER,
+        )
+
+        if debug:
+            print("self.food_array")
+            print(get_aligned_masked_array(self.food_array))
+
+        score = np.multiply(my_snake_score, self.food_array)
+
+        score = np.multiply(score, self.center_weight_array)
+
+        if debug:
+            print("score")
+            print(get_aligned_masked_array(score))
+
+        return score.sum()
 
     def get_my_key(self) -> tuple[int, tuple[Coord]]:
         return self.turn, self.my_snake.body[0]

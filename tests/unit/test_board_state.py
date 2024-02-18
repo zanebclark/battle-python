@@ -3,8 +3,48 @@ import pytest
 from battle_python.BoardState import BoardState, DEATH_COORD
 from battle_python.SnakeState import SnakeState, Elimination
 from battle_python.api_types import Coord
+from fixtures.timer import Timer
 from mocks.get_mock_board_state import get_mock_board_state
 from mocks.get_mock_snake_state import get_mock_snake_state
+
+
+def test_board_state_get_flood_fill_coords():
+    board = get_mock_board_state(
+        my_snake=get_mock_snake_state(
+            snake_id="C",
+            body_coords=(Coord(x=9, y=7), Coord(x=9, y=8), Coord(x=9, y=9)),
+        ),
+        other_snakes=(
+            get_mock_snake_state(
+                snake_id="A",
+                body_coords=(Coord(x=1, y=1), Coord(x=1, y=2), Coord(x=1, y=3)),
+            ),
+            get_mock_snake_state(
+                snake_id="B",
+                body_coords=(Coord(x=9, y=1), Coord(x=8, y=1), Coord(x=7, y=1)),
+            ),
+            get_mock_snake_state(
+                snake_id="D",
+                body_coords=(Coord(x=1, y=7), Coord(x=1, y=8), Coord(x=1, y=9)),
+                health=100,
+            ),
+        ),
+        food_coords=(
+            Coord(x=3, y=1),
+            Coord(x=2, y=5),
+            Coord(x=8, y=3),
+            Coord(x=5, y=5),
+            Coord(x=10, y=7),
+        ),
+        board_height=11,
+        board_width=11,
+    )
+    # with Timer():
+    #     spam = board.get_flood_fill_coords(coord=board.my_snake.head, max_depth=10)
+
+    with Timer():
+        spam2 = board.spam()
+        print(spam2)
 
 
 @pytest.mark.parametrize(
