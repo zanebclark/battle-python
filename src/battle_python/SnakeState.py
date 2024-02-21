@@ -9,8 +9,10 @@ from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt, Field, ConfigDict
 
 from battle_python.api_types import Coord
-from battle_python.constants import DEATH_COORD, MANHATTAN_MOVES
+from battle_python.constants import DEATH_COORD, UNEXPLORED_VALUE
 from aws_lambda_powertools import Logger
+
+from battle_python.utils import get_aligned_masked_array
 
 logger = Logger()
 
@@ -62,10 +64,10 @@ class SnakeState(BaseModel):
         body_array[
             [
                 (rows - 2 - coord.y) for coord in body
-            ],  # Rows (y axis) are the first element. Indexing is top to bottom
+            ],  # Rows (y-axis) are the first element. Indexing is top to bottom
             [
                 coord.x + 1 for coord in body
-            ],  # Rows (x axis) are the second element. +1 for the pad
+            ],  # Rows (x-axis) are the second element. +1 for the pad
         ] = np.arange(
             len(body)
         )  # Set the value equal to the index of the snake body
@@ -86,7 +88,7 @@ class SnakeState(BaseModel):
             np.array(all_snake_bodies_array, copy=True),
             mask=(all_snake_bodies_array >= 0),
         )
-        moves_array[moves_array == -1] = 100
+        moves_array[moves_array == -1] = UNEXPLORED_VALUE
 
         rows, _ = moves_array.shape
         # Set the snake's head as 0
@@ -102,35 +104,36 @@ class SnakeState(BaseModel):
         self.moves_array = moves_array
 
     def iterate_moves_array(self, move: int) -> None:
-        # Get indices of all elements == current move
-        move_indices = np.argwhere(self.moves_array == move)
-        if len(move_indices) == 0:
+        masked_moves_array = ma.masked_where(
+            np.logical_and(
+                self.moves_array != UNEXPLORED_VALUE,
+                self.moves_array != move,
+            ),
+            self.moves_array,
+            copy=False,
+        )
+        masked_moves_array.harden_mask()
+
+        # print("masked_moves_array")
+        # print(get_aligned_masked_array(masked_moves_array, indexed_axes=False))
+
+        # Get indices of all Von Neumann Neighbors of elements where element == current move
+        neighbors = [
+            ind + shift
+            for shift in [(1, 0), (-1, 0), (0, 1), (0, -1)]
+            for ind in np.argwhere(self.moves_array == move)
+        ]
+
+        if len(neighbors) == 0:
             self.moves_exhausted = True
             return
 
-        for move_index in move_indices:
-            # Expand the array to form a 3x3 centered on the move_index
-            neighbors = self.moves_array[
-                move_index[0] - 1 : move_index[0] + 2,
-                move_index[1] - 1 : move_index[1] + 2,
-            ]
-            # print("neighbors")
-            # print(get_aligned_masked_array(neighbors, indexed_axes=False))
+        masked_moves_array[
+            [ind[0] for ind in neighbors], [ind[1] for ind in neighbors]
+        ] = (move + 1)
 
-            # Mask diagonal moves and moves that have been accounted for
-            mask = MANHATTAN_MOVES & (neighbors == 100)
-            # print("mask")
-            # print(get_aligned_masked_array(mask, indexed_axes=False))
-
-            # Set all unmasked cells to the next move count
-            np.putmask(
-                neighbors,
-                mask,
-                move + 1,
-            )
-
-            # print("moves_array")
-            # print(get_aligned_masked_array(self.moves_array))
+        # print("self.moves_array")
+        # print(get_aligned_masked_array(self.moves_array, indexed_axes=False))
 
     def test_equals(self, other: SnakeState) -> bool:
         return self.model_dump() == other.model_dump()

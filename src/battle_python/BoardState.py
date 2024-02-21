@@ -23,7 +23,8 @@ from battle_python.constants import (
     MURDER_SCORE,
     WIN_SCORE,
     DEATH_SCORE,
-    MANHATTAN_MOVES,
+    UNEXPLORED_VALUE,
+    BORDER_VALUE,
 )
 from battle_python.utils import get_aligned_masked_array
 
@@ -58,7 +59,7 @@ class BoardState(BaseModel):
         # edge of the grid without altering the array size
         shape = (board_height + 2, board_width + 2)
 
-        board_array = np.full(shape=shape, fill_value=100, dtype=np.int8)
+        board_array = np.full(shape=shape, fill_value=BORDER_VALUE, dtype=np.int8)
 
         # Fill the actual board area with -1
         board_array[1:-1, 1:-1] = -1
@@ -202,11 +203,13 @@ class BoardState(BaseModel):
                         break
                     continue
                 snake.iterate_moves_array(move=move)
+                # print(f"snake {snake.id}")
+                # print(get_aligned_masked_array(snake.moves_array))
 
             if np.all(
                 np.logical_or.reduce(
                     [
-                        (snake.moves_array != 100)
+                        (snake.moves_array != UNEXPLORED_VALUE)
                         for snake in [self.my_snake, *self.other_snakes]
                     ]
                 )
@@ -214,6 +217,10 @@ class BoardState(BaseModel):
                 continue_iterating = False
 
             move += 1
+
+        for snake in [self.my_snake, *self.other_snakes]:
+            snake.moves_array.soften_mask()
+            snake.moves_array.mask = False
 
         my_snake_voronoi = np.copy(self.my_snake.moves_array, subok=True)
         [
