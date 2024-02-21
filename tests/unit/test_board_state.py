@@ -76,7 +76,7 @@ def test_board_state_get_legal_adjacent_coords(coord: Coord, expected: list[Coor
     board = get_mock_board_state(
         my_snake=get_mock_snake_state(
             snake_id="placeholder",
-            body_coords=(Coord(x=1000, y=1000),),
+            body_coords=(DEATH_COORD,),
             is_self=True,
         ),
         board_height=11,
@@ -105,7 +105,7 @@ def test_board_state_get_next_body(current_body: list[Coord], expected: list[Coo
         food_coords=(Coord(x=1, y=1),),
         my_snake=get_mock_snake_state(
             snake_id="placeholder",
-            body_coords=(Coord(x=1000, y=1000),),
+            body_coords=(DEATH_COORD,),
             is_self=True,
         ),
     )
@@ -126,7 +126,7 @@ def test_board_state_is_food_consumed(next_body: list[Coord], expected: bool):
         hazard_damage_rate=15,
         my_snake=get_mock_snake_state(
             snake_id="placeholder",
-            body_coords=(Coord(x=1000, y=1000),),
+            body_coords=(DEATH_COORD,),
             is_self=True,
         ),
         food_coords=(Coord(x=1, y=1),),
@@ -155,7 +155,7 @@ def test_board_state_get_next_health(
     board_state = get_mock_board_state(
         hazard_damage_rate=15,
         my_snake=get_mock_snake_state(
-            body_coords=(Coord(x=1000, y=1000),),
+            body_coords=(DEATH_COORD,),
             health=health,
             is_self=True,
         ),
@@ -256,8 +256,7 @@ def test_board_state_get_next_snake_states_per_snake(
         food_coords=(Coord(x=1, y=1),),
     )
     result = board_state.get_next_snake_state_for_snake_move(snake=snake, move=move)
-    result.prev_state = None
-    assert result == expected
+    assert result.test_equals(expected) == True
 
 
 @pytest.mark.parametrize(
@@ -720,8 +719,7 @@ def test_board_state_model_post_init(
                 break
         if expected_snake_state is None:
             raise Exception()
-
-        assert snake_state == expected_snake_state
+        assert snake_state.test_equals(expected_snake_state)
 
 
 @pytest.mark.parametrize(

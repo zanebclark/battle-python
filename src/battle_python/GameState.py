@@ -14,8 +14,6 @@ from battle_python.api_types import (
     SnakeDef,
 )
 
-DEATH = Coord(x=1000, y=1000)
-
 
 class GameState(BaseModel):
     game: Game
@@ -49,17 +47,25 @@ class GameState(BaseModel):
             for snake in payload["board"]["snakes"]
         }
 
+        board_array = BoardState.get_board_array(
+            board_width=payload["board"]["width"],
+            board_height=payload["board"]["height"],
+        )
+
         other_snakes: tuple[SnakeState, ...] = tuple(
             (
-                SnakeState(
+                SnakeState.factory(
                     id=snake["id"],
                     health=snake["health"],
-                    body=snake["body"],
+                    body=tuple(
+                        Coord(x=coord[0], y=coord[1]) for coord in snake["body"]
+                    ),
                     head=snake["head"],
                     length=snake["length"],
                     latency=snake["latency"],
                     shout=snake["shout"],
                     is_self=snake["id"] == my_snake_id,
+                    board_array=board_array,
                 )
                 for snake in payload["board"]["snakes"]
                 if snake["id"] != my_snake_id
@@ -70,18 +76,23 @@ class GameState(BaseModel):
             turn=payload["turn"],
             board_width=payload["board"]["width"],
             board_height=payload["board"]["height"],
-            food_coords=payload["board"]["food"],
+            food_coords=tuple(
+                Coord(x=coord[0], y=coord[1]) for coord in payload["board"]["food"]
+            ),
             hazard_coords=payload["board"]["hazards"],
             other_snakes=other_snakes,
-            my_snake=SnakeState(
+            my_snake=SnakeState.factory(
                 id=payload["you"]["id"],
                 health=payload["you"]["health"],
-                body=payload["you"]["body"],
+                body=tuple(
+                    Coord(x=coord[0], y=coord[1]) for coord in payload["you"]["body"]
+                ),
                 head=payload["you"]["head"],
                 length=payload["you"]["length"],
                 latency=payload["you"]["latency"],
                 shout=payload["you"]["shout"],
                 is_self=True,
+                board_array=board_array,
             ),
             hazard_damage_rate=game.ruleset.settings.hazardDamagePerTurn,
         )
