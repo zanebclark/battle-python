@@ -545,7 +545,9 @@ def test_board_state_get_next_snake_states(
         my_snake=snake_state,
         food_coords=(Coord(x=1, y=1),),
     )
-    next_states = board_state.get_next_snake_states_for_snake(snake=snake_state)
+    next_states = board_state.get_next_snake_states_for_snake(
+        snake=snake_state, index=0
+    )
 
     assert len(next_states) == len(expected)
     for next_state in next_states:

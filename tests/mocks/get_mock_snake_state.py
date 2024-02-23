@@ -25,7 +25,7 @@ def get_mock_snake_state(
         snake_id = str(uuid.uuid4())
     if board_array is None:
         board_array = BoardState.get_board_array(11, 11)
-    return SnakeState.factory(
+    return SnakeState(
         id=snake_id,
         health=health,
         body=body_coords,
@@ -38,5 +38,4 @@ def get_mock_snake_state(
         food_consumed=food_consumed,
         elimination=elimination,
         prev_state=prev_state,
-        board_array=board_array,
     )

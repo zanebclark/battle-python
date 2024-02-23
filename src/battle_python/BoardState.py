@@ -25,6 +25,7 @@ from battle_python.constants import (
     DEATH_SCORE,
     UNEXPLORED_VALUE,
     BORDER_VALUE,
+    SNAKE_BODY_VALUE,
 )
 from battle_python.utils import get_aligned_masked_array
 
@@ -49,8 +50,9 @@ class BoardState(BaseModel):
     score: float = 0
     board_array: npt.NDArray[np.int_]
     food_array: npt.NDArray[np.int_]
-    all_snake_bodies_array: npt.NDArray[np.int_]
+    all_snake_moves_array: npt.NDArray[np.int_]
     center_weight_array: npt.NDArray[np.int_]
+    score: int
 
     @staticmethod
     def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]:
@@ -94,24 +96,88 @@ class BoardState(BaseModel):
         return food_array
 
     @staticmethod
-    def get_all_snake_bodies_array(
+    def get_all_snake_moves_array(
         board_array: npt.NDArray[np.int_], snakes: tuple[SnakeState, ...]
     ) -> npt.NDArray[np.int_]:
-        all_snake_bodies_array = np.copy(board_array, subok=True)
-        [
-            np.putmask(
-                all_snake_bodies_array,
-                snake.body_array >= 0,
-                snake.body_array,
+        rows, _ = board_array.shape
+        snake_body_array = np.array(board_array, copy=True)
+        snake_body_array[1:-1, 1:-1] = UNEXPLORED_VALUE
+
+        all_snake_moves_array = np.array(
+            [
+                np.copy(snake_body_array, subok=True)
+                for snake in snakes
+                if snake.elimination is None
+            ]
+        )
+        # Set snake bodies as SNAKE_BODY_VALUE on every slice
+        for i, snake in enumerate(snakes):
+            if snake.elimination is not None:
+                continue
+            all_snake_moves_array[
+                :,
+                # Rows (y-axis) are the first element. Indexing is top to bottom
+                [(rows - 2 - coord.y) for coord in snake.body],
+                # Rows (x-axis) are the second element. +1 for the pad
+                [coord.x + 1 for coord in snake.body],
+            ] = SNAKE_BODY_VALUE
+
+        # Set the snake's head as 0 on its slice
+        # The first element references rows (y axis). The second argument references columns (x axis)
+        # Rows are indexed from top to bottom. Subtract y coord from rows to account for this
+        # Subtract 2 to account for board buffer rows on top and bottom
+        # Add 1 to x to account for left-most board buffer
+        for i, snake in enumerate(snakes):
+            if snake.elimination is not None:
+                continue
+            all_snake_moves_array[
+                i,
+                # Rows (y-axis) are the first element. Indexing is top to bottom
+                rows - 2 - snake.head.y,
+                # Rows (x-axis) are the second element. +1 for the pad
+                snake.head.x + 1,
+            ] = 0
+
+        move = 0
+        while True:
+            masked_all_snakes = ma.masked_where(
+                np.logical_and(
+                    all_snake_moves_array != UNEXPLORED_VALUE,
+                    all_snake_moves_array != move,
+                ),
+                all_snake_moves_array,
+                copy=False,
             )
-            for snake in snakes
-            if snake.elimination is None
-        ]
+            masked_all_snakes.harden_mask()
 
-        # print("get_all_snake_bodies_array:")
-        # print(get_aligned_masked_array(all_snake_bodies_array))
+            # Get indices of all Von Neumann Neighbors of elements where element == current move
+            neighbors = [
+                ind + shift
+                for shift in [(0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+                for ind in np.argwhere(masked_all_snakes == move)
+            ]
 
-        return all_snake_bodies_array
+            if len(neighbors) == 0:
+                break
+
+            masked_all_snakes[
+                [ind[0] for ind in neighbors],
+                [ind[1] for ind in neighbors],
+                [ind[2] for ind in neighbors],
+            ] = (
+                move + 1
+            )
+
+            move += 1
+
+            # for i, snake in enumerate(masked_all_snakes):
+            #     print(f"snake {i}")
+            #     print(get_aligned_masked_array(snake))
+
+        # print("all_snake_moves_array:")
+        # print(get_aligned_masked_array(all_snake_moves_array))
+
+        return all_snake_moves_array
 
     @staticmethod
     def get_center_weight_array(
@@ -158,25 +224,30 @@ class BoardState(BaseModel):
             board_array=board_array, food_coords=food_coords
         )
 
-        all_snake_bodies_array = cls.get_all_snake_bodies_array(
+        all_snake_moves_array = cls.get_all_snake_moves_array(
             board_array=board_array, snakes=(my_snake, *other_snakes)
         )
 
-        [
-            snake.set_moves_array(all_snake_bodies_array)
-            for snake in [my_snake, *other_snakes]
-        ]
+        score = cls.get_score(
+            food_array=food_array,
+            center_weight_array=center_weight_array,
+            all_snake_moves_array=all_snake_moves_array,
+        )
 
         return cls(
             snake_body_coords=snake_body_coords,
             board_array=board_array,
             food_array=food_array,
-            all_snake_bodies_array=all_snake_bodies_array,
+            all_snake_moves_array=all_snake_moves_array,
             center_weight_array=center_weight_array,
+            score=score,
             **kwargs,
         )
 
-    def get_my_snake_area_of_control(self) -> npt.NDArray[np.int_]:
+    @classmethod
+    def get_my_snake_area_of_control(
+        cls, all_snake_moves_array: npt.NDArray[np.int_]
+    ) -> npt.NDArray[np.int_]:
         """
         Returns a 2D array that represents my snake's "area of control".
         Coordinates with a value of 0 are reachable by least one enemy snake before me.
@@ -193,51 +264,38 @@ class BoardState(BaseModel):
         The element-wise subtraction will produce 7.
         The value at this coordinate will be 7
         """
-        move = 0
-        continue_iterating = True
-        while continue_iterating:
-            for snake in [self.my_snake, *self.other_snakes]:
-                if snake.moves_exhausted:
-                    if snake.is_self:
-                        continue_iterating = False
-                        break
-                    continue
-                snake.iterate_moves_array(move=move)
-                # print(f"snake {snake.id}")
-                # print(get_aligned_masked_array(snake.moves_array))
+        if all_snake_moves_array.size == 0:
+            return all_snake_moves_array
 
-            if np.all(
-                np.logical_or.reduce(
-                    [
-                        (snake.moves_array != UNEXPLORED_VALUE)
-                        for snake in [self.my_snake, *self.other_snakes]
-                    ]
-                )
-            ):
-                continue_iterating = False
+        my_snake_area_of_control = np.copy(all_snake_moves_array[0], subok=True)
 
-            move += 1
-
-        for snake in [self.my_snake, *self.other_snakes]:
-            snake.moves_array.soften_mask()
-            snake.moves_array.mask = False
-
-        my_snake_voronoi = np.copy(self.my_snake.moves_array, subok=True)
         [
             np.putmask(
-                my_snake_voronoi,
-                (snake.moves_array - self.my_snake.moves_array) <= 0,
+                my_snake_area_of_control,
+                (snake_moves - all_snake_moves_array[0]) <= 0,
                 0,
             )
-            for snake in self.other_snakes
-            if snake.elimination is None
+            for snake_moves in all_snake_moves_array[1:]
         ]
-        # print("my_snake_voronoi")
-        # print(get_aligned_masked_array(my_snake_voronoi))
-        return my_snake_voronoi
 
-    def spam(self):
-        area_of_control = self.get_my_snake_area_of_control()
+        # print("my_snake_area_of_control")
+        # print(get_aligned_masked_array(my_snake_area_of_control))
+
+        return my_snake_area_of_control
+
+    @classmethod
+    def get_score(
+        cls,
+        food_array: npt.NDArray[np.int_],
+        center_weight_array: npt.NDArray[np.int_],
+        all_snake_moves_array: npt.NDArray[np.int_],
+    ):
+        if all_snake_moves_array.size == 0:
+            return 0
+
+        area_of_control = cls.get_my_snake_area_of_control(
+            all_snake_moves_array=all_snake_moves_array
+        )
         my_snake_score = np.copy(area_of_control, subok=True)
 
         # Replace non-zero values with an area multiplier
@@ -247,9 +305,9 @@ class BoardState(BaseModel):
             AREA_MULTIPLIER,
         )
 
-        score = np.multiply(my_snake_score, self.food_array)
+        score = np.multiply(my_snake_score, food_array)
 
-        score = np.multiply(score, self.center_weight_array)
+        score = np.multiply(score, center_weight_array)
 
         # print("score")
         # print(get_aligned_masked_array(score))
@@ -343,8 +401,7 @@ class BoardState(BaseModel):
         if move is DEATH_COORD:
             elimination = Elimination(cause="wall-collision")
 
-        return SnakeState.factory(
-            board_array=self.board_array,
+        return SnakeState(
             id=snake.id,
             health=next_health,
             body=next_body,
@@ -359,7 +416,9 @@ class BoardState(BaseModel):
             prev_state=snake,
         )
 
-    def get_next_snake_states_for_snake(self, snake: SnakeState) -> list[SnakeState]:
+    def get_next_snake_states_for_snake(
+        self, snake: SnakeState, index: int
+    ) -> list[SnakeState]:
         if snake.elimination is not None:
             return []
 
@@ -477,12 +536,14 @@ class BoardState(BaseModel):
         if self.is_terminal:
             return
 
-        my_snake_next_states = self.get_next_snake_states_for_snake(snake=self.my_snake)
+        my_snake_next_states = self.get_next_snake_states_for_snake(
+            snake=self.my_snake, index=0
+        )
         other_snakes_next_states = [
             other_snake_next_state
             for other_snake_next_state in [
-                self.get_next_snake_states_for_snake(snake=snake)
-                for snake in self.other_snakes
+                self.get_next_snake_states_for_snake(snake=snake, index=index)
+                for index, snake in enumerate(self.other_snakes)
             ]
             if len(other_snake_next_state) > 0
         ]

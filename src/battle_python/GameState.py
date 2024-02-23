@@ -54,7 +54,7 @@ class GameState(BaseModel):
 
         other_snakes: tuple[SnakeState, ...] = tuple(
             (
-                SnakeState.factory(
+                SnakeState(
                     id=snake["id"],
                     health=snake["health"],
                     body=tuple(
@@ -65,7 +65,6 @@ class GameState(BaseModel):
                     latency=snake["latency"],
                     shout=snake["shout"],
                     is_self=snake["id"] == my_snake_id,
-                    board_array=board_array,
                 )
                 for snake in payload["board"]["snakes"]
                 if snake["id"] != my_snake_id
@@ -81,7 +80,7 @@ class GameState(BaseModel):
             ),
             hazard_coords=payload["board"]["hazards"],
             other_snakes=other_snakes,
-            my_snake=SnakeState.factory(
+            my_snake=SnakeState(
                 id=payload["you"]["id"],
                 health=payload["you"]["health"],
                 body=tuple(
@@ -92,7 +91,6 @@ class GameState(BaseModel):
                 latency=payload["you"]["latency"],
                 shout=payload["you"]["shout"],
                 is_self=True,
-                board_array=board_array,
             ),
             hazard_damage_rate=game.ruleset.settings.hazardDamagePerTurn,
         )

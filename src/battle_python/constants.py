@@ -2,12 +2,16 @@ import numpy as np
 
 from battle_python.api_types import Coord
 
+# Numpy Constants
+UNEXPLORED_VALUE = 88
+SNAKE_BODY_VALUE = 90
+BORDER_VALUE = 99
+
+
 DEATH_SCORE = -1000
 WIN_SCORE = abs(DEATH_SCORE)
 FOOD_SCORE = 100
 MURDER_SCORE = 100
-UNEXPLORED_VALUE = 100
-BORDER_VALUE = 999
 DEATH_COORD = Coord(x=1000, y=1000)
 FOOD_WEIGHT = 5
 AREA_MULTIPLIER = 1
