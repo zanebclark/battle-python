@@ -1,5 +1,6 @@
 from battle_python.api import RestMethod
 from battle_python.api_types import SnakeRequest
+import json
 
 
 def get_mock_api_gateway_headers() -> dict[str, str]:
@@ -89,13 +90,9 @@ def get_mock_request_context(method: RestMethod, path: str):
     }
 
 
-def get_mock_api_gateway_event(
-    method: RestMethod, path: str, body: [object | SnakeRequest] = ""
-):
-    if isinstance(body, SnakeRequest):
-        body = body.model_dump_json()
+def get_mock_api_gateway_event(method: RestMethod, path: str, body: dict | None = None):
     return {
-        "body": body,
+        "body": json.dumps(body),
         "headers": get_mock_api_gateway_headers(),
         "httpMethod": method,
         "isBase64Encoded": False,

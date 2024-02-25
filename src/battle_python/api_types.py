@@ -113,6 +113,10 @@ class Coord(NamedTuple):
     def __add__(self, other):
         return Coord(x=self.x + other.x, y=self.y + other.y)
 
+    @property
+    def as_dict(self) -> dict:
+        return {"x": self.x, "y": self.y}
+
 
 class MoveResponse(FrozenBaseModel):
     move: Direction

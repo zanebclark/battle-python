@@ -13,7 +13,7 @@ Resources:
       CodeUri: ./src/
       Description: A Serverless Battlesnake API written in Python
       Runtime: python3.11
-      MemorySize: 128
+      MemorySize: 6400
       Timeout: 100
       Architectures:
       - x86_64

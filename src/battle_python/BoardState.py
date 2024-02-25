@@ -603,47 +603,54 @@ class BoardState(BaseModel):
             self.next_boards
         )
 
-    def get_snake_payload(
+    def get_snake_state_payload(
         self,
         snake_defs: dict[str, SnakeDef],
         snake_id: str | None = None,
-        me: bool = False,
     ) -> dict:
-        if snake_id:
-            snake = [
-                snake
-                for snake in [self.my_snake, *self.other_snakes]
-                if snake.id == snake_id
-            ]
-            if len(snake) == 0:
-                return {
-                    "id": snake_id,
-                    "name": snake_defs[snake_id].name,
-                    "health": 0,
-                    "body": [],
-                    "latency": 0,
-                    "length": 0,
-                    "customizations": snake_defs[snake_id].customizations.model_dump(),
-                    "elimination": Elimination(cause="unknown", by="unknown"),
-                }
-            snake = snake[0]
-        elif me:
-            snake = self.my_snake
-        else:
-            raise Exception("either the id or me must be supplied")
+        snake = [
+            snake
+            for snake in [self.my_snake, *self.other_snakes]
+            if snake.id == snake_id
+        ]
+        if len(snake) == 0:
+            return {
+                "id": snake_id,
+                "name": snake_defs[snake_id].name,
+                "health": 0,
+                "body": [],
+                "latency": 0,
+                "length": 0,
+                "customizations": snake_defs[snake_id].customizations.model_dump(),
+                "elimination": Elimination(cause="unknown", by="unknown"),
+            }
+        snake = snake[0]
 
         return {
             "id": snake.id,
             "name": snake_defs[snake.id].name,
             "health": snake.health,
-            "body": [{"x": coord.x, "y": coord.y} for coord in snake.body],
+            "body": [coord.as_dict for coord in snake.body],
             "latency": str(snake.latency),
+            "head": snake.head.as_dict,
             "length": snake.length,
             "customizations": snake_defs[snake.id].customizations.model_dump(),
             "elimination": snake.elimination.model_dump()
             if snake.elimination is not None
             else None,
         }
+
+    def get_snake_payload(
+        self,
+        snake_defs: dict[str, SnakeDef],
+        snake_id: str | None = None,
+    ) -> dict:
+        snake_state_payload = self.get_snake_state_payload(
+            snake_defs=snake_defs, snake_id=snake_id
+        )
+        snake_state_payload.pop("elimination")
+        snake_state_payload["shout"] = None
+        return snake_state_payload
 
     def get_board_payload(self, snake_defs: dict[str, SnakeDef], game: Game) -> dict:
         return {
@@ -652,22 +659,43 @@ class BoardState(BaseModel):
             "board": {
                 "height": self.board_height,
                 "width": self.board_width,
-                "food": [{"x": coord.x, "y": coord.y} for coord in self.food_coords],
-                "hazards": [
-                    {"x": coord.x, "y": coord.y} for coord in self.hazard_coords
-                ],
+                "food": [coord.as_dict for coord in self.food_coords],
+                "hazards": [coord.as_dict for coord in self.hazard_coords],
                 "snakes": [
-                    self.get_snake_payload(snake_id=snake.id, snake_defs=snake_defs)
+                    self.get_snake_state_payload(
+                        snake_id=snake.id, snake_defs=snake_defs
+                    )
                     for snake in [self.my_snake, *self.other_snakes]
                 ],
             },
-            "you": self.get_snake_payload(me=True, snake_defs=snake_defs),
+            "you": self.get_snake_state_payload(
+                snake_id=self.my_snake.id, snake_defs=snake_defs
+            ),
             "terminalReason": self.terminal_reason,
             "score": self.score,
             "descendents": [
                 next_board.get_board_payload(snake_defs=snake_defs, game=game)
                 for next_board in self.next_boards
             ],
+        }
+
+    def get_move_request(self, snake_defs: dict[str, SnakeDef], game: Game) -> dict:
+        return {
+            "game": game.model_dump(),
+            "turn": self.turn,
+            "board": {
+                "height": self.board_height,
+                "width": self.board_width,
+                "food": [coord.as_dict for coord in self.food_coords],
+                "hazards": [coord.as_dict for coord in self.hazard_coords],
+                "snakes": [
+                    self.get_snake_payload(snake_id=snake.id, snake_defs=snake_defs)
+                    for snake in [self.my_snake, *self.other_snakes]
+                ],
+            },
+            "you": self.get_snake_payload(
+                snake_id=self.my_snake.id, snake_defs=snake_defs
+            ),
         }
 
     def __eq__(self, other: Any) -> bool:

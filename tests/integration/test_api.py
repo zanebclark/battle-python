@@ -6,13 +6,77 @@ import requests
 import boto3
 from dotenv import load_dotenv
 
-from battle_python.api_types import Coord, SnakeMetadataResponse
-from ..mocks.mock_api_types import (
-    get_mock_snake,
-    get_mock_snake_request,
+from battle_python.GameState import GameState
+from battle_python.api_types import (
+    Coord,
+    SnakeMetadataResponse,
+    SnakeDef,
+    SnakeCustomizations,
 )
+from ..mocks.get_mock_game_state import get_mock_game_state
+from ..mocks.get_mock_snake_state import get_mock_snake_state
 
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
+
+
+@pytest.fixture
+def game_state() -> GameState:
+    return get_mock_game_state(
+        board_height=11,
+        board_width=11,
+        food_coords=(
+            Coord(x=0, y=2),
+            Coord(x=2, y=10),
+            Coord(x=8, y=0),
+            Coord(x=5, y=5),
+            Coord(x=10, y=8),
+        ),
+        snakes={
+            SnakeDef(
+                id="A",
+                name="A",
+                customizations=SnakeCustomizations(head="all-seeing"),
+            ): get_mock_snake_state(
+                snake_id="A",
+                body_coords=(Coord(x=1, y=1), Coord(x=1, y=1), Coord(x=1, y=1)),
+                health=100,
+            ),
+            SnakeDef(
+                id="B",
+                name="B",
+                customizations=SnakeCustomizations(
+                    head="caffeine", tail="coffee", color="#9ffcc9"
+                ),
+            ): get_mock_snake_state(
+                snake_id="B",
+                is_self=True,
+                body_coords=(Coord(x=9, y=1), Coord(x=9, y=1), Coord(x=9, y=1)),
+                health=100,
+            ),
+            SnakeDef(
+                id="C",
+                name="C",
+                customizations=SnakeCustomizations(
+                    head="beluga", tail="do-sammy", color="#ab8b9c"
+                ),
+            ): get_mock_snake_state(
+                snake_id="C",
+                body_coords=(Coord(x=9, y=9), Coord(x=9, y=9), Coord(x=9, y=9)),
+                health=100,
+            ),
+            SnakeDef(
+                id="D",
+                name="D",
+                customizations=SnakeCustomizations(
+                    head="bendr", tail="curled", color="#714bb5"
+                ),
+            ): get_mock_snake_state(
+                snake_id="D",
+                body_coords=(Coord(x=1, y=9), Coord(x=1, y=9), Coord(x=1, y=9)),
+                health=100,
+            ),
+        },
+    )
 
 
 @pytest.fixture(scope="session")
@@ -46,27 +110,12 @@ def test_populated_battlesnake_details(battlesnake_url: str):
         (24, "end"),
     ],
 )
-def test_populated_api_endpoints(battlesnake_url: str, turn: int, path: str):
-    data = get_mock_snake_request(
-        turn,
-        food_coords=(Coord(x=1, y=1), Coord(x=10, y=10)),
-        snakes=(
-            get_mock_snake(
-                body_coords=(
-                    Coord(x=0, y=0),
-                    Coord(x=0, y=1),
-                    Coord(x=0, y=2),
-                )
-            ),
-            get_mock_snake(
-                body_coords=(
-                    Coord(x=10, y=0),
-                    Coord(x=10, y=1),
-                    Coord(x=10, y=2),
-                )
-            ),
-        ),
+def test_populated_api_endpoints(
+    battlesnake_url: str, game_state: GameState, turn: int, path: str
+):
+    data = game_state.current_board.get_move_request(
+        snake_defs=game_state.snake_defs, game=game_state.game
     )
 
-    response = requests.post(f"{battlesnake_url}/{path}", data=data.model_dump_json())
+    response = requests.post(f"{battlesnake_url}/{path}", json=data)
     assert response.status_code == 200

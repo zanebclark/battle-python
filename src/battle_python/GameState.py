@@ -4,6 +4,7 @@ from collections import deque, defaultdict
 
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt, Field
+from aws_lambda_powertools import Logger
 
 from battle_python.BoardState import BoardState
 from battle_python.SnakeState import SnakeState
@@ -12,6 +13,8 @@ from battle_python.api_types import (
     Game,
     SnakeDef,
 )
+
+logger = Logger()
 
 
 class GameState(BaseModel):
@@ -27,21 +30,18 @@ class GameState(BaseModel):
     explored_states: dict[tuple, dict[tuple, BoardState]] = Field(default_factory=dict)
     frontier: deque[BoardState] = Field(default_factory=deque)
     snake_defs: dict[str, SnakeDef]
-    my_snake_id: str
 
     # noinspection PyNestedDecorators
     @classmethod
     def from_payload(cls, payload: dict) -> GameState:
         game = Game(**payload["game"])
 
-        my_snake_id = payload["you"]["id"]
-
         snake_defs = {
             snake["id"]: SnakeDef(
                 id=snake["id"],
                 name=snake["name"],
                 customizations=snake["customizations"],
-                is_self=snake["id"] == my_snake_id,
+                is_self=snake["id"] == payload["you"]["id"],
             )
             for snake in payload["board"]["snakes"]
         }
@@ -58,10 +58,10 @@ class GameState(BaseModel):
                     length=snake["length"],
                     latency=snake["latency"],
                     shout=snake["shout"],
-                    is_self=snake["id"] == my_snake_id,
+                    is_self=snake["id"] == payload["you"]["id"],
                 )
                 for snake in payload["board"]["snakes"]
-                if snake["id"] != my_snake_id
+                if snake["id"] != payload["you"]["id"]
             )
         )
 
@@ -95,7 +95,6 @@ class GameState(BaseModel):
             board_height=payload["board"]["height"],
             current_board=board,
             snake_defs=snake_defs,
-            my_snake_id=my_snake_id,
         )
 
     def model_post_init(self, __context) -> None:
@@ -187,6 +186,7 @@ class GameState(BaseModel):
             head_scores[board.my_snake.head].append(board.score)
             for board in self.current_board.next_boards
         ]
+        logger.info("available scores", head_scores=str(head_scores))
 
         best_coord = sorted(
             {
@@ -203,12 +203,16 @@ class GameState(BaseModel):
         )
 
         if self.current_board.my_snake.head + Coord(x=-1, y=0) == best_coord:
+            logger.info("returning left")
             return "left"
         elif self.current_board.my_snake.head + Coord(x=1, y=0) == best_coord:
+            logger.info("returning right")
             return "right"
         elif self.current_board.my_snake.head + Coord(x=0, y=-1) == best_coord:
+            logger.info("returning down")
             return "down"
         elif self.current_board.my_snake.head + Coord(x=0, y=1) == best_coord:
+            logger.info("returning up")
             return "up"
         else:
             raise Exception(f"Unhandled direction: {direction}")

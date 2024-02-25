@@ -9,7 +9,7 @@ from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 
 from battle_python.GameState import GameState
-from battle_python.api_types import SnakeMetadataResponse, MoveResponse, SnakeRequest
+from battle_python.api_types import SnakeMetadataResponse, SnakeRequest
 
 RestMethod = Literal["GET", "POST"]
 api = APIGatewayRestResolver()
@@ -58,8 +58,7 @@ def move() -> dict[str, int | str]:
 
     try:
         gs = GameState.from_payload(api.current_event.json_body)
-        move = gs.get_next_move()
-        return MoveResponse(move=move).model_dump()
+        return {"move": gs.get_next_move()}
     except ValidationError:
         return {"status_code": 400, "message": "Invalid"}
 
