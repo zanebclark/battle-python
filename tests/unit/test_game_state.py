@@ -14,10 +14,10 @@ from battle_python.api_types import (
     SnakeDef,
     SnakeCustomizations,
 )
-from mocks.get_mock_game_state import get_mock_game_state
-from mocks.get_mock_snake_state import get_mock_snake_state
+from ..mocks.get_mock_game_state import get_mock_game_state
+from ..mocks.get_mock_snake_state import get_mock_snake_state
 
-from mocks.mock_api_types import get_mock_snake
+from ..mocks.mock_api_types import get_mock_snake
 
 
 def test_game_state_init():

@@ -20,8 +20,8 @@ from battle_python.BoardState import (
 from battle_python.SnakeState import SnakeState, Elimination
 from battle_python.api_types import Coord
 from battle_python.utils import get_aligned_masked_array
-from mocks.get_mock_board_state import get_mock_board_state
-from mocks.get_mock_snake_state import get_mock_snake_state
+from ..mocks.get_mock_board_state import get_mock_board_state
+from ..mocks.get_mock_snake_state import get_mock_snake_state
 
 
 @pytest.fixture

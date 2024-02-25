@@ -1,7 +1,7 @@
 import pytest
 
 from battle_python.api_types import Coord
-from mocks.get_mock_snake_state import get_mock_snake_state
+from ..mocks.get_mock_snake_state import get_mock_snake_state
 
 
 class TestSnakeState:
