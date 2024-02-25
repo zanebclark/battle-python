@@ -48,7 +48,7 @@ def test_game_started(lambda_context):
     body = get_mock_snake_request(
         turn=0,
         food_coords=(Coord(x=1, y=1), Coord(x=10, y=10)),
-        snakes=[
+        snakes=(
             get_mock_snake(
                 body_coords=(
                     Coord(x=0, y=0),
@@ -56,7 +56,7 @@ def test_game_started(lambda_context):
                     Coord(x=0, y=2),
                 )
             ),
-        ],
+        ),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)  # type: ignore
@@ -67,7 +67,7 @@ def test_move(lambda_context):
     body = get_mock_snake_request(
         turn=100,
         food_coords=(Coord(x=1, y=1), Coord(x=10, y=10)),
-        snakes=[
+        snakes=(
             get_mock_snake(
                 body_coords=(
                     Coord(x=0, y=0),
@@ -75,7 +75,14 @@ def test_move(lambda_context):
                     Coord(x=0, y=2),
                 )
             ),
-        ],
+            get_mock_snake(
+                body_coords=(
+                    Coord(x=10, y=0),
+                    Coord(x=10, y=1),
+                    Coord(x=10, y=2),
+                )
+            ),
+        ),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/move", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)  # type: ignore
@@ -86,7 +93,7 @@ def test_end(lambda_context):
     body = get_mock_snake_request(
         turn=200,
         food_coords=(Coord(x=1, y=1), Coord(x=10, y=10)),
-        snakes=[
+        snakes=(
             get_mock_snake(
                 body_coords=(
                     Coord(x=0, y=0),
@@ -94,7 +101,7 @@ def test_end(lambda_context):
                     Coord(x=0, y=2),
                 )
             ),
-        ],
+        ),
     )
     apigw_event = get_mock_api_gateway_event(method="POST", path="/end", body=body)
     response = api.lambda_handler(event=apigw_event, context=lambda_context)  # type: ignore

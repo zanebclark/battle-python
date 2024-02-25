@@ -1,13 +1,18 @@
+from pathlib import Path
+
 import pytest
 import os
 import requests
 import boto3
+from dotenv import load_dotenv
 
 from battle_python.api_types import Coord, SnakeMetadataResponse
 from ..mocks.mock_api_types import (
     get_mock_snake,
     get_mock_snake_request,
 )
+
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 
 @pytest.fixture(scope="session")

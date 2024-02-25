@@ -20,7 +20,7 @@ class GameState(BaseModel):
     board_height: NonNegativeInt
     board_width: NonNegativeInt
     current_board: BoardState
-    best_my_snake_board: dict[tuple[int, tuple[Coord]], tuple[BoardState, int]] = Field(
+    best_my_snake_board: dict[tuple[int, tuple[Coord]], BoardState] = Field(
         default_factory=dict
     )
     terminal_counter: int = 0
@@ -46,11 +46,6 @@ class GameState(BaseModel):
             )
             for snake in payload["board"]["snakes"]
         }
-
-        board_array = BoardState.get_board_array(
-            board_width=payload["board"]["width"],
-            board_height=payload["board"]["height"],
-        )
 
         other_snakes: tuple[SnakeState, ...] = tuple(
             (
@@ -105,14 +100,7 @@ class GameState(BaseModel):
 
     def model_post_init(self, __context) -> None:
         self.frontier.append(self.current_board)
-        self.best_my_snake_board[self.current_board.get_my_key()] = (
-            self.current_board,
-            len(
-                self.current_board.get_flood_fill_coords(
-                    self.current_board.my_snake.head, max_depth=3
-                )
-            ),
-        )
+        self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board
 
     def handle(self, board: BoardState) -> BoardState | None:
         self.counter += 1
@@ -122,47 +110,45 @@ class GameState(BaseModel):
         my_key = board.get_my_key()
         other_key = board.get_other_key()
         if my_key not in self.best_my_snake_board:
-            self.best_my_snake_board[my_key] = (
-                board,
-                len(board.get_flood_fill_coords(board.my_snake.head, max_depth=3)),
-            )
+            self.best_my_snake_board[my_key] = board
 
         if my_key in self.explored_states:
-            best_my_snake_board, best_flood_fill_coords = self.best_my_snake_board[
-                my_key
-            ]
-            best_my_snake = best_my_snake_board.my_snake
+            best_my_snake_board = self.best_my_snake_board[my_key]
             if (
-                board.my_snake.length <= best_my_snake.length
-                and board.my_snake.murder_count <= best_my_snake.murder_count
-                and board.my_snake.health <= best_my_snake.health
+                board.my_snake.length <= best_my_snake_board.my_snake.length
+                and board.my_snake.murder_count
+                <= best_my_snake_board.my_snake.murder_count
+                and board.my_snake.health <= best_my_snake_board.my_snake.health
+                and board.score <= best_my_snake_board.score
                 and any(
                     [
-                        board.my_snake.length < best_my_snake.length,
-                        board.my_snake.murder_count < best_my_snake.murder_count,
-                        board.my_snake.health < best_my_snake.health,
+                        board.my_snake.length < best_my_snake_board.my_snake.length,
+                        board.my_snake.murder_count
+                        < best_my_snake_board.my_snake.murder_count,
+                        board.my_snake.health < best_my_snake_board.my_snake.health,
+                        board.score < best_my_snake_board.score,
                     ]
                 )
             ):
                 board.is_terminal = True
                 board.terminal_reason = "better-snake-state-available"
             elif (
-                board.my_snake.length >= best_my_snake.length
-                and board.my_snake.murder_count >= best_my_snake.murder_count
-                and board.my_snake.health >= best_my_snake.health
+                board.my_snake.length >= best_my_snake_board.my_snake.length
+                and board.my_snake.murder_count
+                >= best_my_snake_board.my_snake.murder_count
+                and board.my_snake.health >= best_my_snake_board.my_snake.health
+                and board.score >= best_my_snake_board.score
                 and any(
                     [
-                        board.my_snake.length > best_my_snake.length,
-                        board.my_snake.murder_count > best_my_snake.murder_count,
-                        board.my_snake.health > best_my_snake.health,
+                        board.my_snake.length > best_my_snake_board.my_snake.length,
+                        board.my_snake.murder_count
+                        > best_my_snake_board.my_snake.murder_count,
+                        board.my_snake.health > best_my_snake_board.my_snake.health,
+                        board.score > best_my_snake_board.score,
                     ]
                 )
-                # and len(board.get_flood_fill_coords(board.my_snake.head, max_depth=3))
-                # >= best_flood_fill_coords
             ):
-                self.best_my_snake_board[my_key] = board, len(
-                    board.get_flood_fill_coords(board.my_snake.head, max_depth=3)
-                )
+                self.best_my_snake_board[my_key] = board
                 for t_board in self.explored_states[my_key].values():
                     t_board.is_terminal = True
                     t_board.terminal_reason = "better-snake-state-available"
@@ -191,3 +177,38 @@ class GameState(BaseModel):
             )
         self.frontier.clear()
         self.frontier.extend(next_boards)
+
+    def get_next_move(self):
+        for turn in range(2):
+            self.increment_frontier()
+
+        head_scores = defaultdict(list)
+        [
+            head_scores[board.my_snake.head].append(board.score)
+            for board in self.current_board.next_boards
+        ]
+
+        best_coord = sorted(
+            {
+                head: (sum(numbers) / len(numbers))
+                for head, numbers in head_scores.items()
+            }.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        )[0][0]
+
+        direction = Coord(
+            x=self.current_board.my_snake.head.x - best_coord.x,
+            y=self.current_board.my_snake.head.y - best_coord.y,
+        )
+
+        if self.current_board.my_snake.head + Coord(x=-1, y=0) == best_coord:
+            return "left"
+        elif self.current_board.my_snake.head + Coord(x=1, y=0) == best_coord:
+            return "right"
+        elif self.current_board.my_snake.head + Coord(x=0, y=-1) == best_coord:
+            return "down"
+        elif self.current_board.my_snake.head + Coord(x=0, y=1) == best_coord:
+            return "up"
+        else:
+            raise Exception(f"Unhandled direction: {direction}")

@@ -6,6 +6,7 @@ import numpy.typing as npt
 from battle_python.BoardState import BoardState
 from battle_python.SnakeState import SnakeState, Elimination
 from battle_python.api_types import Coord
+from battle_python.constants import DEATH_COORD
 
 
 def get_mock_snake_state(
@@ -21,10 +22,18 @@ def get_mock_snake_state(
     elimination: Elimination | None = None,
     prev_state: SnakeState | None = None,
 ) -> SnakeState:
+    if not all(
+        [
+            abs((a_coord.x - b_coord.x) + (a_coord.y - b_coord.y)) <= 1
+            for a_coord, b_coord in zip(body_coords[:-1], body_coords[1:])
+        ]
+    ):
+        raise Exception(f"body_coords aren't contiguous: {body_coords}")
+
     if snake_id is None:
         snake_id = str(uuid.uuid4())
-    if board_array is None:
-        board_array = BoardState.get_board_array(11, 11)
+    if len(body_coords) == 1 and body_coords[0] == DEATH_COORD:
+        elimination = Elimination(cause="wall-collision")
     return SnakeState(
         id=snake_id,
         health=health,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from itertools import product
-from typing import Literal
+from typing import Literal, Any
 
 import numpy as np
 import numpy.typing as npt
@@ -27,9 +27,310 @@ from battle_python.constants import (
     BORDER_VALUE,
     SNAKE_BODY_VALUE,
 )
-from battle_python.utils import get_aligned_masked_array
 
 logger = Logger()
+
+
+def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]:
+    # The first element is the # of rows (y-axis). The second element is the # of columns (x-axis)
+    # Adding two supports padding the board with masked values. This supports calculations up to the
+    # edge of the grid without altering the array size
+    shape = (board_height + 2, board_width + 2)
+
+    board_array = np.full(shape=shape, fill_value=BORDER_VALUE, dtype=np.int8)
+
+    # Fill the actual board area with -1
+    board_array[1:-1, 1:-1] = -1
+
+    # print("board_array:")
+    # print(get_aligned_masked_array(board_array))
+
+    return board_array
+
+
+def get_center_weight_array(
+    board_array: npt.NDArray[np.int_],
+) -> npt.NDArray[np.int_]:
+    center_weight = np.copy(board_array, subok=True)
+
+    # Fill the actual board area with 1 to support element-wise multiplication
+    center_weight[1:-1, 1:-1] = 1
+
+    # Fill the center 3x3 with center control weight
+    center_weight[5:-5, 5:-5] = CENTER_CONTROL_WEIGHT
+
+    # print("center_weight:")
+    # print(get_aligned_masked_array(center_weight))
+
+    return center_weight
+
+
+def get_food_array(
+    board_array: npt.NDArray[np.int_], food_coords: tuple[Coord, ...]
+) -> npt.NDArray[np.int_]:
+    food_array = np.copy(board_array, subok=True)
+
+    # Fill the actual board area with 1 to support element-wise multiplication
+    food_array[1:-1, 1:-1] = 1
+    if len(food_coords) == 0:
+        return food_array
+
+    row_count, _ = food_array.shape
+
+    # Rows (y-axis) are the first element. Indexing is top to bottom
+    rows = [(row_count - 2 - coord.y) for coord in food_coords]
+    # Rows (x-axis) are the second element. +1 for the pad
+    columns = [coord.x + 1 for coord in food_coords]
+
+    if any([ind < 0 for ind in [*rows, *columns]]):
+        raise Exception(f"food coordinate outside of board: {food_coords}")
+
+    food_array[rows, columns] = FOOD_WEIGHT
+
+    # print("food_array:")
+    # print(get_aligned_masked_array(food_array))
+
+    return food_array
+
+
+def get_snake_heads_at_coord(
+    snakes: tuple[SnakeState, ...]
+) -> dict[Coord, list[SnakeState]]:
+    snake_heads_at_coord: dict[Coord, list[SnakeState]] = defaultdict(list)
+    for snake_state in snakes:
+        if snake_state.elimination is not None:
+            continue
+        snake_heads_at_coord[snake_state.head].append(snake_state)
+
+    return snake_heads_at_coord
+
+
+def resolve_head_collision(snake_heads_at_coord: list[SnakeState]) -> None:
+    if len(snake_heads_at_coord) <= 1:
+        return
+
+    snake_heads_at_coord.sort(key=lambda snk: snk.length, reverse=True)
+    longest_snake = snake_heads_at_coord[0]
+    for other_snake in snake_heads_at_coord[1:]:
+        if longest_snake.length == other_snake.length:
+            longest_snake.elimination = Elimination(
+                cause="head-collision", by=other_snake.id
+            )
+        else:
+            longest_snake.murder_count += 1
+        other_snake.elimination = Elimination(
+            cause="head-collision", by=longest_snake.id
+        )
+
+
+def resolve_food_consumption(
+    coord: Coord, snake_heads_at_coord: list[SnakeState], food_coords: tuple[Coord, ...]
+) -> tuple[Coord, ...]:
+    if coord not in food_coords:
+        # Not a food coordinate
+        return food_coords
+    survivors = [snake for snake in snake_heads_at_coord if snake.elimination is None]
+    if len(survivors) == 0:
+        # Collision killed all the snakes
+        return food_coords
+    if len(survivors) > 1:
+        logger.warning(f"More than one snake at a food coord", {"survivors": survivors})
+    survivor = survivors[0]
+    survivor.food_consumed = (*survivor.food_consumed, coord)
+    return tuple((f_coord for f_coord in food_coords if f_coord != coord))
+
+
+def get_all_snake_bodies_array(
+    board_array: npt.NDArray[np.int_], snakes: tuple[SnakeState, ...]
+) -> npt.NDArray[np.int_]:
+    row_count, _ = board_array.shape
+    snake_body_array = np.array(board_array, copy=True)
+    snake_body_array[1:-1, 1:-1] = UNEXPLORED_VALUE
+
+    all_snake_bodies_array = np.array(
+        [
+            np.copy(snake_body_array, subok=True)
+            for snake in snakes
+            if snake.elimination is None
+        ]
+    )
+
+    # Set snake bodies as SNAKE_BODY_VALUE on every slice
+    for i, snake in enumerate(snakes):
+        if snake.elimination is not None:
+            continue
+
+        # Rows (y-axis) are the first element. Indexing is top to bottom
+        rows = [(row_count - 2 - coord.y) for coord in snake.body[:-1]]
+
+        # Rows (x-axis) are the second element. +1 for the pad
+        columns = [coord.x + 1 for coord in snake.body[:-1]]
+
+        if any([ind < 0 for ind in [*rows, *columns]]):
+            raise Exception(
+                f"Snake {snake.id} body coordinates outside of board: {snake.body}"
+            )
+
+        all_snake_bodies_array[:, rows, columns] = SNAKE_BODY_VALUE
+
+    # Set the snake's head as 0 on its slice
+    # The first element references rows (y axis). The second argument references columns (x axis)
+    # Rows are indexed from top to bottom. Subtract y coord from rows to account for this
+    # Subtract 2 to account for board buffer rows on top and bottom
+    # Add 1 to x to account for left-most board buffer
+    for i, snake in enumerate(snakes):
+        if snake.elimination is not None:
+            continue
+        all_snake_bodies_array[
+            i,
+            # Rows (y-axis) are the first element. Indexing is top to bottom
+            row_count - 2 - snake.head.y,
+            # Rows (x-axis) are the second element. +1 for the pad
+            snake.head.x + 1,
+        ] = 0
+
+    return all_snake_bodies_array
+
+
+def get_all_snake_moves_array(
+    all_snake_bodies_array: npt.NDArray[np.int_],
+) -> npt.NDArray[np.int_]:
+    all_snake_moves_array = np.copy(all_snake_bodies_array, subok=True)
+    move = 0
+    while True:
+        masked_all_snakes = ma.masked_where(
+            np.logical_and(
+                all_snake_moves_array != UNEXPLORED_VALUE,
+                all_snake_moves_array != move,
+            ),
+            all_snake_moves_array,
+            copy=False,
+        )
+        masked_all_snakes.harden_mask()
+
+        # Get indices of all Von Neumann Neighbors of elements where element == current move
+        neighbors = [
+            ind + shift
+            for shift in [(0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+            for ind in np.argwhere(masked_all_snakes == move)
+        ]
+
+        if len(neighbors) == 0:
+            break
+
+        masked_all_snakes[
+            [ind[0] for ind in neighbors],
+            [ind[1] for ind in neighbors],
+            [ind[2] for ind in neighbors],
+        ] = (
+            move + 1
+        )
+
+        move += 1
+
+        # for i, snake in enumerate(masked_all_snakes):
+        #     print(f"snake {i}")
+        #     print(get_aligned_masked_array(snake))
+
+    # Address inaccessible areas
+    np.putmask(
+        all_snake_moves_array,
+        all_snake_moves_array == UNEXPLORED_VALUE,
+        0,
+    )
+
+    # print("all_snake_moves_array:")
+    # print(get_aligned_masked_array(all_snake_moves_array))
+
+    return all_snake_moves_array
+
+
+def get_my_snake_area_of_control(
+    all_snake_moves_array: npt.NDArray[np.int_],
+) -> npt.NDArray[np.int_]:
+    """
+    Returns a 2D array that represents my snake's "area of control".
+    Coordinates with a value of 0 are reachable by least one enemy snake before me.
+
+    For example:
+    Another snake can get to a coordinate at move 4
+    I can get to the same coordinate at move 14,
+    The element-wise subtraction will produce -10.
+    The value will be set to 0 at this coordinate to reflect that I can't reach it before my opponent
+
+    Another example:
+    Another snake can get to a coordinate at move 10
+    I can get to the same coordinate at move 3,
+    The element-wise subtraction will produce 7.
+    The value at this coordinate will be 7
+    """
+    if all_snake_moves_array.size == 0:
+        return all_snake_moves_array
+
+    my_snake_area_of_control = np.copy(all_snake_moves_array[0], subok=True)
+
+    snakes, _, _ = all_snake_moves_array.shape
+
+    if snakes == 1:
+        np.putmask(
+            my_snake_area_of_control,
+            np.logical_or(
+                my_snake_area_of_control == BORDER_VALUE,
+                my_snake_area_of_control == SNAKE_BODY_VALUE,
+            ),
+            0,
+        )
+        return my_snake_area_of_control
+
+    [
+        np.putmask(
+            my_snake_area_of_control,
+            (snake_moves - all_snake_moves_array[0]) <= 0,
+            0,
+        )
+        for snake_moves in all_snake_moves_array[1:]
+    ]
+
+    # print("my_snake_area_of_control")
+    # print(get_aligned_masked_array(my_snake_area_of_control))
+
+    return my_snake_area_of_control
+
+
+def get_score(
+    my_snake: SnakeState,
+    food_array: npt.NDArray[np.int_],
+    center_weight_array: npt.NDArray[np.int_],
+    all_snake_moves_array: npt.NDArray[np.int_],
+):
+    if all_snake_moves_array.size == 0:
+        return 0
+
+    area_of_control = get_my_snake_area_of_control(
+        all_snake_moves_array=all_snake_moves_array
+    )
+    my_snake_score = np.copy(area_of_control, subok=True)
+
+    # Replace non-zero values with an area multiplier
+    np.putmask(
+        my_snake_score,
+        my_snake_score > 0,
+        AREA_MULTIPLIER,
+    )
+
+    score = np.multiply(my_snake_score, food_array)
+
+    score = np.multiply(score, center_weight_array)
+
+    # print("score")
+    # print(get_aligned_masked_array(score))
+    score = score.sum()
+
+    score += MURDER_SCORE * my_snake.murder_count
+
+    score += FOOD_SCORE * len(my_snake.food_consumed)
+
+    return score
 
 
 class BoardState(BaseModel):
@@ -41,278 +342,97 @@ class BoardState(BaseModel):
     hazard_coords: tuple[Coord, ...]
     other_snakes: tuple[SnakeState, ...]
     my_snake: SnakeState
-    snake_body_coords: tuple[Coord, ...]
     hazard_damage_rate: int
-    prev_state: BoardState | None = None
-    next_boards: list[BoardState] = Field(default_factory=list)
+    prev_state: BoardState | None = Field(default=None, exclude=True)
+    next_boards: list[BoardState] = Field(default_factory=list, exclude=True)
     is_terminal: bool = False
     terminal_reason: Literal["duplicate", "self_eliminated", "victory"] | None = None
+    board_array: npt.NDArray[np.int_] = Field(exclude=True)
+    food_array: npt.NDArray[np.int_] = Field(exclude=True)
+    all_snake_moves_array: npt.NDArray[np.int_] = Field(exclude=True)
+    center_weight_array: npt.NDArray[np.int_] = Field(exclude=True)
     score: float = 0
-    board_array: npt.NDArray[np.int_]
-    food_array: npt.NDArray[np.int_]
-    all_snake_moves_array: npt.NDArray[np.int_]
-    center_weight_array: npt.NDArray[np.int_]
-    score: int
-
-    @staticmethod
-    def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]:
-        # The first element is the # of rows (y-axis). The second element is the # of columns (x-axis)
-        # Adding two supports padding the board with masked values. This supports calculations up to the
-        # edge of the grid without altering the array size
-        shape = (board_height + 2, board_width + 2)
-
-        board_array = np.full(shape=shape, fill_value=BORDER_VALUE, dtype=np.int8)
-
-        # Fill the actual board area with -1
-        board_array[1:-1, 1:-1] = -1
-
-        # print("board_array:")
-        # print(get_aligned_masked_array(board_array))
-
-        return board_array
-
-    @staticmethod
-    def get_food_array(
-        board_array: npt.NDArray[np.int_], food_coords: tuple[Coord, ...]
-    ) -> npt.NDArray[np.int_]:
-        food_array = np.copy(board_array, subok=True)
-
-        # Fill the actual board area with 1 to support element-wise multiplication
-        food_array[1:-1, 1:-1] = 1
-
-        rows, _ = food_array.shape
-        food_array[
-            [
-                (rows - 2 - coord.y) for coord in food_coords
-            ],  # Rows (y-axis) are the first element. Indexing is top to bottom
-            [
-                coord.x + 1 for coord in food_coords
-            ],  # Rows (x-axis) are the second element. +1 for the pad
-        ] = FOOD_WEIGHT
-
-        # print("food_array:")
-        # print(get_aligned_masked_array(food_array))
-
-        return food_array
-
-    @staticmethod
-    def get_all_snake_moves_array(
-        board_array: npt.NDArray[np.int_], snakes: tuple[SnakeState, ...]
-    ) -> npt.NDArray[np.int_]:
-        rows, _ = board_array.shape
-        snake_body_array = np.array(board_array, copy=True)
-        snake_body_array[1:-1, 1:-1] = UNEXPLORED_VALUE
-
-        all_snake_moves_array = np.array(
-            [
-                np.copy(snake_body_array, subok=True)
-                for snake in snakes
-                if snake.elimination is None
-            ]
-        )
-        # Set snake bodies as SNAKE_BODY_VALUE on every slice
-        for i, snake in enumerate(snakes):
-            if snake.elimination is not None:
-                continue
-            all_snake_moves_array[
-                :,
-                # Rows (y-axis) are the first element. Indexing is top to bottom
-                [(rows - 2 - coord.y) for coord in snake.body],
-                # Rows (x-axis) are the second element. +1 for the pad
-                [coord.x + 1 for coord in snake.body],
-            ] = SNAKE_BODY_VALUE
-
-        # Set the snake's head as 0 on its slice
-        # The first element references rows (y axis). The second argument references columns (x axis)
-        # Rows are indexed from top to bottom. Subtract y coord from rows to account for this
-        # Subtract 2 to account for board buffer rows on top and bottom
-        # Add 1 to x to account for left-most board buffer
-        for i, snake in enumerate(snakes):
-            if snake.elimination is not None:
-                continue
-            all_snake_moves_array[
-                i,
-                # Rows (y-axis) are the first element. Indexing is top to bottom
-                rows - 2 - snake.head.y,
-                # Rows (x-axis) are the second element. +1 for the pad
-                snake.head.x + 1,
-            ] = 0
-
-        move = 0
-        while True:
-            masked_all_snakes = ma.masked_where(
-                np.logical_and(
-                    all_snake_moves_array != UNEXPLORED_VALUE,
-                    all_snake_moves_array != move,
-                ),
-                all_snake_moves_array,
-                copy=False,
-            )
-            masked_all_snakes.harden_mask()
-
-            # Get indices of all Von Neumann Neighbors of elements where element == current move
-            neighbors = [
-                ind + shift
-                for shift in [(0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
-                for ind in np.argwhere(masked_all_snakes == move)
-            ]
-
-            if len(neighbors) == 0:
-                break
-
-            masked_all_snakes[
-                [ind[0] for ind in neighbors],
-                [ind[1] for ind in neighbors],
-                [ind[2] for ind in neighbors],
-            ] = (
-                move + 1
-            )
-
-            move += 1
-
-            # for i, snake in enumerate(masked_all_snakes):
-            #     print(f"snake {i}")
-            #     print(get_aligned_masked_array(snake))
-
-        # print("all_snake_moves_array:")
-        # print(get_aligned_masked_array(all_snake_moves_array))
-
-        return all_snake_moves_array
-
-    @staticmethod
-    def get_center_weight_array(
-        board_array: npt.NDArray[np.int_],
-    ) -> npt.NDArray[np.int_]:
-        center_weight = np.copy(board_array, subok=True)
-
-        # Fill the actual board area with 1 to support element-wise multiplication
-        center_weight[1:-1, 1:-1] = 1
-
-        # Fill the center 3x3 with center control weight
-        center_weight[5:-5, 5:-5] = CENTER_CONTROL_WEIGHT
-
-        # print("center_weight:")
-        # print(get_aligned_masked_array(center_weight))
-
-        return center_weight
 
     @classmethod
     def factory(cls, **kwargs) -> BoardState:
         my_snake = kwargs["my_snake"]
-        food_coords = kwargs["food_coords"]
         other_snakes = kwargs["other_snakes"]
         board_height = kwargs["board_height"]
         board_width = kwargs["board_width"]
         prev_state = kwargs.get("prev_state")
-        snake_body_coords = [
-            coord
-            for snake in [my_snake, *other_snakes]
-            for coord in snake.body[:-1]
-            if snake.elimination is None
-        ]
 
         if prev_state is None:
-            board_array = cls.get_board_array(
+            board_array = get_board_array(
                 board_width=board_width, board_height=board_height
             )
-            center_weight_array = cls.get_center_weight_array(board_array=board_array)
+            center_weight_array = get_center_weight_array(board_array=board_array)
         else:
             board_array = prev_state.board_array
             center_weight_array = prev_state.center_weight_array
 
-        food_array = cls.get_food_array(
-            board_array=board_array, food_coords=food_coords
+        snake_heads_at_coord = get_snake_heads_at_coord(
+            snakes=(my_snake, *other_snakes)
         )
+        for coord, snake_heads_at_coord in snake_heads_at_coord.items():
+            resolve_head_collision(snake_heads_at_coord=snake_heads_at_coord)
+            kwargs["food_coords"] = resolve_food_consumption(
+                coord=coord,
+                snake_heads_at_coord=snake_heads_at_coord,
+                food_coords=kwargs["food_coords"],
+            )
 
-        all_snake_moves_array = cls.get_all_snake_moves_array(
+        if my_snake.elimination is not None or len(other_snakes) == 0:
+            terminal_reason: str
+            score: int
+            if my_snake.elimination is not None:
+                terminal_reason = "self_eliminated"
+                score = 0
+            elif len(other_snakes) == 0:
+                terminal_reason = "victory"
+                score = WIN_SCORE
+            else:
+                raise Exception("unhandled termination reason")
+
+            return cls(
+                board_array=np.array([]),
+                food_array=np.array([]),
+                all_snake_moves_array=np.array([]),
+                center_weight_array=np.array([]),
+                is_terminal=True,
+                score=score,
+                terminal_reason=terminal_reason,
+                **kwargs,
+            )
+
+        all_snake_bodies_array = get_all_snake_bodies_array(
             board_array=board_array, snakes=(my_snake, *other_snakes)
         )
 
-        score = cls.get_score(
+        # TODO: resolve head collision and food consumption here
+
+        all_snake_moves_array = get_all_snake_moves_array(
+            all_snake_bodies_array=all_snake_bodies_array,
+        )
+
+        food_array = get_food_array(
+            board_array=board_array, food_coords=kwargs["food_coords"]
+        )
+
+        score = get_score(
+            my_snake=my_snake,
             food_array=food_array,
             center_weight_array=center_weight_array,
             all_snake_moves_array=all_snake_moves_array,
         )
 
         return cls(
-            snake_body_coords=snake_body_coords,
             board_array=board_array,
             food_array=food_array,
             all_snake_moves_array=all_snake_moves_array,
             center_weight_array=center_weight_array,
-            score=score,
+            score=score + my_snake.health,
             **kwargs,
         )
-
-    @classmethod
-    def get_my_snake_area_of_control(
-        cls, all_snake_moves_array: npt.NDArray[np.int_]
-    ) -> npt.NDArray[np.int_]:
-        """
-        Returns a 2D array that represents my snake's "area of control".
-        Coordinates with a value of 0 are reachable by least one enemy snake before me.
-
-        For example:
-        Another snake can get to a coordinate at move 4
-        I can get to the same coordinate at move 14,
-        The element-wise subtraction will produce -10.
-        The value will be set to 0 at this coordinate to reflect that I can't reach it before my opponent
-
-        Another example:
-        Another snake can get to a coordinate at move 10
-        I can get to the same coordinate at move 3,
-        The element-wise subtraction will produce 7.
-        The value at this coordinate will be 7
-        """
-        if all_snake_moves_array.size == 0:
-            return all_snake_moves_array
-
-        my_snake_area_of_control = np.copy(all_snake_moves_array[0], subok=True)
-
-        [
-            np.putmask(
-                my_snake_area_of_control,
-                (snake_moves - all_snake_moves_array[0]) <= 0,
-                0,
-            )
-            for snake_moves in all_snake_moves_array[1:]
-        ]
-
-        # print("my_snake_area_of_control")
-        # print(get_aligned_masked_array(my_snake_area_of_control))
-
-        return my_snake_area_of_control
-
-    @classmethod
-    def get_score(
-        cls,
-        food_array: npt.NDArray[np.int_],
-        center_weight_array: npt.NDArray[np.int_],
-        all_snake_moves_array: npt.NDArray[np.int_],
-    ):
-        if all_snake_moves_array.size == 0:
-            return 0
-
-        area_of_control = cls.get_my_snake_area_of_control(
-            all_snake_moves_array=all_snake_moves_array
-        )
-        my_snake_score = np.copy(area_of_control, subok=True)
-
-        # Replace non-zero values with an area multiplier
-        np.putmask(
-            my_snake_score,
-            my_snake_score > 0,
-            AREA_MULTIPLIER,
-        )
-
-        score = np.multiply(my_snake_score, food_array)
-
-        score = np.multiply(score, center_weight_array)
-
-        # print("score")
-        # print(get_aligned_masked_array(score))
-
-        return score.sum()
 
     def get_my_key(self) -> tuple[int, tuple[Coord]]:
         return self.turn, self.my_snake.body[0]
@@ -336,25 +456,6 @@ class BoardState(BaseModel):
             ),
             snake_states,
         )
-
-    def get_legal_adjacent_coords(self, coord: Coord) -> set[Coord]:
-        adj_coords = coord.get_adjacent()
-        return {
-            coord
-            for coord in adj_coords
-            if 0 <= coord.x <= self.board_width - 1
-            and 0 <= coord.y <= self.board_height - 1
-        }
-
-    def get_next_body(self, current_body: list[Coord]) -> list[Coord]:
-        if current_body[0] in self.food_coords:
-            current_body.append(current_body[-1])
-        return current_body
-
-    def is_food_consumed(self, next_body: list[Coord]) -> bool:
-        if next_body[0] in self.food_coords:
-            return True
-        return False
 
     def get_next_health(
         self,
@@ -380,6 +481,18 @@ class BoardState(BaseModel):
             return 100
 
         return next_health
+
+    def get_next_body(self, current_body: list[Coord]) -> list[Coord]:
+        if current_body[0] is DEATH_COORD:
+            return [current_body[0]]
+        if current_body[0] in self.food_coords:
+            current_body.append(current_body[-1])
+        return current_body
+
+    def is_food_consumed(self, next_body: list[Coord]) -> bool:
+        if next_body[0] in self.food_coords:
+            return True
+        return False
 
     def get_next_snake_state_for_snake_move(
         self, snake: SnakeState, move: Coord
@@ -419,118 +532,37 @@ class BoardState(BaseModel):
     def get_next_snake_states_for_snake(
         self, snake: SnakeState, index: int
     ) -> list[SnakeState]:
+        _, rows, _ = self.all_snake_moves_array.shape
         if snake.elimination is not None:
             return []
 
-        moves = self.get_legal_adjacent_coords(coord=snake.head)
-
-        # Exclude body collisions
-        reasonable_moves = [
-            move for move in moves if move not in self.snake_body_coords
+        moves = [
+            Coord(x=np_ind[1] - 1, y=rows - 2 - np_ind[0])
+            for np_ind in np.argwhere(self.all_snake_moves_array[index] == 1)
         ]
 
-        if len(reasonable_moves) == 0:
-            reasonable_moves.append(DEATH_COORD)
+        if len(moves) == 0:
+            moves.append(DEATH_COORD)
 
         if (
-            len(reasonable_moves) > 1
+            len(moves) > 1
             and not snake.is_self
             and self.my_snake.head.get_manhattan_distance(snake.head) > 4
         ):
-            if (
-                self.turn % 2 == 1
-                and snake.body[0] + snake.last_move in reasonable_moves
-            ):
-                reasonable_moves = [snake.body[0] + snake.last_move]
+            if self.turn % 2 == 1 and snake.body[0] + snake.last_move in moves:
+                moves = [snake.body[0] + snake.last_move]
             else:
-                reasonable_moves = [
+                moves = [
                     move
-                    for move in reasonable_moves
+                    for move in moves
                     if self.my_snake.head.get_manhattan_distance(move)
                     < self.my_snake.head.get_manhattan_distance(snake.head)
                 ]
 
         return [
             self.get_next_snake_state_for_snake_move(snake=snake, move=move)
-            for move in reasonable_moves
+            for move in moves
         ]
-
-    def get_snake_heads_at_coord(self) -> dict[Coord, list[SnakeState]]:
-        snake_heads_at_coord: dict[Coord, list[SnakeState]] = defaultdict(list)
-        for snake_state in self.other_snakes:
-            if snake_state.elimination is not None:
-                continue
-            snake_heads_at_coord[snake_state.head].append(snake_state)
-
-        snake_heads_at_coord[self.my_snake.head].append(self.my_snake)
-
-        return snake_heads_at_coord
-
-    def resolve_head_collision(self, snake_heads_at_coord: list[SnakeState]) -> None:
-        if len(snake_heads_at_coord) <= 1:
-            return
-
-        snake_heads_at_coord.sort(key=lambda snk: snk.length, reverse=True)
-        longest_snake = snake_heads_at_coord[0]
-        for other_snake in snake_heads_at_coord[1:]:
-            if longest_snake.length == other_snake.length:
-                longest_snake.elimination = Elimination(
-                    cause="head-collision", by=other_snake.id
-                )
-            else:
-                longest_snake.murder_count += 1
-                if longest_snake.id == self.my_snake.id:
-                    self.score += MURDER_SCORE
-            other_snake.elimination = Elimination(
-                cause="head-collision", by=longest_snake.id
-            )
-
-    def resolve_food_consumption(
-        self,
-        coord: Coord,
-        snake_heads_at_coord: list[SnakeState],
-    ):
-        if coord not in self.food_coords:
-            # Not a food coordinate
-            return
-        survivors = [
-            snake for snake in snake_heads_at_coord if snake.elimination is None
-        ]
-        if len(survivors) == 0:
-            # Collision killed all the snakes
-            return
-        if len(survivors) > 1:
-            logger.warning(
-                f"More than one snake at a food coord", {"survivors": survivors}
-            )
-        survivor = survivors[0]
-        self.food_coords = tuple(
-            (f_coord for f_coord in self.food_coords if f_coord != coord)
-        )
-        survivor.food_consumed = (*survivor.food_consumed, coord)
-
-        if survivor.id == self.my_snake.id:
-            self.score += FOOD_SCORE
-
-    def model_post_init(self, __context) -> None:
-        snake_heads_at_coord = self.get_snake_heads_at_coord()
-        for coord, snake_heads_at_coord in snake_heads_at_coord.items():
-            self.resolve_head_collision(snake_heads_at_coord=snake_heads_at_coord)
-            self.resolve_food_consumption(
-                coord=coord, snake_heads_at_coord=snake_heads_at_coord
-            )
-
-        if self.my_snake.elimination is not None:
-            self.score = DEATH_SCORE
-            self.is_terminal = True
-            self.terminal_reason = "self_eliminated"
-            return
-
-        if len(self.other_snakes) == 0:
-            self.is_terminal = True
-            self.terminal_reason = "victory"
-            self.score = WIN_SCORE
-            return
 
     def populate_next_boards(self) -> None:
         if self.is_terminal:
@@ -542,7 +574,7 @@ class BoardState(BaseModel):
         other_snakes_next_states = [
             other_snake_next_state
             for other_snake_next_state in [
-                self.get_next_snake_states_for_snake(snake=snake, index=index)
+                self.get_next_snake_states_for_snake(snake=snake, index=index + 1)
                 for index, snake in enumerate(self.other_snakes)
             ]
             if len(other_snake_next_state) > 0
@@ -567,6 +599,9 @@ class BoardState(BaseModel):
                 prev_state=self,
             )
             self.next_boards.append(potential_board)
+        self.score = sum([board.score for board in self.next_boards]) / len(
+            self.next_boards
+        )
 
     def get_snake_payload(
         self,
@@ -628,8 +663,14 @@ class BoardState(BaseModel):
             },
             "you": self.get_snake_payload(me=True, snake_defs=snake_defs),
             "terminalReason": self.terminal_reason,
+            "score": self.score,
             "descendents": [
                 next_board.get_board_payload(snake_defs=snake_defs, game=game)
                 for next_board in self.next_boards
             ],
         }
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, BoardState):
+            return self.model_dump() == other.model_dump()
+        return super().__eq__(other)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, Any
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt, Field, ConfigDict
 
@@ -43,5 +43,7 @@ class SnakeState(BaseModel):
             x=(self.body[0].x - self.body[1].x), y=self.body[0].y - self.body[1].y
         )
 
-    def test_equals(self, other: SnakeState) -> bool:
-        return self.model_dump() == other.model_dump()
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, SnakeState):
+            return self.model_dump() == other.model_dump()
+        return super().__eq__(other)
