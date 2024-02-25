@@ -58,6 +58,13 @@ def test_populated_api_endpoints(battlesnake_url: str, turn: int, path: str):
                     Coord(x=0, y=2),
                 )
             ),
+            get_mock_snake(
+                body_coords=(
+                    Coord(x=10, y=0),
+                    Coord(x=10, y=1),
+                    Coord(x=10, y=2),
+                )
+            ),
         ),
     )
 
