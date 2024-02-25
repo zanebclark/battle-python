@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections import deque, defaultdict
-from itertools import product
 
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt, Field
@@ -53,7 +52,7 @@ class GameState(BaseModel):
                     id=snake["id"],
                     health=snake["health"],
                     body=tuple(
-                        Coord(x=coord[0], y=coord[1]) for coord in snake["body"]
+                        Coord(x=coord["x"], y=coord["y"]) for coord in snake["body"]
                     ),
                     head=snake["head"],
                     length=snake["length"],
@@ -71,7 +70,7 @@ class GameState(BaseModel):
             board_width=payload["board"]["width"],
             board_height=payload["board"]["height"],
             food_coords=tuple(
-                Coord(x=coord[0], y=coord[1]) for coord in payload["board"]["food"]
+                Coord(x=coord["x"], y=coord["y"]) for coord in payload["board"]["food"]
             ),
             hazard_coords=payload["board"]["hazards"],
             other_snakes=other_snakes,
@@ -79,7 +78,8 @@ class GameState(BaseModel):
                 id=payload["you"]["id"],
                 health=payload["you"]["health"],
                 body=tuple(
-                    Coord(x=coord[0], y=coord[1]) for coord in payload["you"]["body"]
+                    Coord(x=coord["x"], y=coord["y"])
+                    for coord in payload["you"]["body"]
                 ),
                 head=payload["you"]["head"],
                 length=payload["you"]["length"],
