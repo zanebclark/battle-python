@@ -187,12 +187,13 @@ class GameState(BaseModel):
     async def spam(self, request_time: float):
         try:
             async with asyncio.timeout_at(request_time + 300):
-                logger.debug(
-                    "incrementing_frontiner",
-                    request_time=request_time,
-                    time=time.time(),
-                )
-                self.increment_frontier()
+                while True:
+                    logger.debug(
+                        "incrementing_frontiner",
+                        request_time=request_time,
+                        time=time.time(),
+                    )
+                    self.increment_frontier()
         except TimeoutError:
             pass
 
