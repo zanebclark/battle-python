@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections import deque, defaultdict
+from collections import deque
+from itertools import groupby
 
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt, Field
@@ -181,38 +182,43 @@ class GameState(BaseModel):
         for turn in range(2):
             self.increment_frontier()
 
-        head_scores = defaultdict(list)
-        [
-            head_scores[board.my_snake.head].append(board.score)
-            for board in self.current_board.next_boards
-        ]
-        logger.info("available scores", head_scores=str(head_scores))
+        min_score_per_head = {
+            head_coord: min([board.score for board in boards])
+            for head_coord, boards in groupby(
+                self.current_board.next_boards, key=lambda board: board.my_snake.head
+            )
+        }
 
-        best_coord = sorted(
-            {
-                head: (sum(numbers) / len(numbers))
-                for head, numbers in head_scores.items()
-            }.items(),
+        best_head_score = sorted(
+            min_score_per_head.items(),
             key=lambda item: item[1],
             reverse=True,
         )[0][0]
 
         direction = Coord(
-            x=self.current_board.my_snake.head.x - best_coord.x,
-            y=self.current_board.my_snake.head.y - best_coord.y,
+            x=self.current_board.my_snake.head.x - best_head_score.x,
+            y=self.current_board.my_snake.head.y - best_head_score.y,
         )
 
-        if self.current_board.my_snake.head + Coord(x=-1, y=0) == best_coord:
-            logger.info("returning left")
-            return "left"
-        elif self.current_board.my_snake.head + Coord(x=1, y=0) == best_coord:
-            logger.info("returning right")
-            return "right"
-        elif self.current_board.my_snake.head + Coord(x=0, y=-1) == best_coord:
-            logger.info("returning down")
-            return "down"
-        elif self.current_board.my_snake.head + Coord(x=0, y=1) == best_coord:
-            logger.info("returning up")
-            return "up"
+        if self.current_board.my_snake.head + Coord(x=-1, y=0) == best_head_score:
+            move = "left"
+        elif self.current_board.my_snake.head + Coord(x=1, y=0) == best_head_score:
+            move = "right"
+        elif self.current_board.my_snake.head + Coord(x=0, y=-1) == best_head_score:
+            move = "down"
+        elif self.current_board.my_snake.head + Coord(x=0, y=1) == best_head_score:
+            move = "up"
         else:
             raise Exception(f"Unhandled direction: {direction}")
+
+        logger.info(
+            "returning next move",
+            best_head_score=f"({best_head_score.x}, {best_head_score.y})",
+            average_head_scores=[
+                f"({coord.x},{coord.y}): {score}"
+                for coord, score in min_score_per_head.items()
+            ],
+            move=move,
+        )
+
+        return move
