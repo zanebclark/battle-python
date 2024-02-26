@@ -174,7 +174,7 @@ class GameState(BaseModel):
     def increment_frontier(self, request_time: float):
         next_boards: list[BoardState] = []
         for board in self.frontier:
-            if (time.time_ns() // 1_000_000) > (request_time + 400):
+            if (time.time_ns() // 1_000_000) > (request_time + 370):
                 raise TimeoutException()
             if board is None:
                 continue
