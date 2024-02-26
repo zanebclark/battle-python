@@ -265,5 +265,4 @@ def test_game_state_get_next_move():
         snake_defs=mock_gs.snake_defs, game=mock_gs.game
     )
     gs = GameState.from_payload(payload=payload)
-    gs.get_next_move(request_time=time.time())
     gs.get_next_move(request_time=(time.time_ns() // 1_000_000))
