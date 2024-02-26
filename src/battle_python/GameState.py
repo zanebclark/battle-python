@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from collections import deque
 from itertools import groupby
 
@@ -181,11 +182,16 @@ class GameState(BaseModel):
 
     def get_next_move(self, request_time: float):
         self.increment_frontier()
-        result = asyncio.run(self.spam(request_time=request_time))
+        return asyncio.run(self.spam(request_time=request_time))
 
     async def spam(self, request_time: float):
         try:
-            async with asyncio.timeout_at(request_time + 350):
+            async with asyncio.timeout_at(request_time + 300):
+                logger.debug(
+                    "incrementing_frontiner",
+                    request_time=request_time,
+                    time=time.time(),
+                )
                 self.increment_frontier()
         except TimeoutError:
             pass
