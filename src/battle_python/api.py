@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Literal
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -57,7 +58,14 @@ def move() -> dict[str, int | str]:
     request_time = api.current_event.request_context.request_time_epoch
     try:
         gs = GameState.from_payload(api.current_event.json_body)
-        return {"move": gs.get_next_move(request_time)}
+        move = gs.get_next_move(request_time)
+        ms_elapsed = (time.time_ns() // 1_000_000) - request_time
+        logger.debug(
+            "returning move",
+            ms_elapsed=ms_elapsed,
+            move=move,
+        )
+        return {"move": move}
     except ValidationError:
         return {"status_code": 400, "message": "Invalid"}
 

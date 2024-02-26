@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import time
 from collections import deque
 from itertools import groupby
@@ -18,6 +17,10 @@ from battle_python.api_types import (
 )
 
 logger = Logger()
+
+
+class TimeoutException(Exception):
+    pass
 
 
 class GameState(BaseModel):
@@ -168,9 +171,11 @@ class GameState(BaseModel):
             self.explored_states[my_key] = {other_key: board}
             return board
 
-    def increment_frontier(self):
+    def increment_frontier(self, request_time: float):
         next_boards: list[BoardState] = []
         for board in self.frontier:
+            if (time.time_ns() // 1_000_000) > (request_time + 400):
+                raise TimeoutException()
             if board is None:
                 continue
             board.populate_next_boards()
@@ -181,20 +186,10 @@ class GameState(BaseModel):
         self.frontier.extend(next_boards)
 
     def get_next_move(self, request_time: float):
-        self.increment_frontier()
-        return asyncio.run(self.spam(request_time=request_time))
-
-    async def spam(self, request_time: float):
         try:
-            async with asyncio.timeout_at(request_time + 300):
-                while True:
-                    logger.debug(
-                        "incrementing_frontiner",
-                        request_time=request_time,
-                        time=time.time(),
-                    )
-                    self.increment_frontier()
-        except TimeoutError:
+            while True:
+                self.increment_frontier(request_time=request_time)
+        except TimeoutException:
             pass
 
         min_score_per_head = {
@@ -203,6 +198,9 @@ class GameState(BaseModel):
                 self.current_board.next_boards, key=lambda board: board.my_snake.head
             )
         }
+
+        if len(min_score_per_head.keys()) == 0:
+            return "up"
 
         best_head_score = sorted(
             min_score_per_head.items(),

@@ -1,5 +1,6 @@
+import time
+
 from battle_python.api import RestMethod
-from battle_python.api_types import SnakeRequest
 import json
 
 
@@ -83,7 +84,7 @@ def get_mock_request_context(method: RestMethod, path: str):
         "protocol": "HTTP/1.1",
         "requestId": "a3590457-cac2-4f10-8fc9-e47114bf7c62",
         "requestTime": "02/Feb/2023:11:45:26 +0000",
-        "requestTimeEpoch": 1675338326,
+        "requestTimeEpoch": time.time_ns() // 1_000_000,
         "resourceId": "123456",
         "resourcePath": path,
         "stage": "Prod",
