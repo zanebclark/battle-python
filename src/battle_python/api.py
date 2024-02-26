@@ -17,9 +17,6 @@ tracer = Tracer()
 logger = Logger()
 metrics = Metrics(namespace="Powertools")
 
-
-# TODO: Layer coordinate weights on top of this. Favor the center of the board
-# TODO: Google "Oct tree"
 # TODO: Anticipate hazard progression
 
 
@@ -54,6 +51,7 @@ def move() -> dict[str, int | str]:
     body = api.current_event.json_body
 
     logger.append_keys(game_id=body["game"]["id"])
+    logger.append_keys(my_snake_id=body["you"]["id"])
     logger.append_keys(turn=body["turn"])
 
     try:
