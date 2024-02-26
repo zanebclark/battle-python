@@ -54,9 +54,10 @@ def move() -> dict[str, int | str]:
     logger.append_keys(my_snake_id=body["you"]["id"])
     logger.append_keys(turn=body["turn"])
 
+    request_time = api.current_event.request_context.request_time_epoch
     try:
         gs = GameState.from_payload(api.current_event.json_body)
-        return {"move": gs.get_next_move()}
+        return {"move": gs.get_next_move(request_time)}
     except ValidationError:
         return {"status_code": 400, "message": "Invalid"}
 

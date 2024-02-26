@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections import deque
 from itertools import groupby
 
@@ -178,9 +179,16 @@ class GameState(BaseModel):
         self.frontier.clear()
         self.frontier.extend(next_boards)
 
-    def get_next_move(self):
-        for turn in range(2):
-            self.increment_frontier()
+    def get_next_move(self, request_time: float):
+        self.increment_frontier()
+        result = asyncio.run(self.spam(request_time=request_time))
+
+    async def spam(self, request_time: float):
+        try:
+            async with asyncio.timeout_at(request_time + 350):
+                self.increment_frontier()
+        except TimeoutError:
+            pass
 
         min_score_per_head = {
             head_coord: min([board.score for board in boards])
@@ -212,13 +220,15 @@ class GameState(BaseModel):
             raise Exception(f"Unhandled direction: {direction}")
 
         logger.info(
-            "returning next move",
+            "get_next_move",
             best_head_score=f"({best_head_score.x}, {best_head_score.y})",
             average_head_scores=[
                 f"({coord.x},{coord.y}): {score}"
                 for coord, score in min_score_per_head.items()
             ],
             move=move,
+            boards_explored=self.counter,
+            terminal_boards=self.terminal_counter,
         )
 
         return move

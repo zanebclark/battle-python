@@ -265,5 +265,4 @@ def test_game_state_get_next_move():
         snake_defs=mock_gs.snake_defs, game=mock_gs.game
     )
     gs = GameState.from_payload(payload=payload)
-    spam = gs.get_next_move()
-    print("hey there!")
+    gs.get_next_move(request_time=time.time())
