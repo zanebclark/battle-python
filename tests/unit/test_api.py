@@ -7,8 +7,8 @@ import pytest
 from battle_python import api
 from battle_python.GameState import GameState
 from battle_python.api_types import Coord, SnakeDef, SnakeCustomizations
-from mocks.get_mock_game_state import get_mock_game_state
-from mocks.get_mock_snake_state import get_mock_snake_state
+from ..mocks.get_mock_game_state import get_mock_game_state
+from ..mocks.get_mock_snake_state import get_mock_snake_state
 from ..mocks.MockLambdaContext import MockLambdaContext
 from ..mocks.api_gateway_event import get_mock_api_gateway_event
 from aws_lambda_powertools.utilities.typing import LambdaContext

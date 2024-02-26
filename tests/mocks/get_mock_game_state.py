@@ -4,7 +4,7 @@ from battle_python.BoardState import BoardState
 from battle_python.GameState import GameState
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import Coord, SnakeCustomizations, SnakeDef, Game, Ruleset
-from mocks.get_mock_board_state import get_mock_board_state
+from .get_mock_board_state import get_mock_board_state
 
 
 def get_mock_snake_def(
