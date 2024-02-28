@@ -11,13 +11,7 @@ Direction = Literal[
     "right",
 ]
 
-GameSource = Literal[
-    "tournament",
-    "league",
-    "arena",
-    "challenge",
-    "custom",
-]
+GameSource = Literal["tournament", "league", "arena", "challenge", "custom", "ladder"]
 
 RulesetName = Literal[
     "constrictor",
