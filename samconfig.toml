@@ -18,8 +18,7 @@ capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 s3_prefix = "battle-pythons-study-group"
 region = "us-west-2"
-image_repositories = ["BattlesnakeApi=057283593447.dkr.ecr.us-west-2.amazonaws.com/battlepythonsstudygroup479ba7ba/battlesnakeapi1a41c1f0repo"]
-resolve_s3 = true
+image_repositories = []
 
 [default.sync.parameters]
 watch = true
