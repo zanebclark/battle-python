@@ -6,10 +6,8 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.logging import correlation_paths
 from aws_lambda_powertools.utilities.parser import parse, ValidationError
 from aws_lambda_powertools import Logger
-from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 
-tracer = Tracer(patch_modules=["botocore"])
 logger = Logger()
 
 from battle_python.GameState import GameState
@@ -23,7 +21,6 @@ metrics = Metrics(namespace="Powertools")
 
 
 @api.get("/")
-@tracer.capture_method
 def battlesnake_details() -> dict:
     return SnakeMetadataResponse(
         author=os.environ.get("BATTLESNAKE_AUTHOR"),
@@ -35,7 +32,6 @@ def battlesnake_details() -> dict:
 
 
 @api.post("/start")
-@tracer.capture_method
 def game_started() -> dict[str, int | str]:
     body = api.current_event.json_body
     logger.append_keys(game_id=body["game"]["id"])
@@ -48,7 +44,6 @@ def game_started() -> dict[str, int | str]:
 
 
 @api.post("/move")
-@tracer.capture_method
 def move() -> dict[str, int | str]:
     body = api.current_event.json_body
 
@@ -72,7 +67,6 @@ def move() -> dict[str, int | str]:
 
 
 @api.post("/end")
-@tracer.capture_method
 def game_over() -> dict[str, int | str]:
     body = api.current_event.json_body
 
@@ -93,9 +87,6 @@ def game_over() -> dict[str, int | str]:
     log_event=True,
     clear_state=True,
 )
-# Adding tracer
-# See: https://awslabs.github.io/aws-lambda-powertools-python/latest/core/tracer/
-@tracer.capture_lambda_handler
 # ensures metrics are flushed upon request completion/failure and capturing ColdStart metric
 @metrics.log_metrics(capture_cold_start_metric=True)  # type: ignore
 def lambda_handler(event: dict, context: LambdaContext) -> dict:

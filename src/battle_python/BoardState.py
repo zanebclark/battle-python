@@ -26,13 +26,10 @@ from battle_python.constants import (
     BORDER_VALUE,
     SNAKE_BODY_VALUE,
 )
-from aws_lambda_powertools.tracing import Tracer
 
 logger = Logger()
-tracer = Tracer()
 
 
-@tracer.capture_method
 def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]:
     # The first element is the # of rows (y-axis). The second element is the # of columns (x-axis)
     # Adding two supports padding the board with masked values. This supports calculations up to the
@@ -50,7 +47,6 @@ def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]
     return board_array
 
 
-@tracer.capture_method
 def get_center_weight_array(
     board_array: npt.NDArray[np.int_],
 ) -> npt.NDArray[np.int_]:
@@ -68,7 +64,6 @@ def get_center_weight_array(
     return center_weight
 
 
-@tracer.capture_method
 def get_food_array(
     board_array: npt.NDArray[np.int_], food_coords: tuple[Coord, ...]
 ) -> npt.NDArray[np.int_]:
@@ -97,7 +92,6 @@ def get_food_array(
     return food_array
 
 
-@tracer.capture_method
 def get_snake_heads_at_coord(
     snakes: tuple[SnakeState, ...]
 ) -> dict[Coord, list[SnakeState]]:
@@ -110,7 +104,6 @@ def get_snake_heads_at_coord(
     return snake_heads_at_coord
 
 
-@tracer.capture_method
 def resolve_head_collision(snake_heads_at_coord: list[SnakeState]) -> None:
     if len(snake_heads_at_coord) <= 1:
         return
@@ -129,7 +122,6 @@ def resolve_head_collision(snake_heads_at_coord: list[SnakeState]) -> None:
         )
 
 
-@tracer.capture_method
 def resolve_food_consumption(
     coord: Coord, snake_heads_at_coord: list[SnakeState], food_coords: tuple[Coord, ...]
 ) -> tuple[Coord, ...]:
@@ -147,7 +139,6 @@ def resolve_food_consumption(
     return tuple((f_coord for f_coord in food_coords if f_coord != coord))
 
 
-@tracer.capture_method
 def get_all_snake_bodies_array(
     board_array: npt.NDArray[np.int_], snakes: tuple[SnakeState, ...]
 ) -> npt.NDArray[np.int_]:
@@ -200,7 +191,6 @@ def get_all_snake_bodies_array(
     return all_snake_bodies_array
 
 
-@tracer.capture_method
 def get_all_snake_moves_array(
     all_snake_bodies_array: npt.NDArray[np.int_],
 ) -> npt.NDArray[np.int_]:
@@ -254,7 +244,6 @@ def get_all_snake_moves_array(
     return all_snake_moves_array
 
 
-@tracer.capture_method
 def get_my_snake_area_of_control(
     all_snake_moves_array: npt.NDArray[np.int_],
 ) -> npt.NDArray[np.int_]:
@@ -307,7 +296,6 @@ def get_my_snake_area_of_control(
     return my_snake_area_of_control
 
 
-@tracer.capture_method
 def get_score(
     my_snake: SnakeState,
     food_array: npt.NDArray[np.int_],
@@ -445,11 +433,9 @@ class BoardState(BaseModel):
             **kwargs,
         )
 
-    @tracer.capture_method
     def get_my_key(self) -> tuple[int, tuple[Coord]]:
         return self.turn, self.my_snake.body[0]
 
-    @tracer.capture_method
     def get_other_key(self) -> tuple:
         snake_states = tuple(
             (
@@ -470,7 +456,6 @@ class BoardState(BaseModel):
             snake_states,
         )
 
-    @tracer.capture_method
     def get_next_health(
         self,
         next_body: list[Coord],
@@ -496,7 +481,6 @@ class BoardState(BaseModel):
 
         return next_health
 
-    @tracer.capture_method
     def get_next_body(self, current_body: list[Coord]) -> list[Coord]:
         if current_body[0] is DEATH_COORD:
             return [current_body[0]]
@@ -509,7 +493,6 @@ class BoardState(BaseModel):
             return True
         return False
 
-    @tracer.capture_method
     def get_next_snake_state_for_snake_move(
         self, snake: SnakeState, move: Coord
     ) -> SnakeState:
@@ -545,7 +528,6 @@ class BoardState(BaseModel):
             prev_state=snake,
         )
 
-    @tracer.capture_method
     def get_next_snake_states_for_snake(
         self, snake: SnakeState, index: int
     ) -> list[SnakeState]:
@@ -581,7 +563,6 @@ class BoardState(BaseModel):
             for move in moves
         ]
 
-    @tracer.capture_method
     def populate_next_boards(self) -> None:
         if self.is_terminal:
             return
@@ -621,7 +602,6 @@ class BoardState(BaseModel):
             self.next_boards
         )
 
-    @tracer.capture_method
     def get_snake_state_payload(
         self,
         snake_defs: dict[str, SnakeDef],
@@ -659,7 +639,6 @@ class BoardState(BaseModel):
             else None,
         }
 
-    @tracer.capture_method
     def get_snake_payload(
         self,
         snake_defs: dict[str, SnakeDef],
@@ -672,7 +651,6 @@ class BoardState(BaseModel):
         snake_state_payload["shout"] = None
         return snake_state_payload
 
-    @tracer.capture_method
     def get_board_payload(self, snake_defs: dict[str, SnakeDef], game: Game) -> dict:
         return {
             "game": game.model_dump(),
@@ -700,7 +678,6 @@ class BoardState(BaseModel):
             ],
         }
 
-    @tracer.capture_method
     def get_move_request(self, snake_defs: dict[str, SnakeDef], game: Game) -> dict:
         return {
             "game": game.model_dump(),
