@@ -14,7 +14,7 @@ from battle_python.api_types import SnakeMetadataResponse, SnakeRequest
 
 RestMethod = Literal["GET", "POST"]
 api = APIGatewayRestResolver()
-tracer = Tracer()
+tracer = Tracer(patch_modules=[])
 logger = Logger()
 metrics = Metrics(namespace="Powertools")
 
