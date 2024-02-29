@@ -9,13 +9,14 @@ from aws_lambda_powertools import Logger
 from aws_lambda_powertools import Tracer
 from aws_lambda_powertools import Metrics
 
+tracer = Tracer(patch_modules=["botocore"])
+logger = Logger()
+
 from battle_python.GameState import GameState
 from battle_python.api_types import SnakeMetadataResponse, SnakeRequest
 
 RestMethod = Literal["GET", "POST"]
 api = APIGatewayRestResolver()
-tracer = Tracer(patch_modules=["botocore"])
-logger = Logger()
 metrics = Metrics(namespace="Powertools")
 
 # TODO: Anticipate hazard progression
