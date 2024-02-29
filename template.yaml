@@ -12,13 +12,17 @@ Resources:
       Handler: battle_python.api.lambda_handler
       CodeUri: ./src/
       Description: A Serverless Battlesnake API written in Python
-      Runtime: python3.11
-      MemorySize: 6400
+      Runtime: python3.12
       MemorySize: 1024
       Timeout: 100
       Architectures:
       - x86_64
       Tracing: Active
+      PackageType: Image
+      Metadata:
+        DockerTag: python3.12-v1
+        DockerContext: .
+        Dockerfile: Dockerfile
       LoggingConfig:
         LogFormat: JSON
         ApplicationLogLevel: DEBUG
@@ -36,6 +40,7 @@ Resources:
           BATTLESNAKE_HEAD: beluga
           BATTLESNAKE_TAIL: do-sammy
           BATTLESNAKE_VERSION: bibe
+          AWS_XRAY_LOG_LEVEL: info
       Events:
         BattlesnakeDetails:
           Type: Api
