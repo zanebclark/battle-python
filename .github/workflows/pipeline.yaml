@@ -29,8 +29,53 @@ env:
   BATTLESNAKE_VERSION: do-something-with-this # TODO: Make this useful
 
 jobs:
+  build-and-package-prod:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: "./tests/requirements.txt"
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+      - name: Install Python Dependencies
+        run: pip install -r ./src/requirements.txt
+      # Poetry's export command doesn't include the actual package, so the CI/CD doesn't actually install battle_pythons. There's not a flag to add this to the poetry export command and pre-commit is pretty difficult to alter.
+      - name: Install Battle Pythons
+        run: pip install .
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+      - name: Build resources
+        run: |
+          sam build \
+            --template template.yaml \
+            --use-container
+      - name: Assume the prod pipeline user role
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: prod-packaging
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+      - name: Upload artifacts to production artifact buckets
+        run: |
+          sam package \
+            --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
+            --region ${AWS_REGION} \
+            --output-template-file packaged-prod.yaml
+      - uses: actions/upload-artifact@v3
+        with:
+          name: packaged-prod.yaml
+          path: packaged-prod.yaml
   test:
     if: github.event_name == 'push'
+    needs: [build-and-package]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -110,7 +155,7 @@ jobs:
             --on-failure DELETE \
             --no-confirm-changeset
 
-  build-and-package:
+  build-and-package-testing:
     if: github.ref == 'refs/heads/main'
     needs: [test]
     runs-on: ubuntu-latest
@@ -142,24 +187,6 @@ jobs:
         with:
           name: packaged-testing.yaml
           path: packaged-testing.yaml
-      - name: Assume the prod pipeline user role
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
-          role-session-name: prod-packaging
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
-      - name: Upload artifacts to production artifact buckets
-        run: |
-          sam package \
-            --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
-            --region ${AWS_REGION} \
-            --output-template-file packaged-prod.yaml
-      - uses: actions/upload-artifact@v3
-        with:
-          name: packaged-prod.yaml
-          path: packaged-prod.yaml
 
   deploy-testing:
     if: github.ref == 'refs/heads/main'
