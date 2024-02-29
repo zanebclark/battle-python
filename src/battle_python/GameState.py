@@ -105,7 +105,6 @@ class GameState(BaseModel):
             snake_defs=snake_defs,
         )
 
-    @tracer.capture_method
     def model_post_init(self, __context) -> None:
         self.frontier.append(self.current_board)
         self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board

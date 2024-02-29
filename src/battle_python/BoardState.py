@@ -365,7 +365,6 @@ class BoardState(BaseModel):
     score: float = 0
 
     @classmethod
-    @tracer.capture_method
     def factory(cls, **kwargs) -> BoardState:
         my_snake = kwargs["my_snake"]
         other_snakes = kwargs["other_snakes"]
