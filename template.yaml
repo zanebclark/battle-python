@@ -14,6 +14,7 @@ Resources:
       Description: A Serverless Battlesnake API written in Python
       Runtime: python3.11
       MemorySize: 6400
+      MemorySize: 1024
       Timeout: 100
       Architectures:
       - x86_64
