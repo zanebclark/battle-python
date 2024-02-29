@@ -188,7 +188,7 @@ class GameState(BaseModel):
     def get_next_move(self, request_time: float):
         try:
             while len(self.frontier) > 0:
-                if (time.time_ns() // 1_000_000) > (request_time + 320):
+                if (time.time_ns() // 1_000_000) > (request_time + 300):
                     raise TimeoutException()
                 logger.debug("incrementing frontier")
                 self.increment_frontier(request_time=request_time)
