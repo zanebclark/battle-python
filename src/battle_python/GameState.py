@@ -7,6 +7,7 @@ from itertools import groupby
 from aws_lambda_powertools.utilities.parser import BaseModel
 from pydantic import NonNegativeInt, Field
 from aws_lambda_powertools import Logger
+from aws_lambda_powertools.tracing import Tracer
 
 from battle_python.BoardState import BoardState
 from battle_python.SnakeState import SnakeState
@@ -17,6 +18,7 @@ from battle_python.api_types import (
 )
 
 logger = Logger()
+tracer = Tracer()
 
 
 class TimeoutException(Exception):
@@ -103,10 +105,12 @@ class GameState(BaseModel):
             snake_defs=snake_defs,
         )
 
+    @tracer.capture_method
     def model_post_init(self, __context) -> None:
         self.frontier.append(self.current_board)
         self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board
 
+    @tracer.capture_method
     def handle(self, board: BoardState) -> BoardState | None:
         self.counter += 1
         if board.is_terminal:
@@ -171,6 +175,7 @@ class GameState(BaseModel):
             self.explored_states[my_key] = {other_key: board}
             return board
 
+    @tracer.capture_method
     def increment_frontier(self, request_time: float):
         next_boards: list[BoardState] = []
         for board in self.frontier:
@@ -185,10 +190,11 @@ class GameState(BaseModel):
         self.frontier.clear()
         self.frontier.extend(next_boards)
 
+    @tracer.capture_method
     def get_next_move(self, request_time: float):
         try:
             while len(self.frontier) > 0:
-                if (time.time_ns() // 1_000_000) > (request_time + 300):
+                if (time.time_ns() // 1_000_000) > (request_time + 320):
                     raise TimeoutException()
                 logger.debug("incrementing frontier")
                 self.increment_frontier(request_time=request_time)
