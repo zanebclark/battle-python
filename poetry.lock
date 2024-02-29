@@ -141,13 +141,13 @@ tests-no-zope = ["attrs[tests-mypy]", "cloudpickle", "hypothesis", "pympler", "p
 
 [[package]]
 name = "aws-lambda-powertools"
-version = "2.34.1"
+version = "2.34.2"
 description = "Powertools for AWS Lambda (Python) is a developer toolkit to implement Serverless best practices and increase developer velocity."
 optional = false
 python-versions = ">=3.8,<4.0.0"
 files = [
-    {file = "aws_lambda_powertools-2.34.1-py3-none-any.whl", hash = "sha256:5fea5d6ae48283db81c43ef881d113d4a9c312babe3340a42fc5bc9349fbdbf6"},
-    {file = "aws_lambda_powertools-2.34.1.tar.gz", hash = "sha256:4912e2a7450d9b7a7c289d54f56d5afe0b0141013f745989359cfadd489ef553"},
+    {file = "aws_lambda_powertools-2.34.2-py3-none-any.whl", hash = "sha256:cfcc41d7125b9527b8fd8c4e3e4b30b971f915c32ec0c6e39573fd9f298a63a8"},
+    {file = "aws_lambda_powertools-2.34.2.tar.gz", hash = "sha256:02fafbdaaa0a89faaf8c49777a22996aaba465a099d69b4f1fbfd8c3ae47fc41"},
 ]
 
 [package.dependencies]
@@ -157,7 +157,7 @@ fastjsonschema = {version = ">=2.14.5,<3.0.0", optional = true, markers = "extra
 typing-extensions = ">=4.6.2,<5.0.0"
 
 [package.extras]
-all = ["aws-encryption-sdk (>=3.1.1,<4.0.0)", "aws-xray-sdk (>=2.8.0,<3.0.0)", "fastjsonschema (>=2.14.5,<3.0.0)", "jsonpath-ng (>=1.6.0,<2.0.0)", "pydantic (>=1.8.2,<2.0.0)"]
+all = ["aws-xray-sdk (>=2.8.0,<3.0.0)", "fastjsonschema (>=2.14.5,<3.0.0)", "pydantic (>=1.8.2,<2.0.0)"]
 aws-sdk = ["boto3 (>=1.26.164,<2.0.0)"]
 datadog = ["datadog-lambda (>=4.77,<6.0)"]
 datamasking = ["aws-encryption-sdk (>=3.1.1,<4.0.0)", "jsonpath-ng (>=1.6.0,<2.0.0)"]
@@ -231,17 +231,17 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.34.49"
+version = "1.34.52"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.8"
 files = [
-    {file = "boto3-1.34.49-py3-none-any.whl", hash = "sha256:ce8d1de03024f52a1810e8d71ad4dba3a5b9bb48b35567191500e3432a9130b4"},
-    {file = "boto3-1.34.49.tar.gz", hash = "sha256:96b9dc85ce8d52619b56ca7b1ac1423eaf0af5ce132904bcc8aa81396eec2abf"},
+    {file = "boto3-1.34.52-py3-none-any.whl", hash = "sha256:898ad2123b18cae8efd85adc56ac2d1925be54592aebc237020d4f16e9a9e7a9"},
+    {file = "boto3-1.34.52.tar.gz", hash = "sha256:66303b5f26d92afb72656ff490b22ea72dfff8bf1a29e4a0c5d5f11ec56245dd"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.49,<1.35.0"
+botocore = ">=1.34.52,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -250,13 +250,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.49"
+version = "1.34.52"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.8"
 files = [
-    {file = "botocore-1.34.49-py3-none-any.whl", hash = "sha256:4ed9d7603a04b5bb5bd5de63b513bc2c8a7e8b1cd0088229c5ceb461161f43b6"},
-    {file = "botocore-1.34.49.tar.gz", hash = "sha256:d89410bc60673eaff1699f3f1fdcb0e3a5e1f7a6a048c0d88c3ce5c3549433ec"},
+    {file = "botocore-1.34.52-py3-none-any.whl", hash = "sha256:05567d8aba344826060481ea309555432c96f0febe22bee7cf5a3b6d3a03cec8"},
+    {file = "botocore-1.34.52.tar.gz", hash = "sha256:187da93aec3f2e87d8a31eced16fa2cb9c71fe2d69b0a797f9f7a9220f5bf7ae"},
 ]
 
 [package.dependencies]
@@ -1133,13 +1133,13 @@ files = [
 
 [[package]]
 name = "keyring"
-version = "24.3.0"
+version = "24.3.1"
 description = "Store and access your passwords safely."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "keyring-24.3.0-py3-none-any.whl", hash = "sha256:4446d35d636e6a10b8bce7caa66913dd9eca5fd222ca03a3d42c38608ac30836"},
-    {file = "keyring-24.3.0.tar.gz", hash = "sha256:e730ecffd309658a08ee82535a3b5ec4b4c8669a9be11efb66249d8e0aeb9a25"},
+    {file = "keyring-24.3.1-py3-none-any.whl", hash = "sha256:df38a4d7419a6a60fea5cef1e45a948a3e8430dd12ad88b0f423c5c143906218"},
+    {file = "keyring-24.3.1.tar.gz", hash = "sha256:c3327b6ffafc0e8befbdb597cacdb4928ffe5c1212f7645f186e6d9957a898db"},
 ]
 
 [package.dependencies]
@@ -1152,7 +1152,7 @@ SecretStorage = {version = ">=3.2", markers = "sys_platform == \"linux\""}
 [package.extras]
 completion = ["shtab (>=1.1.0)"]
 docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (<7.2.5)", "sphinx (>=3.5)", "sphinx-lint"]
-testing = ["pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy (>=0.9.1)", "pytest-ruff"]
+testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy", "pytest-ruff (>=0.2.1)"]
 
 [[package]]
 name = "kiwisolver"
@@ -1727,13 +1727,13 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "poetry"
-version = "1.8.0"
+version = "1.8.1"
 description = "Python dependency management and packaging made easy."
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "poetry-1.8.0-py3-none-any.whl", hash = "sha256:5c418265099b681e399a1521e72d98f407a015cade8ff37260b1359c1afd773c"},
-    {file = "poetry-1.8.0.tar.gz", hash = "sha256:27676b30e17c44b836cc002bf3cf8472f01fce886bddb4987caf14aeb4663165"},
+    {file = "poetry-1.8.1-py3-none-any.whl", hash = "sha256:cf133946661025822672422769567980f8e489ed5b6fc170d1025a4d6c9aac29"},
+    {file = "poetry-1.8.1.tar.gz", hash = "sha256:23519cc45eb3cf48e899145bc762425a141e3afd52ecc53ec443ca635122327f"},
 ]
 
 [package.dependencies]
@@ -1745,7 +1745,7 @@ dulwich = ">=0.21.2,<0.22.0"
 fastjsonschema = ">=2.18.0,<3.0.0"
 installer = ">=0.7.0,<0.8.0"
 keyring = ">=24.0.0,<25.0.0"
-packaging = ">=20.5"
+packaging = ">=23.1"
 pexpect = ">=4.7.0,<5.0.0"
 pkginfo = ">=1.9.4,<2.0.0"
 platformdirs = ">=3.0.0,<5"
@@ -1838,13 +1838,13 @@ files = [
 
 [[package]]
 name = "pydantic"
-version = "2.6.2"
+version = "2.6.3"
 description = "Data validation using Python type hints"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pydantic-2.6.2-py3-none-any.whl", hash = "sha256:37a5432e54b12fecaa1049c5195f3d860a10e01bdfd24f1840ef14bd0d3aeab3"},
-    {file = "pydantic-2.6.2.tar.gz", hash = "sha256:a09be1c3d28f3abe37f8a78af58284b236a92ce520105ddc91a6d29ea1176ba7"},
+    {file = "pydantic-2.6.3-py3-none-any.whl", hash = "sha256:72c6034df47f46ccdf81869fddb81aade68056003900a8724a4f160700016a2a"},
+    {file = "pydantic-2.6.3.tar.gz", hash = "sha256:e07805c4c7f5c6826e33a1d4c9d47950d7eaf34868e2690f8594d2e30241f11f"},
 ]
 
 [package.dependencies]
@@ -2244,48 +2244,6 @@ botocore = ">=1.33.2,<2.0a.0"
 crt = ["botocore[crt] (>=1.33.2,<2.0a.0)"]
 
 [[package]]
-name = "scipy"
-version = "1.12.0"
-description = "Fundamental algorithms for scientific computing in Python"
-optional = false
-python-versions = ">=3.9"
-files = [
-    {file = "scipy-1.12.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:78e4402e140879387187f7f25d91cc592b3501a2e51dfb320f48dfb73565f10b"},
-    {file = "scipy-1.12.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:f5f00ebaf8de24d14b8449981a2842d404152774c1a1d880c901bf454cb8e2a1"},
-    {file = "scipy-1.12.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e53958531a7c695ff66c2e7bb7b79560ffdc562e2051644c5576c39ff8efb563"},
-    {file = "scipy-1.12.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5e32847e08da8d895ce09d108a494d9eb78974cf6de23063f93306a3e419960c"},
-    {file = "scipy-1.12.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:4c1020cad92772bf44b8e4cdabc1df5d87376cb219742549ef69fc9fd86282dd"},
-    {file = "scipy-1.12.0-cp310-cp310-win_amd64.whl", hash = "sha256:75ea2a144096b5e39402e2ff53a36fecfd3b960d786b7efd3c180e29c39e53f2"},
-    {file = "scipy-1.12.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:408c68423f9de16cb9e602528be4ce0d6312b05001f3de61fe9ec8b1263cad08"},
-    {file = "scipy-1.12.0-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:5adfad5dbf0163397beb4aca679187d24aec085343755fcdbdeb32b3679f254c"},
-    {file = "scipy-1.12.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c3003652496f6e7c387b1cf63f4bb720951cfa18907e998ea551e6de51a04467"},
-    {file = "scipy-1.12.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8b8066bce124ee5531d12a74b617d9ac0ea59245246410e19bca549656d9a40a"},
-    {file = "scipy-1.12.0-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:8bee4993817e204d761dba10dbab0774ba5a8612e57e81319ea04d84945375ba"},
-    {file = "scipy-1.12.0-cp311-cp311-win_amd64.whl", hash = "sha256:a24024d45ce9a675c1fb8494e8e5244efea1c7a09c60beb1eeb80373d0fecc70"},
-    {file = "scipy-1.12.0-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:e7e76cc48638228212c747ada851ef355c2bb5e7f939e10952bc504c11f4e372"},
-    {file = "scipy-1.12.0-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:f7ce148dffcd64ade37b2df9315541f9adad6efcaa86866ee7dd5db0c8f041c3"},
-    {file = "scipy-1.12.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9c39f92041f490422924dfdb782527a4abddf4707616e07b021de33467f917bc"},
-    {file = "scipy-1.12.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a7ebda398f86e56178c2fa94cad15bf457a218a54a35c2a7b4490b9f9cb2676c"},
-    {file = "scipy-1.12.0-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:95e5c750d55cf518c398a8240571b0e0782c2d5a703250872f36eaf737751338"},
-    {file = "scipy-1.12.0-cp312-cp312-win_amd64.whl", hash = "sha256:e646d8571804a304e1da01040d21577685ce8e2db08ac58e543eaca063453e1c"},
-    {file = "scipy-1.12.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:913d6e7956c3a671de3b05ccb66b11bc293f56bfdef040583a7221d9e22a2e35"},
-    {file = "scipy-1.12.0-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:bba1b0c7256ad75401c73e4b3cf09d1f176e9bd4248f0d3112170fb2ec4db067"},
-    {file = "scipy-1.12.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:730badef9b827b368f351eacae2e82da414e13cf8bd5051b4bdfd720271a5371"},
-    {file = "scipy-1.12.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6546dc2c11a9df6926afcbdd8a3edec28566e4e785b915e849348c6dd9f3f490"},
-    {file = "scipy-1.12.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:196ebad3a4882081f62a5bf4aeb7326aa34b110e533aab23e4374fcccb0890dc"},
-    {file = "scipy-1.12.0-cp39-cp39-win_amd64.whl", hash = "sha256:b360f1b6b2f742781299514e99ff560d1fe9bd1bff2712894b52abe528d1fd1e"},
-    {file = "scipy-1.12.0.tar.gz", hash = "sha256:4bf5abab8a36d20193c698b0f1fc282c1d083c94723902c447e5d2f1780936a3"},
-]
-
-[package.dependencies]
-numpy = ">=1.22.4,<1.29.0"
-
-[package.extras]
-dev = ["click", "cython-lint (>=0.12.2)", "doit (>=0.36.0)", "mypy", "pycodestyle", "pydevtool", "rich-click", "ruff", "types-psutil", "typing_extensions"]
-doc = ["jupytext", "matplotlib (>2)", "myst-nb", "numpydoc", "pooch", "pydata-sphinx-theme (==0.9.0)", "sphinx (!=4.1.0)", "sphinx-design (>=0.2.0)"]
-test = ["asv", "gmpy2", "hypothesis", "mpmath", "pooch", "pytest", "pytest-cov", "pytest-timeout", "pytest-xdist", "scikit-umfpack", "threadpoolctl"]
-
-[[package]]
 name = "secretstorage"
 version = "3.3.3"
 description = "Python bindings to FreeDesktop.org Secret Service API"
@@ -2340,13 +2298,13 @@ files = [
 
 [[package]]
 name = "tomlkit"
-version = "0.12.3"
+version = "0.12.4"
 description = "Style preserving TOML library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "tomlkit-0.12.3-py3-none-any.whl", hash = "sha256:b0a645a9156dc7cb5d3a1f0d4bab66db287fcb8e0430bdd4664a095ea16414ba"},
-    {file = "tomlkit-0.12.3.tar.gz", hash = "sha256:75baf5012d06501f07bee5bf8e801b9f343e7aac5a92581f20f80ce632e6b5a4"},
+    {file = "tomlkit-0.12.4-py3-none-any.whl", hash = "sha256:5cd82d48a3dd89dee1f9d64420aa20ae65cfbd00668d6f094d7578a78efbb77b"},
+    {file = "tomlkit-0.12.4.tar.gz", hash = "sha256:7ca1cfc12232806517a8515047ba66a19369e71edf2439d0f5824f91032b6cc3"},
 ]
 
 [[package]]
@@ -2681,4 +2639,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "0ed35f31923b02d72f0e0397772c622ad90bfd8e69b2b6841ab5662b534c31e7"
+content-hash = "b7c43cebbe8569b3cdaa09b3bb80faaeeb0d3e23a830528da55908e4f8375a58"
