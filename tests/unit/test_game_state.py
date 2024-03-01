@@ -180,7 +180,7 @@ def test_game_state_spam():
     # prof = pprofile.Profile()
     # with prof():
     for turn in range(2):
-        gs.increment_frontier(request_time=time.time_ns() // 1_000_000)
+        gs.increment_frontier(request_time=(time.time_ns() // 1_000_000) + 5000)
         t1 = time.time()
         total = t1 - t0
         print(f"turn: {turn}")

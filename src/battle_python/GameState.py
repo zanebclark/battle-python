@@ -105,12 +105,12 @@ class GameState(BaseModel):
             snake_defs=snake_defs,
         )
 
-    @tracer.capture_method
+    # @tracer.capture_method
     def model_post_init(self, __context) -> None:
         self.frontier.append(self.current_board)
         self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board
 
-    @tracer.capture_method
+    # @tracer.capture_method
     def handle(self, board: BoardState) -> BoardState | None:
         self.counter += 1
         if board.is_terminal:
@@ -175,7 +175,7 @@ class GameState(BaseModel):
             self.explored_states[my_key] = {other_key: board}
             return board
 
-    @tracer.capture_method
+    # @tracer.capture_method
     def increment_frontier(self, request_time: float):
         next_boards: list[BoardState] = []
         for board in self.frontier:
