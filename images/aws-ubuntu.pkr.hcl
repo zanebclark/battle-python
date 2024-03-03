@@ -41,7 +41,7 @@ source "amazon-ebs" "ubuntu" {
   vpc_id       = var.vpc_id
   subnet_id    = var.subnet_id
   ssh_username = "ubuntu"
-  tags = {
+  tags         = {
     "Application" : "battlesnakes"
   }
 }
@@ -77,7 +77,15 @@ build {
       "sudo service nginx restart",
       "sudo systemctl enable nginx",
       "sudo systemctl start nginx",
-      #      "python3.12 -m pip install git+https://github.com/zanebclark/battle_pythons_study_group.git@ec2",
+      "curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.2 python3 -",
+      'export PATH="/home/ubuntu/.local/bin:$PATH"',
+      "whoami",
+      "echo ~ubuntu",
+      "cd ~ubuntu",
+      "git clone -b ec2 https://github.com/zanebclark/battle-python.git",
+      "cd battle-python",
+      "poetry install",
+      'echo "LOG_LEVEL=INFO" >> /etc/environment',
     ]
   }
 }

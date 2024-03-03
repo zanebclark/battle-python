@@ -1,4 +1,3 @@
-import os
 import time
 from typing import Literal
 from fastapi import FastAPI
@@ -17,11 +16,11 @@ logger = structlog.get_logger()
 @api.get("/")
 def battlesnake_details() -> dict:
     return SnakeMetadataResponse(
-        author=os.environ.get("BATTLESNAKE_AUTHOR"),
-        color=os.environ.get("BATTLESNAKE_COLOR"),
-        head=os.environ.get("BATTLESNAKE_HEAD"),
-        tail=os.environ.get("BATTLESNAKE_TAIL"),
-        version=os.environ.get("BATTLESNAKE_VERSION"),
+        author="zanebclark",
+        color="#ab8b9c",
+        head="beluga",
+        tail="do-sammy",
+        version="terraform-v1",
     ).model_dump()
 
 

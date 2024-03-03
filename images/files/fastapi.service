@@ -3,10 +3,10 @@ Description=Battlesnakes FastAPI
 After=network.target
 
 [Service]
-User=root
-WorkingDirectory=/root/battle-python
+User=ubuntu
+WorkingDirectory=/home/ubuntu/battle-python
 LimitNOFILE=4096
-ExecStart=/usr/local/bin/poetry run gunicorn battle_python.main:api --workers 2 -k uvicorn.workers.UvicornWorker --bind unix:battle-python.sock --error-logfile /root/battle-python/error_log.txt
+ExecStart=~/.local/bin/poetry run gunicorn battle_python.main:api --workers 2 -k uvicorn.workers.UvicornWorker --bind unix:battle-python.sock --error-logfile /home/ubuntu/battle-python/error_log.txt
 Restart=on-failure
 RestartSec=5s
 
