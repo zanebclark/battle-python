@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "battle_python", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 pydantic = "^2.5.3"
 numpy = "^1.26.4"
 structlog = "^24.1.0"

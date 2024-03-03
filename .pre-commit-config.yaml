@@ -18,16 +18,18 @@ repos:
       - id: poetry-lock
       - id: poetry-export
         args: [
-        "--format", "requirements.txt",
-        "--output", "src/requirements.txt",
-        "--without-urls",
-        "--without-hashes"]
+          "--format", "requirements.txt",
+          "--output", "src/requirements.txt",
+          "--without-urls",
+          "--without-hashes"
+        ]
       - id: poetry-export
         args: [
-        "--format", "requirements.txt",
-        "--output", "tests/requirements.txt",
-        "--with", "dev",
-        "--without-urls",
-        "--without-hashes"]
+          "--format", "requirements.txt",
+          "--output", "tests/requirements.txt",
+          "--with", "dev",
+          "--without-urls",
+          "--without-hashes"
+        ]
 
       - id: poetry-install
