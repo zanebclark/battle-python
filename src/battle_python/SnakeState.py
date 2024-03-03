@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+import structlog
 from typing import Literal, Any
-from aws_lambda_powertools.utilities.parser import BaseModel
-from pydantic import NonNegativeInt, Field, ConfigDict
+from pydantic import NonNegativeInt, Field, ConfigDict, BaseModel
 
 from battle_python.api_types import Coord
-from aws_lambda_powertools import Logger
 
-logger = Logger()
+logger = structlog.get_logger()
 
 
 class Elimination(BaseModel):

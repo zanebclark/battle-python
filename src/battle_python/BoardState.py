@@ -3,14 +3,12 @@ from __future__ import annotations
 from collections import defaultdict
 from itertools import product
 from typing import Literal, Any
-
+import structlog
 import numpy as np
 import numpy.typing as npt
 import numpy.ma as ma
-from aws_lambda_powertools.utilities.parser import BaseModel
-from aws_lambda_powertools import Logger
 
-from pydantic import NonNegativeInt, Field, ConfigDict
+from pydantic import NonNegativeInt, Field, ConfigDict, BaseModel
 
 from battle_python.SnakeState import SnakeState, Elimination
 from battle_python.api_types import Coord, Game, SnakeDef
@@ -27,7 +25,7 @@ from battle_python.constants import (
     SNAKE_BODY_VALUE,
 )
 
-logger = Logger()
+logger = structlog.get_logger()
 
 
 def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]:
@@ -173,7 +171,7 @@ def get_all_snake_bodies_array(
         all_snake_bodies_array[:, rows, columns] = SNAKE_BODY_VALUE
 
     # Set the snake's head as 0 on its slice
-    # The first element references rows (y axis). The second argument references columns (x axis)
+    # The first element references rows (y-axis). The second argument references columns (x-axis)
     # Rows are indexed from top to bottom. Subtract y coord from rows to account for this
     # Subtract 2 to account for board buffer rows on top and bottom
     # Add 1 to x to account for left-most board buffer

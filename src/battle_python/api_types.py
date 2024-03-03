@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from typing import Literal, NamedTuple
-from aws_lambda_powertools.utilities.parser import BaseModel
-from pydantic import NonNegativeInt, ConfigDict
+from pydantic import NonNegativeInt, ConfigDict, BaseModel
 
 Direction = Literal[
     "up",

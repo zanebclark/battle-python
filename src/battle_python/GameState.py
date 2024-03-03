@@ -3,11 +3,8 @@ from __future__ import annotations
 import time
 from collections import deque
 from itertools import groupby
-
-from aws_lambda_powertools.utilities.parser import BaseModel
-from pydantic import NonNegativeInt, Field
-from aws_lambda_powertools import Logger
-from aws_lambda_powertools.tracing import Tracer
+import structlog
+from pydantic import NonNegativeInt, Field, BaseModel
 
 from battle_python.BoardState import BoardState
 from battle_python.SnakeState import SnakeState
@@ -15,10 +12,10 @@ from battle_python.api_types import (
     Coord,
     Game,
     SnakeDef,
+    SnakeRequest,
 )
 
-logger = Logger()
-tracer = Tracer()
+logger = structlog.get_logger()
 
 
 class TimeoutException(Exception):
@@ -38,6 +35,69 @@ class GameState(BaseModel):
     explored_states: dict[tuple, dict[tuple, BoardState]] = Field(default_factory=dict)
     frontier: deque[BoardState] = Field(default_factory=deque)
     snake_defs: dict[str, SnakeDef]
+
+    # noinspection PyNestedDecorators
+    @classmethod
+    def from_snake_request(cls, move_request: SnakeRequest) -> GameState:
+        game = move_request.game
+
+        snake_defs = {
+            snake.id: SnakeDef(
+                id=snake.id,
+                name=snake.name,
+                customizations=snake.customizations,
+                is_self=snake.id == move_request.you.id,
+            )
+            for snake in move_request.board.snakes
+        }
+
+        other_snakes: tuple[SnakeState, ...] = tuple(
+            (
+                SnakeState(
+                    id=snake.id,
+                    health=snake.health,
+                    body=tuple(Coord(x=coord[0], y=coord[1]) for coord in snake.body),
+                    head=snake.head,
+                    length=snake.length,
+                    latency=snake.latency,
+                    shout=snake.shout,
+                    is_self=snake.id == move_request.you.id,
+                )
+                for snake in move_request.board.snakes
+                if snake.id != move_request.you.id
+            )
+        )
+
+        board = BoardState.factory(
+            turn=move_request.turn,
+            board_width=move_request.board.width,
+            board_height=move_request.board.height,
+            food_coords=tuple(
+                Coord(x=coord[0], y=coord[1]) for coord in move_request.board.food
+            ),
+            hazard_coords=move_request.board.hazards,
+            other_snakes=other_snakes,
+            my_snake=SnakeState(
+                id=move_request.you.id,
+                health=move_request.you.health,
+                body=tuple(
+                    Coord(x=coord[0], y=coord[1]) for coord in move_request.you.body
+                ),
+                head=move_request.you.head,
+                length=move_request.you.length,
+                latency=move_request.you.latency,
+                shout=move_request.you.shout,
+                is_self=True,
+            ),
+            hazard_damage_rate=game.ruleset.settings.hazardDamagePerTurn,
+        )
+        return GameState(
+            game=game,
+            board_width=move_request.board.width,
+            board_height=move_request.board.height,
+            current_board=board,
+            snake_defs=snake_defs,
+        )
 
     # noinspection PyNestedDecorators
     @classmethod
@@ -105,12 +165,10 @@ class GameState(BaseModel):
             snake_defs=snake_defs,
         )
 
-    # @tracer.capture_method
     def model_post_init(self, __context) -> None:
         self.frontier.append(self.current_board)
         self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board
 
-    # @tracer.capture_method
     def handle(self, board: BoardState) -> BoardState | None:
         self.counter += 1
         if board.is_terminal:
@@ -175,7 +233,6 @@ class GameState(BaseModel):
             self.explored_states[my_key] = {other_key: board}
             return board
 
-    # @tracer.capture_method
     def increment_frontier(self, request_time: float):
         next_boards: list[BoardState] = []
         for board in self.frontier:
@@ -190,7 +247,6 @@ class GameState(BaseModel):
         self.frontier.clear()
         self.frontier.extend(next_boards)
 
-    @tracer.capture_method
     def get_next_move(self, request_time: float):
         try:
             while len(self.frontier) > 0:
