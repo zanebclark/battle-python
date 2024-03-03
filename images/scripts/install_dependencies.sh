@@ -13,13 +13,4 @@ sudo apt-get update
 sudo apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
 sudo apt-get update
 # -qq -> No output except for errors
-sudo apt-get -y -qq install curl wget git vim apt-transport-https ca-certificates
-sudo add-apt-repository ppa:deadsnakes/ppa -y
-sudo apt update -y
-sudo apt install -y python3.12 python3-pip nginx
-sudo systemctl enable nginx
-sudo service nginx restart
-sudo systemctl start nginx
-
-# TODO: Check this out
-python3.12 -m pip install git+https://github.com/zanebclark/battle_pythons_study_group.git@ec2
+sudo apt-get -y -qq install python3-pip nginx git

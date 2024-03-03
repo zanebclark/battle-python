@@ -29,15 +29,14 @@ resource "aws_security_group" "battlesnake-sg" {
 }
 
 resource "aws_instance" "battlesnake-server" {
-  ami                         = "ami-08f7912c15ca96832"
+  ami                         = data.aws_ami.battlesnakes-ubuntu.id
   instance_type               = "t3.small"
   key_name                    = "battlesnakes-server"
   subnet_id                   = aws_subnet.public-us-west-2a.id
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.battlesnake-sg.id]
-  user_data                   = file("userdata.tpl")
   tags                        = {
+    "Application" : "battlesnakes"
     "Name" = "battlesnake-server"
   }
-
 }

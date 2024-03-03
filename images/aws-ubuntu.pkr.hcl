@@ -1,6 +1,16 @@
 variable "region" {
-  type = string
+  type    = string
   default = "us-west-2"
+}
+
+variable "vpc_id" {
+  type    = string
+  default = "vpc-05d9a2495e008d250"
+}
+
+variable "subnet_id" {
+  type    = string
+  default = "subnet-0ec0cd1e355058e3c"
 }
 
 locals { timestamp = regex_replace(timestamp(), "[- TZ:]", "") }
@@ -15,9 +25,10 @@ packer {
 }
 
 source "amazon-ebs" "ubuntu" {
-  ami_name = "battlesnakes-ubuntu-${local.timestamp}"
+  profile       = "personal"
+  ami_name      = "battlesnakes-ubuntu-${local.timestamp}"
   instance_type = "t3.small"
-  region = var.region
+  region        = var.region
   source_ami_filter {
     filters = {
       name                = "ubuntu/images/*ubuntu-jammy-22.04-amd64-server-*"
@@ -27,18 +38,46 @@ source "amazon-ebs" "ubuntu" {
     most_recent = true
     owners      = ["099720109477"]
   }
+  vpc_id       = var.vpc_id
+  subnet_id    = var.subnet_id
   ssh_username = "ubuntu"
+  tags = {
+    "Application" : "battlesnakes"
+  }
 }
 
 build {
-  source = ["source.amazon-ebs.ubuntu"]
+  sources = ["source.amazon-ebs.ubuntu"]
+
+  provisioner "shell" {
+    script = "./images/scripts/install_dependencies.sh"
+  }
+
+  # I lack required permissions to provision the file to the terminal location.
+  # Instead, I provision the file to a less sensitive location and sudo move it
+  # to the terminal destination
+  provisioner "file" {
+    source      = "./images/files/fastapi_nginx.conf"
+    destination = "/tmp/fastapi_nginx.conf"
+  }
 
   provisioner "file" {
-    source = "./fastapi_nginx.conf"
-    destination = "/etc/nginx/sites-enabled/fastapi_nginx.conf"
+    source      = "./images/files/fastapi.service"
+    destination = "/tmp/fastapi.service"
   }
 
   provisioner "shell" {
-    script = "../scripts/image_setup.sh"
+    inline = [
+      "sudo mv /tmp/fastapi_nginx.conf /etc/nginx/sites-enabled/fastapi_nginx.conf",
+      "sudo mv /tmp/fastapi.service /etc/systemd/system/fastapi.service",
+      "sudo systemctl daemon-reload",
+      "sudo systemctl enable fastapi",
+      "sudo systemctl start fastapi",
+
+      "sudo service nginx restart",
+      "sudo systemctl enable nginx",
+      "sudo systemctl start nginx",
+      #      "python3.12 -m pip install git+https://github.com/zanebclark/battle_pythons_study_group.git@ec2",
+    ]
   }
 }

@@ -5,6 +5,7 @@ resource "aws_vpc" "main" {
   instance_tenancy     = "default"
 
   tags = {
+    "Application" : "battlesnakes"
     Name = "main"
   }
 }
@@ -15,6 +16,7 @@ resource "aws_subnet" "private-us-west-2a" {
   availability_zone = "us-west-2a"
 
   tags = {
+    "Application" : "battlesnakes"
     "Name" = "private-us-west-2a"
   }
 }
@@ -25,6 +27,7 @@ resource "aws_subnet" "private-us-west-2b" {
   availability_zone = "us-west-2b"
 
   tags = {
+    "Application" : "battlesnakes"
     "Name" = "private-us-west-2b"
   }
 }
@@ -36,6 +39,7 @@ resource "aws_subnet" "public-us-west-2a" {
   map_public_ip_on_launch = true
 
   tags = {
+    "Application" : "battlesnakes"
     "Name" = "public-us-west-2a"
   }
 }
@@ -47,6 +51,7 @@ resource "aws_subnet" "public-us-west-2b" {
   map_public_ip_on_launch = true
 
   tags = {
+    "Application" : "battlesnakes"
     "Name" = "public-us-west-2b"
   }
 }
@@ -54,6 +59,7 @@ resource "aws_subnet" "public-us-west-2b" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
   tags   = {
+    "Application" : "battlesnakes"
     "Name" = "igw"
   }
 }
@@ -61,6 +67,7 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_eip" "nat" {
   domain = "vpc"
   tags   = {
+    "Application" : "battlesnakes"
     "Name" = "nat"
   }
 }
@@ -70,6 +77,7 @@ resource "aws_nat_gateway" "nat" {
   subnet_id     = aws_subnet.public-us-west-2a.id
 
   tags = {
+    "Application" : "battlesnakes"
     "Name" = "nat"
   }
   #  depends_on = [aws_internet_gateway.igw]
@@ -84,6 +92,7 @@ resource "aws_route_table" "private" {
   }
 
   tags = {
+    "Application" : "battlesnakes"
     "Name" = "private"
   }
 }
@@ -97,6 +106,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
+    "Application" : "battlesnakes"
     "Name" = "public"
   }
 }
