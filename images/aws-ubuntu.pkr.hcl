@@ -57,20 +57,26 @@ build {
   # Instead, I provision the file to a less sensitive location and sudo move it
   # to the terminal destination
   provisioner "file" {
-    source      = "./images/files/fastapi_nginx.conf"
-    destination = "/tmp/fastapi_nginx.conf"
+    source      = "./images/files/nginx.conf"
+    destination = "/tmp/nginx.conf"
   }
 
   provisioner "file" {
-    source      = "./images/files/fastapi.service"
-    destination = "/tmp/fastapi.service"
+    source      = "./images/files/gunicorn.service"
+    destination = "/tmp/gunicorn.service"
+  }
+
+  provisioner "file" {
+    source      = "./images/files/gunicorn.socket"
+    destination = "/tmp/gunicorn.socket"
   }
   #  TODO: Install in /opt
 
   provisioner "shell" {
     inline = [
-      "sudo mv /tmp/fastapi_nginx.conf /etc/nginx/sites-enabled/fastapi_nginx.conf",
-      "sudo mv /tmp/fastapi.service /etc/systemd/system/fastapi.service",
+      "sudo mv -f /tmp/nginx.conf /etc/nginx/nginx.conf",
+      "sudo mv /tmp/gunicorn.service /etc/systemd/system/gunicorn.service",
+      "sudo mv /tmp/gunicorn.socket /etc/systemd/system/gunicorn.socket",
 
       "curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.2 python3 -",
       "export PATH=\"/home/ubuntu/.local/bin:$PATH\"",
@@ -83,8 +89,9 @@ build {
       "echo \"LOG_LEVEL=INFO\" | sudo tee -a /etc/environment",
 
       "sudo systemctl daemon-reload",
-      "sudo systemctl enable fastapi",
-      "sudo systemctl start fastapi",
+      "sudo systemctl enable --now gunicorn.socket",
+      "sudo systemctl enable gunicorn.service",
+      "sudo systemctl start gunicorn.service",
 
       "sudo service nginx restart",
       "sudo systemctl enable nginx",

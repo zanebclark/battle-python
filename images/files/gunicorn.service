@@ -1,0 +1,22 @@
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target network-online.target
+
+[Service]
+Type=notify
+User=ubuntu
+Group=www-data
+RuntimeDirectory=gunicorn
+WorkingDirectory=/home/ubuntu/battle-python
+LimitNOFILE=4096
+ExecStart=/home/ubuntu/.local/bin/poetry run gunicorn battle_python.main:api
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
