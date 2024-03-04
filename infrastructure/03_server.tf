@@ -41,9 +41,17 @@ resource "aws_instance" "battlesnake-server" {
   }
 }
 
-resource "aws_route53_record" "dev-ns" {
+resource "aws_route53_record" "custom_domain" {
   zone_id = "Z01559062PX1OYNVW42PW"
   name    = "zane-b-clark.com"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_instance.battlesnake-server.public_ip]
+}
+
+resource "aws_route53_record" "custom_domain_wildcard" {
+  zone_id = "Z01559062PX1OYNVW42PW"
+  name    = "www.zane-b-clark.com"
   type    = "A"
   ttl     = "300"
   records = [aws_instance.battlesnake-server.public_ip]

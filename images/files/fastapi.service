@@ -7,7 +7,7 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/battle-python
 LimitNOFILE=4096
-ExecStart=/home/ubuntu/.local/bin/poetry run gunicorn battle_python.main:api
+ExecStart=/home/ubuntu/.local/bin/poetry run gunicorn
 Restart=on-failure
 RestartSec=5s
 
