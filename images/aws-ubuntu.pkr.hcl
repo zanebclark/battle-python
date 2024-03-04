@@ -57,8 +57,8 @@ build {
   # Instead, I provision the file to a less sensitive location and sudo move it
   # to the terminal destination
   provisioner "file" {
-    source      = "./images/files/nginx.conf"
-    destination = "/tmp/nginx.conf"
+    source      = "./images/files/battlesnakes.conf"
+    destination = "/tmp/battlesnakes.conf"
   }
 
   provisioner "file" {
@@ -74,7 +74,7 @@ build {
 
   provisioner "shell" {
     inline = [
-      "sudo mv -f /tmp/nginx.conf /etc/nginx/nginx.conf",
+      "sudo mv /tmp/battlesnakes.conf /etc/nginx/sites-enabled/battlesnakes.conf",
       "sudo mv /tmp/gunicorn.service /etc/systemd/system/gunicorn.service",
       "sudo mv /tmp/gunicorn.socket /etc/systemd/system/gunicorn.socket",
 
