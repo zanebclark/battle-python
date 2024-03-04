@@ -1,12 +1,12 @@
 [Unit]
 Description=Battlesnakes FastAPI
-After=network.target
+After=network.target network-online.target
 
 [Service]
-User=ubuntu
+User=fastapi-user
 WorkingDirectory=/home/ubuntu/battle-python
 LimitNOFILE=4096
-ExecStart=~/.local/bin/poetry run gunicorn battle_python.main:api --workers 2 -k uvicorn.workers.UvicornWorker --bind unix:battle-python.sock --error-logfile /home/ubuntu/battle-python/error_log.txt
+ExecStart=/home/ubuntu/.local/bin/poetry run gunicorn battle_python.main:api
 Restart=on-failure
 RestartSec=5s
 

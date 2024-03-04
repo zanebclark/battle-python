@@ -30,11 +30,6 @@ Resources:
           POWERTOOLS_LOG_LEVEL: INFO
           POWERTOOLS_METRICS_NAMESPACE: Powertools
           LOG_LEVEL: INFO
-          BATTLESNAKE_AUTHOR: zanebclark
-          BATTLESNAKE_COLOR: '#ab8b9c'
-          BATTLESNAKE_HEAD: beluga
-          BATTLESNAKE_TAIL: do-sammy
-          BATTLESNAKE_VERSION: bibe
           AWS_XRAY_LOG_LEVEL: info
       Events:
         BattlesnakeDetails:

@@ -41,7 +41,7 @@ source "amazon-ebs" "ubuntu" {
   vpc_id       = var.vpc_id
   subnet_id    = var.subnet_id
   ssh_username = "ubuntu"
-  tags         = {
+  tags = {
     "Application" : "battlesnakes"
   }
 }
@@ -65,11 +65,23 @@ build {
     source      = "./images/files/fastapi.service"
     destination = "/tmp/fastapi.service"
   }
+  #  TODO: Install in /opt
 
   provisioner "shell" {
     inline = [
       "sudo mv /tmp/fastapi_nginx.conf /etc/nginx/sites-enabled/fastapi_nginx.conf",
       "sudo mv /tmp/fastapi.service /etc/systemd/system/fastapi.service",
+
+      "curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.2 python3 -",
+      "export PATH=\"/home/ubuntu/.local/bin:$PATH\"",
+      "whoami",
+      "echo ~ubuntu",
+      "cd ~ubuntu",
+      "git clone -b ec2 https://github.com/zanebclark/battle-python.git",
+      "cd battle-python",
+      "poetry install",
+      "echo \"LOG_LEVEL=INFO\" | sudo tee -a /etc/environment",
+
       "sudo systemctl daemon-reload",
       "sudo systemctl enable fastapi",
       "sudo systemctl start fastapi",
@@ -77,15 +89,6 @@ build {
       "sudo service nginx restart",
       "sudo systemctl enable nginx",
       "sudo systemctl start nginx",
-      "curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.2 python3 -",
-      'export PATH="/home/ubuntu/.local/bin:$PATH"',
-      "whoami",
-      "echo ~ubuntu",
-      "cd ~ubuntu",
-      "git clone -b ec2 https://github.com/zanebclark/battle-python.git",
-      "cd battle-python",
-      "poetry install",
-      'echo "LOG_LEVEL=INFO" >> /etc/environment',
     ]
   }
 }

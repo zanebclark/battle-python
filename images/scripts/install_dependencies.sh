@@ -12,5 +12,13 @@ sudo apt-get update
 # dist-upgrade -> Upgrades and intelligently handles changing dependencies with new versions of packages
 sudo apt --assume-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
 sudo apt-get update
+# TODO: Think about this: sudo apt install unattended-upgrades
+# TODO: Think about this: APT::Periodic::Update-Package-Lists "1";
+# TODO: Think about this: APT::Periodic::Unattended-Upgrade "1";
+# TODO: Think about this: APT::Periodic::AutocleanInterval "7";
+# TODO: Think about this:  Unattended-Upgrade::Automatic-Reboot "true"; # change to true
 # -qq -> No output except for errors
 sudo apt-get -y -qq install python3-pip nginx git
+
+sudo adduser fastapi-user # replace fastapi-user with your preferred name
+sudo gpasswd -a fastapi-user sudo # add to sudoers
