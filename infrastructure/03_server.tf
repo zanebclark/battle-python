@@ -40,3 +40,11 @@ resource "aws_instance" "battlesnake-server" {
     "Name" = "battlesnake-server"
   }
 }
+
+resource "aws_route53_record" "dev-ns" {
+  zone_id = "Z01559062PX1OYNVW42PW"
+  name    = "zane-b-clark.com"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_instance.battlesnake-server.public_ip]
+}

@@ -1,13 +1,14 @@
 import multiprocessing
 
-import uvicorn
+from uvicorn.workers import UvicornWorker
 
-bind = "127.0.0.1:8000"
-worker_class = uvicorn.workers.UvicornWorker
+worker_class = UvicornWorker
 workers = multiprocessing.cpu_count() * 2 + 1
 name = "fastapi-battlesnakes"
 user = "fastapi-user"
 group = "fastapi-group"
-bind = "unix:/home/ubuntu/battle-python/run/battle-python.sock"
+bind = "unix:battle-python.sock"
 loglevel = "ERROR"
 errorlog = "/home/ubuntu/battle-python/error_log.txt"
+forwarded_allow_ips = "*"
+umask = "007"

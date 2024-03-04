@@ -19,6 +19,3 @@ sudo apt-get update
 # TODO: Think about this:  Unattended-Upgrade::Automatic-Reboot "true"; # change to true
 # -qq -> No output except for errors
 sudo apt-get -y -qq install python3-pip nginx git
-
-sudo adduser fastapi-user # replace fastapi-user with your preferred name
-sudo gpasswd -a fastapi-user sudo # add to sudoers
