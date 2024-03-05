@@ -1,8 +1,7 @@
 import time
 from typing import Literal
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import structlog
-import uvicorn
 
 from battle_python.GameState import GameState
 from battle_python.api_types import SnakeMetadataResponse, SnakeRequest
@@ -36,7 +35,7 @@ def game_started(move_request: SnakeRequest) -> dict[str, int | str]:
     #     parse(event=body, model=SnakeRequest)
     # except Exception:
     #     return {"status_code": 400, "message": "Invalid order"}
-    return {"status_code": 200, "message": "Let's get to it!"}
+    return {"message": "Let's get to it!"}
 
 
 @api.post("/move")
@@ -60,7 +59,7 @@ def move(move_request: SnakeRequest) -> dict[str, int | str]:
         )
         return {"move": direction}
     except Exception:
-        return {"status_code": 400, "message": "Invalid"}
+        raise HTTPException(status_code=404)
 
 
 @api.post("/end")
@@ -77,10 +76,8 @@ def game_over(move_request: SnakeRequest) -> dict[str, int | str]:
     # except ValidationError:
     #     return {"status_code": 400, "message": "Invalid order"}
 
-    return {"status_code": 200, "message": "Good game!"}
+    return {"message": "Good game!"}
 
 
 # TODO: If the battlesnake is going to run out of health and die, take this into account with probabilities
 # TODO: If the battlesnake consistently times out, take this into account with probabilities
-if __name__ == "__main__":
-    uvicorn.run(api, host="0.0.0.0", port=8000)

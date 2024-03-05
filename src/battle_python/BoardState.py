@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from collections import defaultdict
 from itertools import product
 from typing import Literal, Any
@@ -26,6 +27,10 @@ from battle_python.constants import (
 )
 
 logger = structlog.get_logger()
+
+
+class TimeoutException(Exception):
+    pass
 
 
 def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]:
@@ -561,7 +566,7 @@ class BoardState(BaseModel):
             for move in moves
         ]
 
-    def populate_next_boards(self) -> None:
+    def populate_next_boards(self, request_time: float) -> None:
         if self.is_terminal:
             return
 
@@ -581,6 +586,8 @@ class BoardState(BaseModel):
         )
 
         for potential_snake_states in all_potential_snake_states:
+            if (time.time_ns() // 1_000_000) > (request_time + 400):
+                raise TimeoutException()
             # TODO: Predict hazard zones: https://github.com/BattlesnakeOfficial/rules/blob/main/standard.go#L130
             potential_board = BoardState.factory(
                 turn=self.turn + 1,

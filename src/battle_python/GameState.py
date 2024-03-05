@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import time
 from collections import deque
 from itertools import groupby
 import structlog
 from pydantic import NonNegativeInt, Field, BaseModel
 
-from battle_python.BoardState import BoardState
+from battle_python.BoardState import BoardState, TimeoutException
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import (
     Coord,
@@ -16,10 +15,6 @@ from battle_python.api_types import (
 )
 
 logger = structlog.get_logger()
-
-
-class TimeoutException(Exception):
-    pass
 
 
 class GameState(BaseModel):
@@ -238,20 +233,16 @@ class GameState(BaseModel):
         for board in self.frontier:
             if board is None:
                 continue
-            board.populate_next_boards()
+            board.populate_next_boards(request_time=request_time)
             next_boards.extend(
                 [self.handle(next_board) for next_board in board.next_boards]
             )
-            if (time.time_ns() // 1_000_000) > (request_time + 320):
-                raise TimeoutException()
         self.frontier.clear()
         self.frontier.extend(next_boards)
 
     def get_next_move(self, request_time: float):
         try:
             while len(self.frontier) > 0:
-                if (time.time_ns() // 1_000_000) > (request_time + 320):
-                    raise TimeoutException()
                 logger.debug("incrementing frontier")
                 self.increment_frontier(request_time=request_time)
         except TimeoutException:
