@@ -14,6 +14,7 @@ structlog = "^24.1.0"
 fastapi = "^0.110.0"
 gunicorn = "^21.2.0"
 uvicorn = "^0.27.1"
+logger-cloudwatch-structlog = "^0.1.1"
 
 [tool.poetry.group.dev.dependencies]
 black = {extras = ["d"], version = "^23.12.1"}
