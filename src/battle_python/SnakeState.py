@@ -22,7 +22,6 @@ class Elimination(BaseModel):
 
 
 class SnakeState(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
     id: str
     health: NonNegativeInt
     body: tuple[Coord, ...]

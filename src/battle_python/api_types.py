@@ -77,6 +77,9 @@ class Coord(NamedTuple):
     def __repr__(self) -> str:
         return f"<Coord {self.x}, {self.y}>"
 
+    def __str__(self) -> str:
+        return f"({self.x}, {self.y})"
+
     def get_adjacent(self) -> set[Coord]:
         return {
             Coord(x=self.x, y=self.y + 1),

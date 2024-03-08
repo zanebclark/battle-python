@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import numpy.typing as npt
 import numpy.testing as nptest
@@ -1952,7 +1954,7 @@ def test_board_state_populate_next_boards(
     board: BoardState,
     expected_boards: list[BoardState],
 ):
-    board.populate_next_boards()
+    board.populate_next_boards(request_time=(time.time_ns() // 1_000_000) + 10000000)
     for next_board in board.next_boards:
         expected_board = None
         for some_board in expected_boards:

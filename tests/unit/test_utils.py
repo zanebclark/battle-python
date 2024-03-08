@@ -4,7 +4,7 @@ import pytest
 import structlog
 from structlog.testing import capture_logs
 
-from battle_python.utils import setup_and_get_logger_with_processors, log_fn
+from battle_python.utils import log_fn
 
 
 def get_logger(log_level):
@@ -107,12 +107,10 @@ def test_log_fn_invalid_log_level(debug_logger):
     result = "some_result"
 
     with pytest.raises(ValueError) as e:
-        # noinspection PyArgumentList
-        with capture_logs() as cap_logs:
-
-            @log_fn(logger=debug_logger, log_level="DEBUG2")
-            def foo(*args, **kwargs):
-                return result
+        # noinspection PyTypeChecker
+        @log_fn(logger=debug_logger, log_level="DEBUG2")
+        def foo(*args, **kwargs):
+            return result
 
     assert "unhandled log_level" in str(e.value)
 

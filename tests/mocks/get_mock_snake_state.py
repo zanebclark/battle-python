@@ -1,9 +1,5 @@
 import uuid
 
-import numpy as np
-import numpy.typing as npt
-
-from battle_python.BoardState import BoardState
 from battle_python.SnakeState import SnakeState, Elimination
 from battle_python.api_types import Coord
 from battle_python.constants import DEATH_COORD
@@ -11,7 +7,6 @@ from battle_python.constants import DEATH_COORD
 
 def get_mock_snake_state(
     body_coords: tuple[Coord, ...],
-    board_array: npt.NDArray[np.int_] | None = None,
     snake_id: str | None = None,
     health: int = 60,
     latency: int | None = 456,

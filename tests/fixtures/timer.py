@@ -1,7 +1,7 @@
 import time
-from typing import ClassVar, Any
+from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class Timer(BaseModel):

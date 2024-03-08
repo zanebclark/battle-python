@@ -1,5 +1,3 @@
-import numpy as np
-
 from battle_python.api_types import Coord
 
 # Numpy Constants

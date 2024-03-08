@@ -13,8 +13,9 @@ from battle_python.api_types import (
     SnakeDef,
     SnakeRequest,
 )
+from battle_python.utils import log_fn
 
-logger = structlog.get_logger()
+log = structlog.get_logger()
 
 
 class GameState(BaseModel):
@@ -23,16 +24,19 @@ class GameState(BaseModel):
     board_width: NonNegativeInt
     current_board: BoardState
     best_my_snake_board: dict[tuple[int, tuple[Coord]], BoardState] = Field(
-        default_factory=dict
+        default_factory=dict, exclude=True
     )
     terminal_counter: int = 0
     counter: int = 0
-    explored_states: dict[tuple, dict[tuple, BoardState]] = Field(default_factory=dict)
-    frontier: deque[BoardState] = Field(default_factory=deque)
+    explored_states: dict[tuple, dict[tuple, BoardState]] = Field(
+        default_factory=dict, exclude=True
+    )
+    frontier: deque[BoardState] = Field(default_factory=deque, exclude=True)
     snake_defs: dict[str, SnakeDef]
 
     # noinspection PyNestedDecorators
     @classmethod
+    @log_fn(logger=log, log_args=False)
     def from_snake_request(cls, move_request: SnakeRequest) -> GameState:
         game = move_request.game
 
@@ -96,6 +100,7 @@ class GameState(BaseModel):
 
     # noinspection PyNestedDecorators
     @classmethod
+    @log_fn(logger=log, log_args=False)
     def from_payload(cls, payload: dict) -> GameState:
         game = Game(**payload["game"])
 
@@ -160,10 +165,12 @@ class GameState(BaseModel):
             snake_defs=snake_defs,
         )
 
+    @log_fn(logger=log, log_args=False)
     def model_post_init(self, __context) -> None:
         self.frontier.append(self.current_board)
         self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board
 
+    @log_fn(logger=log, log_args=False)
     def handle(self, board: BoardState) -> BoardState | None:
         self.counter += 1
         if board.is_terminal:
@@ -228,6 +235,7 @@ class GameState(BaseModel):
             self.explored_states[my_key] = {other_key: board}
             return board
 
+    @log_fn(logger=log, log_args=False)
     def increment_frontier(self, request_time: float):
         next_boards: list[BoardState] = []
         for board in self.frontier:
@@ -240,10 +248,11 @@ class GameState(BaseModel):
         self.frontier.clear()
         self.frontier.extend(next_boards)
 
+    @log_fn(logger=log, log_args=False)
     def get_next_move(self, request_time: float):
         try:
             while len(self.frontier) > 0:
-                logger.debug("incrementing frontier")
+                log.debug("incrementing frontier")
                 self.increment_frontier(request_time=request_time)
         except TimeoutException:
             pass
@@ -280,7 +289,7 @@ class GameState(BaseModel):
         else:
             raise Exception(f"Unhandled direction: {direction}")
 
-        logger.info(
+        log.info(
             "get_next_move",
             best_head_score=f"({best_head_score.x}, {best_head_score.y})",
             average_head_scores=[
