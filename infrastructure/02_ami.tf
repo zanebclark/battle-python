@@ -1,8 +1,8 @@
 data "aws_ami" "battlesnakes-ubuntu" {
-  most_recent      = true
-  owners           = ["self"]
+  most_recent = true
+  owners      = ["self"]
   filter {
-    name = "tag:Application"
+    name   = "tag:Application"
     values = ["battlesnakes"]
   }
 }

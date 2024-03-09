@@ -70,6 +70,11 @@ build {
     source      = "./images/files/gunicorn.socket"
     destination = "/tmp/gunicorn.socket"
   }
+
+  provisioner "file" {
+    source      = "./images/files/cw_agent_config.json"
+    destination = "/tmp/cw_agent_config.json"
+  }
   #  TODO: Install in /opt
 
   provisioner "shell" {
@@ -77,6 +82,7 @@ build {
       "sudo mv /tmp/battlesnakes.conf /etc/nginx/sites-enabled/battlesnakes.conf",
       "sudo mv /tmp/gunicorn.service /etc/systemd/system/gunicorn.service",
       "sudo mv /tmp/gunicorn.socket /etc/systemd/system/gunicorn.socket",
+      "sudo mv /tmp/cw_agent_config.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
 
       "curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.2 python3 -",
       "export PATH=\"/home/ubuntu/.local/bin:$PATH\"",
@@ -87,6 +93,9 @@ build {
       "cd battle-python",
       "poetry install",
       "echo \"LOG_LEVEL=INFO\" | sudo tee -a /etc/environment",
+
+      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+      "sudo systemctl enable amazon-cloudwatch-agent.service",
 
       "sudo systemctl daemon-reload",
       "sudo systemctl enable --now gunicorn.socket",

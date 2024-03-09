@@ -31,11 +31,12 @@ resource "aws_security_group" "battlesnake-sg" {
 resource "aws_instance" "battlesnake-server" {
   ami                         = data.aws_ami.battlesnakes-ubuntu.id
   instance_type               = "t3.small"
+  iam_instance_profile        = aws_iam_instance_profile.battle-python-server-instance-profile.name
   key_name                    = "battlesnakes-server"
   subnet_id                   = aws_subnet.public-us-west-2a.id
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.battlesnake-sg.id]
-  tags                        = {
+  tags = {
     "Application" : "battlesnakes"
     "Name" = "battlesnake-server"
   }
@@ -55,4 +56,20 @@ resource "aws_route53_record" "custom_domain_wildcard" {
   type    = "A"
   ttl     = "300"
   records = [aws_instance.battlesnake-server.public_ip]
+}
+
+resource "aws_cloudwatch_metric_alarm" "ec2_cpu" {
+  alarm_name                = "cpu-utilization"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "2"
+  metric_name               = "CPUUtilization"
+  namespace                 = "AWS/EC2"
+  period                    = "120" #seconds
+  statistic                 = "Average"
+  threshold                 = "80"
+  alarm_description         = "This metric monitors ec2 cpu utilization"
+  insufficient_data_actions = []
+  dimensions = {
+    InstanceId = aws_instance.battlesnake-server.id
+  }
 }

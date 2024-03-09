@@ -1,6 +1,6 @@
 #!/bin/bash
 # -x -> Print all executed commands to the terminal
-set -x
+set -xe
 
 # Disable prompts -> https://linuxhint.com/debian_frontend_noninteractive/
 export DEBIAN_FRONTEND=noninteractive
@@ -18,4 +18,8 @@ sudo apt-get update
 # TODO: Think about this: APT::Periodic::AutocleanInterval "7";
 # TODO: Think about this:  Unattended-Upgrade::Automatic-Reboot "true"; # change to true
 # -qq -> No output except for errors
-sudo apt-get -y -qq install python3-pip nginx git
+sudo apt-get -y -qq install python3-pip nginx git amazon-cloudwatch-agent
+# Setup Cloudwatch Agent
+# https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/download-cloudwatch-agent-commandline.html
+sudo wget https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+sudo dpkg -i -E ./amazon-cloudwatch-agent.deb

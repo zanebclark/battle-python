@@ -36,7 +36,7 @@ resource "aws_subnet" "public-us-west-2b" {
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
-  tags   = {
+  tags = {
     "Application" : "battlesnakes"
     "Name" = "igw"
   }
