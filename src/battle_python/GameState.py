@@ -13,7 +13,7 @@ from battle_python.api_types import (
     SnakeDef,
     SnakeRequest,
 )
-from battle_python.utils import log_fn
+from battle_python.logging_config import log_fn
 
 log = structlog.get_logger()
 

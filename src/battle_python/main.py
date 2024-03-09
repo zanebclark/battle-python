@@ -7,9 +7,11 @@ import structlog
 
 from battle_python.GameState import GameState
 from battle_python.api_types import SnakeMetadataResponse, SnakeRequest, MoveResponse
-from battle_python.utils import setup_and_get_logger_with_processors
+from battle_python.logging_config import get_configured_logger
 
-log = setup_and_get_logger_with_processors()
+
+log = get_configured_logger()
+
 RestMethod = Literal["GET", "POST"]
 api = FastAPI(
     title="Battlesnake Webhook Handler",

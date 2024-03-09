@@ -4,7 +4,7 @@ import pytest
 import structlog
 from structlog.testing import capture_logs
 
-from battle_python.utils import log_fn
+from battle_python.logging_config import log_fn
 
 
 def get_logger(log_level):

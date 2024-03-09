@@ -25,7 +25,7 @@ from battle_python.constants import (
     BORDER_VALUE,
     SNAKE_BODY_VALUE,
 )
-from battle_python.utils import log_fn
+from battle_python.logging_config import log_fn
 
 log = structlog.get_logger()
 
