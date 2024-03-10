@@ -56,6 +56,6 @@
         ]
       }
     },
-    "log_stream_name": "battle-python-server",
+    "log_stream_name": "battle-python-server"
   }
 }
