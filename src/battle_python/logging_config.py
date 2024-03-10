@@ -82,6 +82,8 @@ def get_configured_logger(log_level: str = "DEBUG"):
 
     # This is from https://github.com/openlibraryenvironment/serverless-zoom-recordings
     # Structlog configuration
+
+    # noinspection PyTypeChecker
     structlog.configure(
         processors=processors,
         context_class=dict,
