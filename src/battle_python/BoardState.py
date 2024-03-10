@@ -30,10 +30,6 @@ from battle_python.logging_config import log_fn
 log = structlog.get_logger()
 
 
-class TimeoutException(Exception):
-    pass
-
-
 def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]:
     # The first element is the # of rows (y-axis). The second element is the # of columns (x-axis)
     # Adding two supports padding the board with masked values. This supports calculations up to the
@@ -570,9 +566,11 @@ class BoardState(BaseModel):
         ]
 
     @log_fn(logger=log, log_args=False)
-    def populate_next_boards(self, request_nanoseconds: float) -> None:
+    def populate_next_boards(self, request_nanoseconds: float) -> bool:
         if self.is_terminal:
-            return
+            if time.time_ns() > (request_nanoseconds + 4e8):
+                return False
+            return True
 
         my_snake_next_states = self.get_next_snake_states_for_snake(
             snake=self.my_snake, index=0
@@ -591,7 +589,7 @@ class BoardState(BaseModel):
 
         for potential_snake_states in all_potential_snake_states:
             if time.time_ns() > (request_nanoseconds + 4e8):
-                raise TimeoutException()
+                return False
             # TODO: Predict hazard zones: https://github.com/BattlesnakeOfficial/rules/blob/main/standard.go#L130
             potential_board = BoardState.factory(
                 turn=self.turn + 1,
@@ -610,6 +608,7 @@ class BoardState(BaseModel):
         self.score = sum([board.score for board in self.next_boards]) / len(
             self.next_boards
         )
+        return True
 
     def get_snake_state_payload(
         self,

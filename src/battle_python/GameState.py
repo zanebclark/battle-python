@@ -5,7 +5,7 @@ from itertools import groupby
 import structlog
 from pydantic import NonNegativeInt, Field, BaseModel
 
-from battle_python.BoardState import BoardState, TimeoutException
+from battle_python.BoardState import BoardState
 from battle_python.SnakeState import SnakeState
 from battle_python.api_types import (
     Coord,
@@ -233,26 +233,32 @@ class GameState(BaseModel):
             return board
 
     @log_fn(logger=log, log_args=False)
-    def increment_frontier(self, request_nanoseconds: float):
+    def increment_frontier(self, request_nanoseconds: float) -> bool:
         next_boards: list[BoardState] = []
         for board in self.frontier:
             if board is None:
                 continue
-            board.populate_next_boards(request_nanoseconds=request_nanoseconds)
+            continue_incrementing = board.populate_next_boards(
+                request_nanoseconds=request_nanoseconds
+            )
+            if not continue_incrementing:
+                return False
             next_boards.extend(
                 [self.handle(next_board) for next_board in board.next_boards]
             )
+
         self.frontier.clear()
         self.frontier.extend(next_boards)
+        return True
 
     @log_fn(logger=log, log_args=False)
     def get_next_move(self, request_nanoseconds: float):
-        try:
-            while len(self.frontier) > 0:
-                log.debug("incrementing frontier")
-                self.increment_frontier(request_nanoseconds=request_nanoseconds)
-        except TimeoutException:
-            pass
+        continue_incrementing = True
+        while continue_incrementing:
+            log.debug("incrementing frontier")
+            continue_incrementing = self.increment_frontier(
+                request_nanoseconds=request_nanoseconds
+            )
 
         min_score_per_head = {
             head_coord: min([board.score for board in boards])
