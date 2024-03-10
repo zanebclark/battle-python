@@ -180,7 +180,7 @@ def test_game_state_spam():
     # prof = pprofile.Profile()
     # with prof():
     for turn in range(2):
-        gs.increment_frontier(request_time=(time.time_ns() // 1_000_000) + 5000)
+        gs.increment_frontier(request_nanoseconds=time.time_ns() + (5000 * 1_000_000))
         t1 = time.time()
         total = t1 - t0
         print(f"turn: {turn}")
@@ -265,4 +265,4 @@ def test_game_state_get_next_move():
         snake_defs=mock_gs.snake_defs, game=mock_gs.game
     )
     gs = GameState.from_payload(payload=payload)
-    gs.get_next_move(request_time=(time.time_ns() // 1_000_000))
+    gs.get_next_move(request_nanoseconds=time.time_ns())
