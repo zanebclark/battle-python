@@ -21,7 +21,7 @@ _NOISY_LOG_SOURCES = ("boto", "boto3", "botocore")
 def get_log_file_path() -> Path:
     if platform.system() == "Windows":
         return Path(__file__).parent.parent.parent / "logs" / "log.log"
-    log_file_path = Path("/var/log/battle-python/log.log")
+    return Path("/var/log/battle-python/log.log")
 
 
 class MyAWSCloudWatchLogs(AWSCloudWatchLogs):
