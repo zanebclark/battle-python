@@ -233,12 +233,12 @@ class GameState(BaseModel):
             return board
 
     @log_fn(logger=log, log_args=False)
-    def increment_frontier(self, request_time: float):
+    def increment_frontier(self, request_nanoseconds: float):
         next_boards: list[BoardState] = []
         for board in self.frontier:
             if board is None:
                 continue
-            board.populate_next_boards(request_time=request_time)
+            board.populate_next_boards(request_nanoseconds=request_nanoseconds)
             next_boards.extend(
                 [self.handle(next_board) for next_board in board.next_boards]
             )
@@ -246,11 +246,11 @@ class GameState(BaseModel):
         self.frontier.extend(next_boards)
 
     @log_fn(logger=log, log_args=False)
-    def get_next_move(self, request_time: float):
+    def get_next_move(self, request_nanoseconds: float):
         try:
             while len(self.frontier) > 0:
                 log.debug("incrementing frontier")
-                self.increment_frontier(request_time=request_time)
+                self.increment_frontier(request_nanoseconds=request_nanoseconds)
         except TimeoutException:
             pass
 

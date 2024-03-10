@@ -570,7 +570,7 @@ class BoardState(BaseModel):
         ]
 
     @log_fn(logger=log, log_args=False)
-    def populate_next_boards(self, request_time: float) -> None:
+    def populate_next_boards(self, request_nanoseconds: float) -> None:
         if self.is_terminal:
             return
 
@@ -590,7 +590,7 @@ class BoardState(BaseModel):
         )
 
         for potential_snake_states in all_potential_snake_states:
-            if (time.time_ns() // 1_000_000) > (request_time + 400):
+            if time.time_ns() > (request_nanoseconds + 4e8):
                 raise TimeoutException()
             # TODO: Predict hazard zones: https://github.com/BattlesnakeOfficial/rules/blob/main/standard.go#L130
             potential_board = BoardState.factory(

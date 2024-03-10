@@ -3,6 +3,7 @@ import json
 import logging
 import platform
 import sys
+import time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Literal
@@ -51,13 +52,26 @@ class MyAWSCloudWatchLogs(AWSCloudWatchLogs):
             return header + self._dumps(str(event_dict), **self._dumps_kw)
 
 
-def get_configured_logger(log_level: str = "DEBUG"):
+def add_log_nanoseconds(_: logging.Logger, __: str, event_dict: EventDict) -> EventDict:
+    nanoseconds = time.time_ns()
+    if "request_nanoseconds" in event_dict:
+        event_dict["elapsed_nanoseconds"] = (
+            nanoseconds - event_dict["request_nanoseconds"]
+        )
+        event_dict["request_milliseconds"] = str(event_dict["request_nanoseconds"])[:-6]
+        event_dict["elapsed_milliseconds"] = str(event_dict["elapsed_nanoseconds"])[:-6]
+    event_dict["log_nanoseconds"] = nanoseconds
+    return event_dict
+
+
+def configure_logger(log_level: str = "DEBUG") -> None:
     log_file_path = get_log_file_path()
 
     if not log_file_path.parent.is_dir():
         log_file_path.parent.mkdir(parents=True)
 
     processors = (
+        add_log_nanoseconds,
         structlog.stdlib.filter_by_level,
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
@@ -104,7 +118,6 @@ def get_configured_logger(log_level: str = "DEBUG"):
     )
     for source in _NOISY_LOG_SOURCES:
         logging.getLogger(source).setLevel(logging.WARNING)
-    return structlog.get_logger()
 
 
 def log_fn(
