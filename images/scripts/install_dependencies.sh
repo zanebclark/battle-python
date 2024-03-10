@@ -6,7 +6,6 @@ set -xe
 export DEBIAN_FRONTEND=noninteractive
 
 # Install necessary dependencies
-sudo apt-get update
 # Dpkg::Options::="--force-confdef" -> Use default package config for new packages
 # Dpkg::Options::="--force-confold" -> Use existing config for already installed packages (to not overwrite the existing config)
 # dist-upgrade -> Upgrades and intelligently handles changing dependencies with new versions of packages
@@ -18,7 +17,7 @@ sudo apt-get update
 # TODO: Think about this: APT::Periodic::AutocleanInterval "7";
 # TODO: Think about this:  Unattended-Upgrade::Automatic-Reboot "true"; # change to true
 # -qq -> No output except for errors
-sudo apt-get -y -qq install python3-pip nginx git amazon-cloudwatch-agent
+sudo apt-get -y -qq install python3-pip nginx git
 # Setup Cloudwatch Agent
 # https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/download-cloudwatch-agent-commandline.html
 sudo wget https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
