@@ -34,7 +34,6 @@ class TimeoutException(Exception):
     pass
 
 
-@log_fn(logger=log)
 def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]:
     # The first element is the # of rows (y-axis). The second element is the # of columns (x-axis)
     # Adding two supports padding the board with masked values. This supports calculations up to the
@@ -52,7 +51,6 @@ def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]
     return board_array
 
 
-@log_fn(logger=log)
 def get_center_weight_array(
     board_array: npt.NDArray[np.int_],
 ) -> npt.NDArray[np.int_]:
@@ -70,7 +68,6 @@ def get_center_weight_array(
     return center_weight
 
 
-@log_fn(logger=log)
 def get_food_array(
     board_array: npt.NDArray[np.int_], food_coords: tuple[Coord, ...]
 ) -> npt.NDArray[np.int_]:
@@ -99,7 +96,6 @@ def get_food_array(
     return food_array
 
 
-@log_fn(logger=log)
 def get_snake_heads_at_coord(
     snakes: tuple[SnakeState, ...]
 ) -> dict[Coord, list[SnakeState]]:
@@ -112,7 +108,6 @@ def get_snake_heads_at_coord(
     return snake_heads_at_coord
 
 
-@log_fn(logger=log)
 def resolve_head_collision(snake_heads_at_coord: list[SnakeState]) -> None:
     if len(snake_heads_at_coord) <= 1:
         return
@@ -131,7 +126,6 @@ def resolve_head_collision(snake_heads_at_coord: list[SnakeState]) -> None:
         )
 
 
-@log_fn(logger=log)
 def resolve_food_consumption(
     coord: Coord, snake_heads_at_coord: list[SnakeState], food_coords: tuple[Coord, ...]
 ) -> tuple[Coord, ...]:
@@ -149,7 +143,6 @@ def resolve_food_consumption(
     return tuple((f_coord for f_coord in food_coords if f_coord != coord))
 
 
-@log_fn(logger=log)
 def get_all_snake_bodies_array(
     board_array: npt.NDArray[np.int_], snakes: tuple[SnakeState, ...]
 ) -> npt.NDArray[np.int_]:
@@ -202,7 +195,6 @@ def get_all_snake_bodies_array(
     return all_snake_bodies_array
 
 
-@log_fn(logger=log)
 def get_all_snake_moves_array(
     all_snake_bodies_array: npt.NDArray[np.int_],
 ) -> npt.NDArray[np.int_]:
@@ -256,7 +248,6 @@ def get_all_snake_moves_array(
     return all_snake_moves_array
 
 
-@log_fn(logger=log)
 def get_my_snake_area_of_control(
     all_snake_moves_array: npt.NDArray[np.int_],
 ) -> npt.NDArray[np.int_]:
@@ -451,7 +442,6 @@ class BoardState(BaseModel):
     def get_my_key(self) -> tuple[int, tuple[Coord]]:
         return self.turn, self.my_snake.body[0]
 
-    @log_fn(logger=log, log_args=False)
     def get_other_key(self) -> tuple:
         snake_states = tuple(
             (
@@ -472,7 +462,6 @@ class BoardState(BaseModel):
             snake_states,
         )
 
-    @log_fn(logger=log, log_args=False)
     def get_next_health(
         self,
         next_body: list[Coord],
@@ -498,7 +487,6 @@ class BoardState(BaseModel):
 
         return next_health
 
-    @log_fn(logger=log, log_args=False)
     def get_next_body(self, current_body: list[Coord]) -> list[Coord]:
         if current_body[0] is DEATH_COORD:
             return [current_body[0]]
@@ -506,13 +494,11 @@ class BoardState(BaseModel):
             current_body.append(current_body[-1])
         return current_body
 
-    @log_fn(logger=log, log_args=False)
     def is_food_consumed(self, next_body: list[Coord]) -> bool:
         if next_body[0] in self.food_coords:
             return True
         return False
 
-    @log_fn(logger=log, log_args=False)
     def get_next_snake_state_for_snake_move(
         self, snake: SnakeState, move: Coord
     ) -> SnakeState:
@@ -548,7 +534,6 @@ class BoardState(BaseModel):
             prev_state=snake,
         )
 
-    @log_fn(logger=log, log_args=False)
     def get_next_snake_states_for_snake(
         self, snake: SnakeState, index: int
     ) -> list[SnakeState]:
@@ -626,7 +611,6 @@ class BoardState(BaseModel):
             self.next_boards
         )
 
-    @log_fn(logger=log, log_args=False)
     def get_snake_state_payload(
         self,
         snake_defs: dict[str, SnakeDef],
@@ -664,7 +648,6 @@ class BoardState(BaseModel):
             else None,
         }
 
-    @log_fn(logger=log, log_args=False)
     def get_snake_payload(
         self,
         snake_defs: dict[str, SnakeDef],
@@ -677,7 +660,6 @@ class BoardState(BaseModel):
         snake_state_payload["shout"] = None
         return snake_state_payload
 
-    @log_fn(logger=log, log_args=False)
     def get_board_payload(self, snake_defs: dict[str, SnakeDef], game: Game) -> dict:
         return {
             "game": game.model_dump(),
@@ -705,7 +687,6 @@ class BoardState(BaseModel):
             ],
         }
 
-    @log_fn(logger=log, log_args=False)
     def get_move_request(self, snake_defs: dict[str, SnakeDef], game: Game) -> dict:
         return {
             "game": game.model_dump(),
@@ -725,7 +706,6 @@ class BoardState(BaseModel):
             ),
         }
 
-    @log_fn(logger=log, log_args=False)
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, BoardState):
             return self.model_dump() == other.model_dump()

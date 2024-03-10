@@ -50,7 +50,8 @@ build {
   sources = ["source.amazon-ebs.ubuntu"]
 
   provisioner "shell" {
-    script = "./images/scripts/install_dependencies.sh"
+    execute_command = "chmod +xe {{ .Path }}; {{ .Vars }} {{ .Path }}"
+    script          = "./images/scripts/01_install_dependencies.sh"
   }
 
   # I lack required permissions to provision the file to the terminal location.
@@ -78,6 +79,7 @@ build {
   #  TODO: Install in /opt
 
   provisioner "shell" {
+    execute_command = "chmod +xe {{ .Path }}; {{ .Vars }} {{ .Path }}"
     inline = [
       "sudo mv /tmp/battlesnakes.conf /etc/nginx/sites-enabled/battlesnakes.conf",
       "sudo mv /tmp/gunicorn.service /etc/systemd/system/gunicorn.service",
@@ -94,7 +96,6 @@ build {
       "poetry install",
       "echo \"LOG_LEVEL=INFO\" | sudo tee -a /etc/environment",
 
-      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
       "sudo systemctl enable amazon-cloudwatch-agent.service",
 
       "sudo systemctl daemon-reload",

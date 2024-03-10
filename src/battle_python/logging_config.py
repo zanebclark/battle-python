@@ -93,11 +93,12 @@ def get_configured_logger(log_level: str = "DEBUG"):
     )
 
     file_handler = RotatingFileHandler(log_file_path, maxBytes=100000, backupCount=100)
-    stream_handler = logging.StreamHandler(sys.stdout)
+    # stream_handler = logging.StreamHandler(sys.stdout)
+    # handlers = [file_handler, stream_handler]
 
     logging.basicConfig(
         format="%(message)s",
-        handlers=[file_handler, stream_handler],
+        handlers=[file_handler],
         level=log_level,
         force=True,
     )

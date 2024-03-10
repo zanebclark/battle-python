@@ -36,7 +36,6 @@ class GameState(BaseModel):
 
     # noinspection PyNestedDecorators
     @classmethod
-    @log_fn(logger=log, log_args=False)
     def from_snake_request(cls, move_request: SnakeRequest) -> GameState:
         game = move_request.game
 
@@ -100,7 +99,6 @@ class GameState(BaseModel):
 
     # noinspection PyNestedDecorators
     @classmethod
-    @log_fn(logger=log, log_args=False)
     def from_payload(cls, payload: dict) -> GameState:
         game = Game(**payload["game"])
 
@@ -165,7 +163,6 @@ class GameState(BaseModel):
             snake_defs=snake_defs,
         )
 
-    @log_fn(logger=log, log_args=False)
     def model_post_init(self, __context) -> None:
         self.frontier.append(self.current_board)
         self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board
