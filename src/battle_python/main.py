@@ -2,15 +2,18 @@ import os
 import time
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Request, APIRouter, Depends
+from fastapi import FastAPI, HTTPException, Request, APIRouter, Depends, status
 import structlog
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from battle_python.GameState import GameState
 from battle_python.api_types import SnakeMetadataResponse, SnakeRequest, MoveResponse
-from battle_python.logging_config import get_configured_logger
+from battle_python.logging_config import configure_logger
 
 
-log = get_configured_logger()
+configure_logger()
+logger = structlog.get_logger()
 
 RestMethod = Literal["GET", "POST"]
 api = FastAPI(
@@ -21,20 +24,18 @@ api = FastAPI(
 )
 api_router = APIRouter()
 
+
+@api.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    exc_str = f"{exc}".replace("\n", " ").replace("   ", " ")
+    logger.error(f"{request}: {exc_str}")
+    content = {"status_code": 10422, "message": exc_str, "data": None}
+    return JSONResponse(
+        content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
+    )
+
+
 # TODO: Anticipate hazard progression
-
-
-@api.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers["X-Process-Time"] = str(process_time)
-    return response
-
-
-class JSONDecodeErroras:
-    pass
 
 
 async def log_request_info(request: Request):
@@ -46,8 +47,9 @@ async def log_request_info(request: Request):
             game_id=request_body["game"]["id"],
             my_snake_id=request_body["you"]["id"],
             turn=request_body["turn"],
+            request_nanoseconds=time.time_ns(),
         )
-    log.info(
+    logger.debug(
         f"{request.method}: {request.url} received",
         method=request.method,
         url=request.url,
@@ -77,19 +79,17 @@ def game_started(_: SnakeRequest) -> None:
 
 @api_router.post("/move")
 def move(move_request: SnakeRequest) -> MoveResponse:
-    request_time = time.time_ns() // 1_000_000
+    request_nanoseconds = time.time_ns()
     try:
         gs = GameState.from_snake_request(move_request=move_request)
-        direction = gs.get_next_move(request_time)
-        ms_elapsed = (time.time_ns() // 1_000_000) - request_time
-        log.debug(
+        direction = gs.get_next_move(request_nanoseconds=request_nanoseconds)
+        logger.debug(
             "returning move",
-            ms_elapsed=ms_elapsed,
             move=direction,
         )
         return MoveResponse(move=direction)
     except Exception:
-        log.exception()
+        logger.exception()
         raise HTTPException(status_code=404)
 
 

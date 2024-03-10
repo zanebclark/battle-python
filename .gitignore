@@ -294,3 +294,5 @@ override.tf.json
 terraform.rc
 
 logs/*
+
+**.pstat

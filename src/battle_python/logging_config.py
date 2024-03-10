@@ -2,7 +2,6 @@ import functools
 import json
 import logging
 import platform
-import sys
 import time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -71,6 +70,7 @@ def configure_logger(log_level: str = "DEBUG") -> None:
         log_file_path.parent.mkdir(parents=True)
 
     processors = (
+        structlog.contextvars.merge_contextvars,
         add_log_nanoseconds,
         structlog.stdlib.filter_by_level,
         structlog.stdlib.add_log_level,
