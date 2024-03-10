@@ -43,7 +43,7 @@
             "log_group_name": "amazon-cloudwatch-agent.log",
             "log_stream_name": "amazon-cloudwatch-agent.log",
             "timezone": "UTC",
-            "retention_in_days": 10
+            "retention_in_days": 7
           },
           {
             "file_path": "/var/log/battle-python/log.log*",
@@ -51,7 +51,7 @@
             "log_stream_name": "battle-python.log",
             "timezone": "UTC",
             "auto_removal": true,
-            "retention_in_days": 10
+            "retention_in_days": 7
           }
         ]
       }
