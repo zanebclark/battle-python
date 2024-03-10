@@ -1,9 +1,13 @@
 import pytest
+from fastapi.testclient import TestClient
 
 from battle_python.GameState import GameState
 from battle_python.api_types import Coord, SnakeDef, SnakeCustomizations
+from battle_python.main import api
 from ..mocks.get_mock_game_state import get_mock_game_state
 from ..mocks.get_mock_snake_state import get_mock_snake_state
+
+client = TestClient(api)
 
 
 @pytest.fixture
@@ -66,52 +70,38 @@ def game_state() -> GameState:
     )
 
 
-# def test_populated_battlesnake_details(lambda_context):
-#     env_vars = {
-#         "BATTLESNAKE_AUTHOR": "testauthor",
-#         "BATTLESNAKE_COLOR": "#888888",
-#         "BATTLESNAKE_HEAD": "all-seeing",
-#         "BATTLESNAKE_TAIL": "curled",
-#         "BATTLESNAKE_VERSION": "testversion",
-#     }
-#     with mock.patch.dict(os.environ, env_vars, clear=True):
-#         apigw_event = get_mock_api_gateway_event(method="GET", path="/")
-#         response = api.lambda_handler(event=apigw_event, context=lambda_context)  # type: ignore
-#         data = json.loads(response["body"])
-#
-#         assert response["statusCode"] == 200
-#         assert data["apiversion"] == "1"
-#         assert (
-#             data["author"] == env_vars["BATTLESNAKE_AUTHOR"]
-#         )  # TODO: Do I need to assert that none of the values are null?
-#         assert data["color"] == env_vars["BATTLESNAKE_COLOR"]
-#         assert data["head"] == env_vars["BATTLESNAKE_HEAD"]
-#         assert data["tail"] == env_vars["BATTLESNAKE_TAIL"]
-#         assert data["version"] == env_vars["BATTLESNAKE_VERSION"]
-#
-#
-# def test_game_started(lambda_context, game_state: GameState):
-#     body = game_state.current_board.get_move_request(
-#         snake_defs=game_state.snake_defs, game=game_state.game
-#     )
-#     apigw_event = get_mock_api_gateway_event(method="POST", path="/start", body=body)
-#     response = api.lambda_handler(event=apigw_event, context=lambda_context)  # type: ignore
-#     assert response["statusCode"] == 200
-#
-#
-# def test_move(lambda_context, game_state: GameState):
-#     body = game_state.current_board.get_move_request(
-#         snake_defs=game_state.snake_defs, game=game_state.game
-#     )
-#     apigw_event = get_mock_api_gateway_event(method="POST", path="/move", body=body)
-#     response = api.lambda_handler(event=apigw_event, context=lambda_context)  # type: ignore
-#     assert response["statusCode"] == 200
-#
-#
-# def test_end(lambda_context, game_state: GameState):
-#     body = game_state.current_board.get_move_request(
-#         snake_defs=game_state.snake_defs, game=game_state.game
-#     )
-#     apigw_event = get_mock_api_gateway_event(method="POST", path="/end", body=body)
-#     response = api.lambda_handler(event=apigw_event, context=lambda_context)  # type: ignore
-#     assert response["statusCode"] == 200
+def test_populated_battlesnake_details():
+    response = client.get("/")
+    data = response.json()
+
+    assert response.status_code == 200
+    assert data["apiversion"] == "1"
+    assert data["author"] is not None
+    assert data["color"] is not None
+    assert data["head"] is not None
+    assert data["tail"] is not None
+    assert data["version"] is not None
+
+
+def test_game_started(game_state: GameState):
+    body = game_state.current_board.get_move_request(
+        snake_defs=game_state.snake_defs, game=game_state.game
+    )
+    response = client.post("/start", json=body)
+    assert response.status_code == 200
+
+
+def test_move(game_state: GameState):
+    body = game_state.current_board.get_move_request(
+        snake_defs=game_state.snake_defs, game=game_state.game
+    )
+    response = client.post("/move", json=body)
+    assert response.status_code == 200
+
+
+def test_end(game_state: GameState):
+    body = game_state.current_board.get_move_request(
+        snake_defs=game_state.snake_defs, game=game_state.game
+    )
+    response = client.post("/end", json=body)
+    assert response.status_code == 200
