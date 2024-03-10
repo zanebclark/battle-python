@@ -127,7 +127,7 @@ class Snake(BaseModel):
     latency: str
     head: Coord
     length: NonNegativeInt
-    shout: str
+    shout: str | None
     customizations: SnakeCustomizations
 
 
