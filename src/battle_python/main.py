@@ -89,7 +89,7 @@ def move(move_request: SnakeRequest) -> MoveResponse:
         )
         return MoveResponse(move=direction)
     except Exception:
-        logger.exception()
+        logger.exception("something went wrong")
         raise HTTPException(status_code=404)
 
 

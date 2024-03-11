@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from collections import defaultdict
 from itertools import product
 from typing import Literal, Any, Generator

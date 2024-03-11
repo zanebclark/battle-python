@@ -13,7 +13,7 @@ from mocks.get_mock_snake_state import get_mock_snake_state
 
 if __name__ == "__main__":
     with cProfile.Profile() as pr:
-        request_time = time.time_ns() // 1_000_000
+        request_nanoseconds = time.time_ns()
         mock_gs = get_mock_game_state(
             board_height=11,
             board_width=11,
@@ -74,7 +74,7 @@ if __name__ == "__main__":
             snake_defs=mock_gs.snake_defs, game=mock_gs.game
         )
         gs = GameState.from_payload(payload=payload)
-        move = gs.get_next_move(request_time=request_time)
+        move = gs.get_next_move(request_nanoseconds=request_nanoseconds)
         print(gs.counter)
         print(move)
         pr.dump_stats("spam.pstat")
