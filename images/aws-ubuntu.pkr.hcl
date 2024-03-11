@@ -27,7 +27,7 @@ packer {
 source "amazon-ebs" "ubuntu" {
   profile       = "personal"
   ami_name      = "battlesnakes-ubuntu-${local.timestamp}"
-  instance_type = "t3.small"
+  instance_type = "t3.large"
   region        = var.region
   source_ami_filter {
     filters = {

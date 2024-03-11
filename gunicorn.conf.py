@@ -1,6 +1,6 @@
 import multiprocessing
 
-workers = multiprocessing.cpu_count() * 2 + 1
+workers = multiprocessing.cpu_count()
 name = "fastapi-battlesnakes"
 bind = "unix:/run/gunicorn.sock"
 loglevel = "ERROR"
