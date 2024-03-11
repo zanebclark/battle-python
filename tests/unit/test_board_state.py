@@ -1954,7 +1954,7 @@ def test_board_state_populate_next_boards(
     board: BoardState,
     expected_boards: list[BoardState],
 ):
-    board.populate_next_boards(request_nanoseconds=time.time_ns() + (1_000_000 * 10))
+    board.populate_next_boards()
     for next_board in board.next_boards:
         expected_board = None
         for some_board in expected_boards:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from collections import defaultdict
 from itertools import product
-from typing import Literal, Any
+from typing import Literal, Any, Generator
 import structlog
 import numpy as np
 import numpy.typing as npt
@@ -566,12 +566,9 @@ class BoardState(BaseModel):
         ]
 
     @log_fn(logger=log, log_args=False)
-    def populate_next_boards(self, request_nanoseconds: float) -> bool:
+    def populate_next_boards(self) -> Generator[BoardState, None, None]:
         if self.is_terminal:
-            if time.time_ns() > (request_nanoseconds + 4e8):
-                return False
-            return True
-
+            return
         my_snake_next_states = self.get_next_snake_states_for_snake(
             snake=self.my_snake, index=0
         )
@@ -588,8 +585,6 @@ class BoardState(BaseModel):
         )
 
         for potential_snake_states in all_potential_snake_states:
-            if time.time_ns() > (request_nanoseconds + 4e8):
-                return False
             # TODO: Predict hazard zones: https://github.com/BattlesnakeOfficial/rules/blob/main/standard.go#L130
             potential_board = BoardState.factory(
                 turn=self.turn + 1,
@@ -605,10 +600,11 @@ class BoardState(BaseModel):
                 prev_state=self,
             )
             self.next_boards.append(potential_board)
-        self.score = sum([board.score for board in self.next_boards]) / len(
-            self.next_boards
-        )
-        return True
+            self.score = sum([board.score for board in self.next_boards]) / len(
+                self.next_boards
+            )
+            yield potential_board
+        return
 
     def get_snake_state_payload(
         self,
@@ -709,3 +705,35 @@ class BoardState(BaseModel):
         if isinstance(other, BoardState):
             return self.model_dump() == other.model_dump()
         return super().__eq__(other)
+
+    def is_inferior_to(self, other: BoardState):
+        return (
+            self.my_snake.length <= other.my_snake.length
+            and self.my_snake.murder_count <= other.my_snake.murder_count
+            and self.my_snake.health <= other.my_snake.health
+            and self.score <= other.score
+            and any(
+                [
+                    self.my_snake.length < other.my_snake.length,
+                    self.my_snake.murder_count < other.my_snake.murder_count,
+                    self.my_snake.health < other.my_snake.health,
+                    self.score < other.score,
+                ]
+            )
+        )
+
+    def is_superior_to(self, other: BoardState):
+        return (
+            self.my_snake.length >= other.my_snake.length
+            and self.my_snake.murder_count >= other.my_snake.murder_count
+            and self.my_snake.health >= other.my_snake.health
+            and self.score >= other.score
+            and any(
+                [
+                    self.my_snake.length > other.my_snake.length,
+                    self.my_snake.murder_count > other.my_snake.murder_count,
+                    self.my_snake.health > other.my_snake.health,
+                    self.score > other.score,
+                ]
+            )
+        )

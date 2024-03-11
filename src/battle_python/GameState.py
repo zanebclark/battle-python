@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections import deque
-from itertools import groupby
+import time
+from itertools import groupby, takewhile
 import structlog
 from pydantic import NonNegativeInt, Field, BaseModel
 
@@ -31,7 +31,7 @@ class GameState(BaseModel):
     explored_states: dict[tuple, dict[tuple, BoardState]] = Field(
         default_factory=dict, exclude=True
     )
-    frontier: deque[BoardState] = Field(default_factory=deque, exclude=True)
+    frontier: list[BoardState] = Field(default_factory=list, exclude=True)
     snake_defs: dict[str, SnakeDef]
 
     # noinspection PyNestedDecorators
@@ -164,11 +164,11 @@ class GameState(BaseModel):
         )
 
     def model_post_init(self, __context) -> None:
-        self.frontier.append(self.current_board)
+        self.frontier = [self.current_board]
         self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board
 
     @log_fn(logger=log, log_args=False)
-    def handle(self, board: BoardState) -> BoardState | None:
+    def save_board_and_prune_tree(self, board: BoardState) -> BoardState | None:
         self.counter += 1
         if board.is_terminal:
             self.terminal_counter += 1
@@ -180,40 +180,10 @@ class GameState(BaseModel):
 
         if my_key in self.explored_states:
             best_my_snake_board = self.best_my_snake_board[my_key]
-            if (
-                board.my_snake.length <= best_my_snake_board.my_snake.length
-                and board.my_snake.murder_count
-                <= best_my_snake_board.my_snake.murder_count
-                and board.my_snake.health <= best_my_snake_board.my_snake.health
-                and board.score <= best_my_snake_board.score
-                and any(
-                    [
-                        board.my_snake.length < best_my_snake_board.my_snake.length,
-                        board.my_snake.murder_count
-                        < best_my_snake_board.my_snake.murder_count,
-                        board.my_snake.health < best_my_snake_board.my_snake.health,
-                        board.score < best_my_snake_board.score,
-                    ]
-                )
-            ):
+            if board.is_inferior_to(best_my_snake_board):
                 board.is_terminal = True
                 board.terminal_reason = "better-snake-state-available"
-            elif (
-                board.my_snake.length >= best_my_snake_board.my_snake.length
-                and board.my_snake.murder_count
-                >= best_my_snake_board.my_snake.murder_count
-                and board.my_snake.health >= best_my_snake_board.my_snake.health
-                and board.score >= best_my_snake_board.score
-                and any(
-                    [
-                        board.my_snake.length > best_my_snake_board.my_snake.length,
-                        board.my_snake.murder_count
-                        > best_my_snake_board.my_snake.murder_count,
-                        board.my_snake.health > best_my_snake_board.my_snake.health,
-                        board.score > best_my_snake_board.score,
-                    ]
-                )
-            ):
+            elif board.is_superior_to(best_my_snake_board):
                 self.best_my_snake_board[my_key] = board
                 for t_board in self.explored_states[my_key].values():
                     t_board.is_terminal = True
@@ -234,28 +204,30 @@ class GameState(BaseModel):
 
     @log_fn(logger=log, log_args=False)
     def increment_frontier(self, request_nanoseconds: float) -> bool:
-        next_boards: list[BoardState] = []
-        for board in self.frontier:
-            if board is None:
-                continue
-            continue_incrementing = board.populate_next_boards(
-                request_nanoseconds=request_nanoseconds
+        next_boards: list[BoardState | None] = list(
+            takewhile(
+                lambda _: time.time_ns() < (request_nanoseconds + 4e8),
+                (
+                    self.save_board_and_prune_tree(board=next_board)
+                    for board in self.frontier
+                    if board is not None
+                    for next_board in board.populate_next_boards()
+                    if next_board is not None
+                ),
             )
-            if not continue_incrementing:
-                return False
-            next_boards.extend(
-                [self.handle(next_board) for next_board in board.next_boards]
-            )
+        )
+
+        if time.time_ns() >= (request_nanoseconds + 3.5e8) or len(next_boards) == 0:
+            return False
 
         self.frontier.clear()
-        self.frontier.extend(next_boards)
+        self.frontier = next_boards
         return True
 
     @log_fn(logger=log, log_args=False)
     def get_next_move(self, request_nanoseconds: float):
         continue_incrementing = True
         while continue_incrementing:
-            log.debug("incrementing frontier")
             continue_incrementing = self.increment_frontier(
                 request_nanoseconds=request_nanoseconds
             )
