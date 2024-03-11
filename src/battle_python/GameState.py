@@ -33,6 +33,7 @@ class GameState(BaseModel):
     )
     frontier: list[BoardState] = Field(default_factory=list, exclude=True)
     snake_defs: dict[str, SnakeDef]
+    timeout_nanoseconds: int | None = None
 
     # noinspection PyNestedDecorators
     @classmethod
@@ -166,6 +167,7 @@ class GameState(BaseModel):
     def model_post_init(self, __context) -> None:
         self.frontier = [self.current_board]
         self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board
+        self.timeout_nanoseconds = (self.game.timeout - 100) * 1_000_000
 
     @log_fn(logger=log, log_args=False)
     def save_board_and_prune_tree(self, board: BoardState) -> BoardState | None:
@@ -206,7 +208,8 @@ class GameState(BaseModel):
     def increment_frontier(self, request_nanoseconds: float) -> bool:
         next_boards: list[BoardState | None] = list(
             takewhile(
-                lambda _: time.time_ns() < (request_nanoseconds + 4e8),
+                lambda _: time.time_ns()
+                < (request_nanoseconds + self.timeout_nanoseconds),
                 (
                     self.save_board_and_prune_tree(board=next_board)
                     for board in self.frontier
@@ -217,7 +220,10 @@ class GameState(BaseModel):
             )
         )
 
-        if time.time_ns() >= (request_nanoseconds + 3.5e8) or len(next_boards) == 0:
+        if (
+            time.time_ns() >= (request_nanoseconds + self.timeout_nanoseconds)
+            or len(next_boards) == 0
+        ):
             return False
 
         self.frontier.clear()
