@@ -70,7 +70,7 @@ def game_state() -> GameState:
     )
 
 
-def test_populated_battlesnake_details():
+def test_populated_battlesnake_details() -> None:
     response = client.get("/")
     data = response.json()
 
@@ -83,7 +83,7 @@ def test_populated_battlesnake_details():
     assert data["version"] is not None
 
 
-def test_game_started(game_state: GameState):
+def test_game_started(game_state: GameState) -> None:
     body = game_state.current_board.get_move_request(
         snake_defs=game_state.snake_defs, game=game_state.game
     )
@@ -91,7 +91,7 @@ def test_game_started(game_state: GameState):
     assert response.status_code == 200
 
 
-def test_move(game_state: GameState):
+def test_move(game_state: GameState) -> None:
     body = game_state.current_board.get_move_request(
         snake_defs=game_state.snake_defs, game=game_state.game
     )
@@ -99,7 +99,7 @@ def test_move(game_state: GameState):
     assert response.status_code == 200
 
 
-def test_end(game_state: GameState):
+def test_end(game_state: GameState) -> None:
     body = game_state.current_board.get_move_request(
         snake_defs=game_state.snake_defs, game=game_state.game
     )

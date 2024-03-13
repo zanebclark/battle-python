@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import structlog
 from typing import Literal, Any
-from pydantic import NonNegativeInt, Field, ConfigDict, BaseModel
+from pydantic import NonNegativeInt, Field, BaseModel
 
 from battle_python.api_types import Coord
 
@@ -17,6 +17,7 @@ class Elimination(BaseModel):
         "hazard",
         "head-collision",
         "wall-collision",
+        "unknown",
     ]
     by: str | None = None
 
@@ -36,7 +37,7 @@ class SnakeState(BaseModel):
     prev_state: SnakeState | None = Field(default=None, exclude=True)
 
     @property
-    def last_move(self):
+    def last_move(self) -> Coord:
         return Coord(
             x=(self.body[0].x - self.body[1].x), y=self.body[0].y - self.body[1].y
         )

@@ -3,7 +3,14 @@ import uuid
 from battle_python.BoardState import BoardState
 from battle_python.GameState import GameState
 from battle_python.SnakeState import SnakeState
-from battle_python.api_types import Coord, SnakeCustomizations, SnakeDef, Game, Ruleset
+from battle_python.api_types import (
+    Coord,
+    SnakeCustomizations,
+    SnakeDef,
+    Game,
+    Ruleset,
+    RulesetSettings,
+)
 from .get_mock_board_state import get_mock_board_state
 
 
@@ -34,11 +41,11 @@ def get_mock_standard_game(
         ruleset=Ruleset(
             name="standard",
             version="v1.1.15",
-            settings={
-                "foodSpawnChance": food_spawn_chance,
-                "minimumFood": minimum_food,
-                "hazardDamagePerTurn": hazard_damage_per_turn,
-            },
+            settings=RulesetSettings(
+                foodSpawnChance=food_spawn_chance,
+                minimumFood=minimum_food,
+                hazardDamagePerTurn=hazard_damage_per_turn,
+            ),
         ),
         map="standard",
         source="custom",

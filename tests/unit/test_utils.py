@@ -7,7 +7,7 @@ from structlog.testing import capture_logs
 from battle_python.logging_config import log_fn
 
 
-def get_logger(log_level):
+def get_logger(log_level: int) -> structlog.BoundLogger:
     structlog.reset_defaults()
     structlog.configure(
         processors=[structlog.processors.JSONRenderer()],
@@ -18,22 +18,22 @@ def get_logger(log_level):
 
 
 @pytest.fixture()
-def debug_logger():
+def debug_logger() -> structlog.BoundLogger:
     return get_logger(logging.DEBUG)
 
 
 @pytest.fixture()
-def info_logger():
+def info_logger() -> structlog.BoundLogger:
     return get_logger(logging.INFO)
 
 
-def test_log_fn_no_log_level(debug_logger):
+def test_log_fn_no_log_level(debug_logger: structlog.BoundLogger) -> None:
     arg = "something"
     kwarg = {"keyword": "argument"}
     result = "some_result"
 
     @log_fn(logger=debug_logger)
-    def foo(*args, **kwargs):
+    def foo(*args, **kwargs):  # type: ignore
         return result
 
     # noinspection PyArgumentList
@@ -54,13 +54,13 @@ def test_log_fn_no_log_level(debug_logger):
     } in cap_logs
 
 
-def test_log_fn_supplied_log_level(info_logger):
+def test_log_fn_supplied_log_level(info_logger: structlog.BoundLogger) -> None:
     arg = "something"
     kwarg = {"keyword": "argument"}
     result = "some_result"
 
     @log_fn(logger=info_logger, log_level="info")
-    def foo(*args, **kwargs):
+    def foo(*args, **kwargs):  # type: ignore
         return result
 
     # noinspection PyArgumentList
@@ -85,13 +85,13 @@ def test_log_fn_supplied_log_level(info_logger):
 @pytest.mark.skip(
     "I can't figure out how to properly configure log level filtering when testing"
 )
-def test_log_fn_not_logged(info_logger):
+def test_log_fn_not_logged(info_logger: structlog.BoundLogger) -> None:
     arg = "something"
     kwarg = {"keyword": "argument"}
     result = "some_result"
 
     @log_fn(logger=info_logger, log_level="debug")
-    def foo(*args, **kwargs):
+    def foo(*args, **kwargs):  # type: ignore
         return result
 
     # noinspection PyArgumentList
@@ -101,27 +101,27 @@ def test_log_fn_not_logged(info_logger):
     assert len(cap_logs) == 0
 
 
-def test_log_fn_invalid_log_level(debug_logger):
+def test_log_fn_invalid_log_level(debug_logger: structlog.BoundLogger) -> None:
     arg = "something"
     kwarg = {"keyword": "argument"}
     result = "some_result"
 
     with pytest.raises(ValueError) as e:
         # noinspection PyTypeChecker
-        @log_fn(logger=debug_logger, log_level="DEBUG2")
-        def foo(*args, **kwargs):
+        @log_fn(logger=debug_logger, log_level="DEBUG2")  # type: ignore
+        def foo(*args, **kwargs):  # type: ignore
             return result
 
     assert "unhandled log_level" in str(e.value)
 
 
-def test_log_fn_function_exception(debug_logger):
+def test_log_fn_function_exception(debug_logger: structlog.BoundLogger) -> None:
     arg = "something"
     kwarg = {"keyword": "argument"}
     result = "some_result"
 
     @log_fn(logger=debug_logger)
-    def foo(*args, **kwargs):
+    def foo(*args, **kwargs):  # type: ignore
         raise Exception("some exception")
 
     with pytest.raises(Exception) as e:

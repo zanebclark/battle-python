@@ -26,7 +26,9 @@ api_router = APIRouter()
 
 
 @api.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
     exc_str = f"{exc}".replace("\n", " ").replace("   ", " ")
     logger.error(f"{request}: {exc_str}")
     content = {"status_code": 10422, "message": exc_str, "data": None}
@@ -38,9 +40,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 # TODO: Anticipate hazard progression
 
 
-async def log_request_info(request: Request):
+async def log_request_info(request: Request) -> None:
     structlog.contextvars.clear_contextvars()
-    request_body = ""
+    request_body: dict = {}
     if request.url != request.base_url:
         request_body = await request.json()
         structlog.contextvars.bind_contextvars(

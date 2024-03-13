@@ -1,7 +1,6 @@
-import time
+from typing import Any
 
 import numpy as np
-import numpy.typing as npt
 import numpy.testing as nptest
 import pytest
 
@@ -27,7 +26,7 @@ from ..mocks.get_mock_snake_state import get_mock_snake_state
 
 
 @pytest.fixture
-def board_array() -> npt.NDArray[np.int_]:
+def board_array() -> np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]]:
     return np.array(
         [
             [99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99],
@@ -48,7 +47,9 @@ def board_array() -> npt.NDArray[np.int_]:
 
 
 @pytest.fixture
-def center_weight_array() -> npt.NDArray[np.int_]:
+def center_weight_array() -> (
+    np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]]
+):
     return np.array(
         [
             [99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99],
@@ -68,12 +69,16 @@ def center_weight_array() -> npt.NDArray[np.int_]:
     )
 
 
-def test_get_board_array(board_array: npt.NDArray[np.int_]):
+def test_get_board_array(
+    board_array: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]]
+) -> None:
     result = get_board_array(board_width=11, board_height=11)
     nptest.assert_array_equal(result, board_array)
 
 
-def test_get_center_weight_array(board_array: npt.NDArray[np.int_]):
+def test_get_center_weight_array(
+    board_array: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]]
+) -> None:
     result = get_center_weight_array(board_array=board_array)
     expected = np.array(
         [
@@ -165,15 +170,17 @@ def test_get_center_weight_array(board_array: npt.NDArray[np.int_]):
     ],
 )
 def test_get_food_array(
-    board_array: npt.NDArray[np.int_],
+    board_array: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]],
     food_coords: tuple[Coord, ...],
-    expected: npt.NDArray[np.int_],
-):
+    expected: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]],
+) -> None:
     result = get_food_array(board_array=board_array, food_coords=food_coords)
     nptest.assert_array_equal(result, expected)
 
 
-def test_get_food_array_exception(board_array: npt.NDArray[np.int_]):
+def test_get_food_array_exception(
+    board_array: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]]
+) -> None:
     with pytest.raises(Exception) as e:
         get_food_array(
             board_array=board_array,
@@ -293,7 +300,7 @@ def test_get_food_array_exception(board_array: npt.NDArray[np.int_]):
 )
 def test_get_snake_heads_at_coord(
     snakes: tuple[SnakeState, ...], expected: dict[Coord, list[SnakeState]]
-):
+) -> None:
     result = get_snake_heads_at_coord(snakes=snakes)
     assert result == expected
 
@@ -391,7 +398,7 @@ def test_get_snake_heads_at_coord(
 )
 def test_resolve_head_collision(
     snake_heads_at_coord: list[SnakeState], expected: list[SnakeState]
-):
+) -> None:
     resolve_head_collision(snake_heads_at_coord)
     assert snake_heads_at_coord == expected
 
@@ -508,7 +515,7 @@ def test_resolve_food_consumption(
     food_coords: tuple[Coord, ...],
     expected_snake_states: list[SnakeState],
     expected_food_coords: tuple[Coord, ...],
-):
+) -> None:
     food_coords = resolve_food_consumption(
         coord=Coord(x=0, y=10),
         snake_heads_at_coord=snake_heads_at_coord,
@@ -719,15 +726,17 @@ def test_resolve_food_consumption(
     ],
 )
 def test_get_all_snake_bodies_array(
-    board_array: npt.NDArray[np.int_],
+    board_array: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]],
     snakes: tuple[SnakeState, ...],
-    expected: npt.NDArray[np.int_],
-):
+    expected: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]],
+) -> None:
     result = get_all_snake_bodies_array(board_array=board_array, snakes=snakes)
     nptest.assert_array_equal(result, expected)
 
 
-def test_get_all_snake_bodies_array_exception(board_array: npt.NDArray[np.int_]):
+def test_get_all_snake_bodies_array_exception(
+    board_array: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]],
+) -> None:
     with pytest.raises(Exception) as e:
         get_all_snake_bodies_array(
             board_array=board_array,
@@ -903,9 +912,11 @@ def test_get_all_snake_bodies_array_exception(board_array: npt.NDArray[np.int_])
     ],
 )
 def test_get_all_snake_moves_array(
-    all_snake_bodies_array: npt.NDArray[np.int_],
-    expected: npt.NDArray[np.int_],
-):
+    all_snake_bodies_array: np.ndarray[
+        Any, np.dtype[np.signedinteger[np._typing._8Bit]]
+    ],
+    expected: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]],
+) -> None:
     result = get_all_snake_moves_array(all_snake_bodies_array=all_snake_bodies_array)
     print(get_aligned_masked_array(result[0]))
     print(get_aligned_masked_array(expected[0]))
@@ -1009,9 +1020,11 @@ def test_get_all_snake_moves_array(
     ],
 )
 def test_get_my_snake_area_of_control(
-    all_snake_moves_array: npt.NDArray[np.int_],
-    expected: npt.NDArray[np.int_],
-):
+    all_snake_moves_array: np.ndarray[
+        Any, np.dtype[np.signedinteger[np._typing._8Bit]]
+    ],
+    expected: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]],
+) -> None:
     result = get_my_snake_area_of_control(all_snake_moves_array=all_snake_moves_array)
     nptest.assert_array_equal(result, expected)
 
@@ -1081,9 +1094,11 @@ def test_get_my_snake_area_of_control(
     ],
 )
 def test_get_score(
-    all_snake_moves_array: npt.NDArray[np.int_],
-    expected: npt.NDArray[np.int_],
-):
+    all_snake_moves_array: np.ndarray[
+        Any, np.dtype[np.signedinteger[np._typing._8Bit]]
+    ],
+    expected: np.ndarray[Any, np.dtype[np.signedinteger[np._typing._8Bit]]],
+) -> None:
     food_array = np.array(
         [
             [99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99],
@@ -1139,20 +1154,20 @@ def test_get_score(
 @pytest.mark.parametrize(
     "next_body, food_consumed, health, expected_health",
     [
-        ([Coord(x=1, y=1)], True, 50, 100),
-        ([Coord(x=2, y=1)], False, 50, 34),
-        ([Coord(x=3, y=1)], False, 50, 49),
-        ([Coord(x=2, y=1)], False, 10, 0),
-        ([Coord(x=2, y=1)], True, 200, 100),
+        ((Coord(x=1, y=1),), True, 50, 100),
+        ((Coord(x=2, y=1),), False, 50, 34),
+        ((Coord(x=3, y=1),), False, 50, 49),
+        ((Coord(x=2, y=1),), False, 10, 0),
+        ((Coord(x=2, y=1),), True, 200, 100),
     ],
     ids=str,
 )
 def test_board_state_get_next_health(
-    next_body: list[Coord],
+    next_body: tuple[Coord, ...],
     food_consumed: bool,
     health: int,
     expected_health: int,
-):
+) -> None:
     board_state = get_mock_board_state(
         hazard_damage_rate=15,
         my_snake=get_mock_snake_state(
@@ -1174,17 +1189,19 @@ def test_board_state_get_next_health(
     "current_body, expected",
     [
         (
-            [Coord(x=1, y=1), Coord(x=1, y=2), Coord(x=1, y=3)],
-            [Coord(x=1, y=1), Coord(x=1, y=2), Coord(x=1, y=3), Coord(x=1, y=3)],
+            (Coord(x=1, y=1), Coord(x=1, y=2), Coord(x=1, y=3)),
+            (Coord(x=1, y=1), Coord(x=1, y=2), Coord(x=1, y=3), Coord(x=1, y=3)),
         ),
         (
-            [Coord(x=2, y=1), Coord(x=2, y=2), Coord(x=2, y=3)],
-            [Coord(x=2, y=1), Coord(x=2, y=2), Coord(x=2, y=3)],
+            (Coord(x=2, y=1), Coord(x=2, y=2), Coord(x=2, y=3)),
+            (Coord(x=2, y=1), Coord(x=2, y=2), Coord(x=2, y=3)),
         ),
     ],
     ids=str,
 )
-def test_board_state_get_next_body(current_body: list[Coord], expected: list[Coord]):
+def test_board_state_get_next_body(
+    current_body: tuple[Coord], expected: tuple[Coord]
+) -> None:
     board_state = get_mock_board_state(
         food_coords=(Coord(x=1, y=1),),
         my_snake=get_mock_snake_state(
@@ -1200,12 +1217,14 @@ def test_board_state_get_next_body(current_body: list[Coord], expected: list[Coo
 @pytest.mark.parametrize(
     "next_body, expected",
     [
-        ([Coord(x=1, y=1)], True),
-        ([Coord(x=2, y=1)], False),
+        ((Coord(x=1, y=1),), True),
+        ((Coord(x=2, y=1),), False),
     ],
     ids=str,
 )
-def test_board_state_is_food_consumed(next_body: list[Coord], expected: bool):
+def test_board_state_is_food_consumed(
+    next_body: tuple[Coord, ...], expected: bool
+) -> None:
     board_state = get_mock_board_state(
         hazard_damage_rate=15,
         my_snake=get_mock_snake_state(
@@ -1295,7 +1314,7 @@ def test_board_state_get_next_snake_state_for_snake_move(
     snake: SnakeState,
     move: Coord,
     expected: SnakeState,
-):
+) -> None:
     board_state = get_mock_board_state(
         hazard_damage_rate=15,
         my_snake=snake,
@@ -1585,7 +1604,7 @@ def test_board_state_get_next_snake_state_for_snake_move(
 def test_board_state_get_next_snake_states_for_snake(
     snake_state: SnakeState,
     expected: list[SnakeState],
-):
+) -> None:
     board_state = get_mock_board_state(
         hazard_damage_rate=15,
         my_snake=snake_state,
@@ -1953,7 +1972,7 @@ def test_board_state_populate_next_boards(
     description: str,
     board: BoardState,
     expected_boards: list[BoardState],
-):
+) -> None:
     board.populate_next_boards()
     for next_board in board.next_boards:
         expected_board = None

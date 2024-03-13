@@ -94,19 +94,19 @@ class Coord(NamedTuple):
     def get_manhattan_distance(self, other: Coord) -> int:
         return abs(self.x - other.x) + abs(self.y - other.y)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Coord) -> bool:  # type: ignore
         return f"{self.x}, {self.y}" < f"{other.x}, {other.y}"
 
-    def __le__(self, other):
+    def __le__(self, other: Coord) -> bool:  # type: ignore
         return f"{self.x}, {self.y}" <= f"{other.x}, {other.y}"
 
-    def __gt__(self, other):
+    def __gt__(self, other: Coord) -> bool:  # type: ignore
         return f"{self.x}, {self.y}" > f"{other.x}, {other.y}"
 
-    def __ge__(self, other):
+    def __ge__(self, other: Coord) -> bool:  # type: ignore
         return f"{self.x}, {self.y}" >= f"{other.x}, {other.y}"
 
-    def __add__(self, other):
+    def __add__(self, other: Coord) -> Coord:  # type: ignore
         return Coord(x=self.x + other.x, y=self.y + other.y)
 
     @property

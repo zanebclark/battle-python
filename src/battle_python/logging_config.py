@@ -5,10 +5,10 @@ import platform
 import time
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Any
 
 import structlog
-from logger_cloudwatch_structlog import AWSCloudWatchLogs
+from logger_cloudwatch_structlog import AWSCloudWatchLogs  # type: ignore
 from pydantic import BaseModel
 from structlog.typing import EventDict
 
@@ -25,7 +25,7 @@ def get_log_file_path() -> Path:
 
 
 class MyAWSCloudWatchLogs(AWSCloudWatchLogs):
-    def __call__(self, _, name: str, event_dict: EventDict) -> str | bytes:
+    def __call__(self, _: Any, name: str, event_dict: EventDict) -> str | bytes:
         """The return type of this depends on the return type of self._dumps."""
 
         header = f"[{name.upper()}] "
@@ -67,7 +67,7 @@ def configure_logger(log_level: str = "DEBUG") -> None:
     log_file_path = get_log_file_path()
 
     if not log_file_path.parent.is_dir():
-        log_file_path.parent.mkdir(parents=True)
+        log_file_path.parent.mkdir(parents=True, exist_ok=True)
 
     processors = (
         structlog.contextvars.merge_contextvars,
@@ -120,16 +120,16 @@ def configure_logger(log_level: str = "DEBUG") -> None:
         logging.getLogger(source).setLevel(logging.WARNING)
 
 
-def log_fn(
+def log_fn(  # type: ignore
     _func=None,
     *,
     logger: structlog.BoundLogger,
     log_level: LogLevel = "debug",
     log_args: bool = True,
 ):
-    def generic_log_fn(func):
+    def generic_log_fn(func):  # type: ignore
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # type: ignore
             logged_kwargs = {
                 k: v.model_dump() if isinstance(v, BaseModel) else v
                 for k, v in kwargs.items()
@@ -172,4 +172,4 @@ def log_fn(
     if _func is None:
         return generic_log_fn
 
-    return generic_log_fn(_func)
+    return generic_log_fn(_func)  # type: ignore

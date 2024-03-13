@@ -50,7 +50,7 @@ build {
   sources = ["source.amazon-ebs.ubuntu"]
 
   provisioner "shell" {
-    execute_command = "chmod +xe {{ .Path }}; {{ .Vars }} {{ .Path }}"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} {{ .Path }}"
     script          = "./images/scripts/01_install_dependencies.sh"
   }
 

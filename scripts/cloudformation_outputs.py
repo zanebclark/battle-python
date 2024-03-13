@@ -22,21 +22,23 @@ def get_cloudformation_outputs(stack_name: str, aws_region: str) -> list[dict]:
 
 
 @click.group()
-def cli():
+def cli() -> None:
     pass
 
 
 @cli.command(name="get_cloudformation_outputs")
 @click.option("--stack-name", help="The name of the Cloudformation stack")
 @click.option("--aws-region")
-def get_cloudformation_outputs_cli(stack_name: str, aws_region: str):
+def get_cloudformation_outputs_cli(stack_name: str, aws_region: str) -> list[dict]:
     return get_cloudformation_outputs(stack_name=stack_name, aws_region=aws_region)
 
 
 @cli.command()
 @click.option("--stack-name", help="The name of the Cloudformation stack")
 @click.option("--aws-region")
-def write_cloudformation_outputs_to_github_env(stack_name: str, aws_region: str):
+def write_cloudformation_outputs_to_github_env(
+    stack_name: str, aws_region: str
+) -> None:
     outputs = get_cloudformation_outputs(stack_name=stack_name, aws_region=aws_region)
 
     env_vars = [get_formatted_output(output) for output in outputs]

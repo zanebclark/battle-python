@@ -13,7 +13,7 @@ from ..mocks.get_mock_game_state import get_mock_game_state
 from ..mocks.get_mock_snake_state import get_mock_snake_state
 
 
-def test_game_state_init():
+def test_game_state_init() -> None:
     mock_gs = get_mock_game_state(
         board_height=11,
         board_width=11,
@@ -119,7 +119,7 @@ def test_game_state_init():
     assert e_gs.game == mock_gs.game
 
 
-def test_game_state_spam():
+def test_game_state_spam() -> None:
     gs = get_mock_game_state(
         board_height=11,
         board_width=11,
@@ -204,7 +204,7 @@ def test_game_state_spam():
     # TODO: That's an interesting concept. Maybe come up with a function that would compare key attributes of the board
 
 
-def test_game_state_get_next_move():
+def test_game_state_get_next_move() -> None:
     mock_gs = get_mock_game_state(
         board_height=11,
         board_width=11,
@@ -268,7 +268,7 @@ def test_game_state_get_next_move():
     gs.get_next_move(request_nanoseconds=time.time_ns())
 
 
-def test_some_exception():
+def test_some_exception() -> None:
     payload = {
         "game": {
             "id": "aede16e0-c163-491b-8cbc-d3efa851b57c",

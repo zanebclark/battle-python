@@ -2,7 +2,7 @@ import pytest
 from battle_python.api_types import Coord
 
 
-def test_coord_get_adjacent():
+def test_coord_get_adjacent() -> None:
     x = 5
     y = 1
 
@@ -29,7 +29,7 @@ def test_coord_get_adjacent():
     ],
     ids=str,
 )
-def test_coord_relative_distance(a: Coord, b: Coord, expected: int):
+def test_coord_relative_distance(a: Coord, b: Coord, expected: int) -> None:
     result = a.get_relative_distance(b)
     assert result == expected
 
@@ -49,6 +49,6 @@ def test_coord_relative_distance(a: Coord, b: Coord, expected: int):
     ],
     ids=str,
 )
-def test_coord_get_manhattan_distance(a: Coord, b: Coord, expected: int):
+def test_coord_get_manhattan_distance(a: Coord, b: Coord, expected: int) -> None:
     result = a.get_manhattan_distance(b)
     assert result == expected

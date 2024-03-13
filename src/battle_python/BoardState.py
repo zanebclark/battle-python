@@ -5,8 +5,8 @@ from itertools import product
 from typing import Literal, Any, Generator
 import structlog
 import numpy as np
-import numpy.typing as npt
-import numpy.ma as ma
+from numpy._typing import _8Bit
+from numpy.ma import masked_where
 
 from pydantic import NonNegativeInt, Field, ConfigDict, BaseModel
 
@@ -29,7 +29,9 @@ from battle_python.logging_config import log_fn
 log = structlog.get_logger()
 
 
-def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]:
+def get_board_array(
+    board_width: int, board_height: int
+) -> np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]]:
     # The first element is the # of rows (y-axis). The second element is the # of columns (x-axis)
     # Adding two supports padding the board with masked values. This supports calculations up to the
     # edge of the grid without altering the array size
@@ -47,8 +49,8 @@ def get_board_array(board_width: int, board_height: int) -> npt.NDArray[np.int_]
 
 
 def get_center_weight_array(
-    board_array: npt.NDArray[np.int_],
-) -> npt.NDArray[np.int_]:
+    board_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]],
+) -> np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]]:
     center_weight = np.copy(board_array, subok=True)
 
     # Fill the actual board area with 1 to support element-wise multiplication
@@ -64,8 +66,9 @@ def get_center_weight_array(
 
 
 def get_food_array(
-    board_array: npt.NDArray[np.int_], food_coords: tuple[Coord, ...]
-) -> npt.NDArray[np.int_]:
+    board_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]],
+    food_coords: tuple[Coord, ...],
+) -> np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]]:
     food_array = np.copy(board_array, subok=True)
 
     # Fill the actual board area with 1 to support element-wise multiplication
@@ -139,8 +142,9 @@ def resolve_food_consumption(
 
 
 def get_all_snake_bodies_array(
-    board_array: npt.NDArray[np.int_], snakes: tuple[SnakeState, ...]
-) -> npt.NDArray[np.int_]:
+    board_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]],
+    snakes: tuple[SnakeState, ...],
+) -> np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]]:
     row_count, _ = board_array.shape
     snake_body_array = np.array(board_array, copy=True)
     snake_body_array[1:-1, 1:-1] = UNEXPLORED_VALUE
@@ -189,12 +193,12 @@ def get_all_snake_bodies_array(
 
 
 def get_all_snake_moves_array(
-    all_snake_bodies_array: npt.NDArray[np.int_],
-) -> npt.NDArray[np.int_]:
+    all_snake_bodies_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]],
+) -> np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]]:
     all_snake_moves_array = np.copy(all_snake_bodies_array, subok=True)
     move = 0
     while True:
-        masked_all_snakes = ma.masked_where(
+        masked_all_snakes = masked_where(  # type: ignore
             np.logical_and(
                 all_snake_moves_array != UNEXPLORED_VALUE,
                 all_snake_moves_array != move,
@@ -242,8 +246,8 @@ def get_all_snake_moves_array(
 
 
 def get_my_snake_area_of_control(
-    all_snake_moves_array: npt.NDArray[np.int_],
-) -> npt.NDArray[np.int_]:
+    all_snake_moves_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]],
+) -> np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]]:
     """
     Returns a 2D array that represents my snake's "area of control".
     Coordinates with a value of 0 are reachable by least one enemy snake before me.
@@ -279,7 +283,7 @@ def get_my_snake_area_of_control(
         return my_snake_area_of_control
 
     [
-        np.putmask(
+        np.putmask(  # type: ignore
             my_snake_area_of_control,
             (snake_moves - all_snake_moves_array[0]) <= 0,
             0,
@@ -296,10 +300,10 @@ def get_my_snake_area_of_control(
 @log_fn(logger=log)
 def get_score(
     my_snake: SnakeState,
-    food_array: npt.NDArray[np.int_],
-    center_weight_array: npt.NDArray[np.int_],
-    all_snake_moves_array: npt.NDArray[np.int_],
-):
+    food_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]],
+    center_weight_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]],
+    all_snake_moves_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]],
+) -> int:
     if all_snake_moves_array.size == 0:
         return 0
 
@@ -315,13 +319,13 @@ def get_score(
         AREA_MULTIPLIER,
     )
 
-    score = np.multiply(my_snake_score, food_array)
+    score_board = np.multiply(my_snake_score, food_array)
 
-    score = np.multiply(score, center_weight_array)
+    score_board = np.multiply(score_board, center_weight_array)
 
-    # print("score")
-    # print(get_aligned_masked_array(score))
-    score = score.sum()
+    # print("score_board")
+    # print(get_aligned_masked_array(score_board))
+    score = score_board.sum()
 
     score += MURDER_SCORE * my_snake.murder_count
 
@@ -343,16 +347,24 @@ class BoardState(BaseModel):
     prev_state: BoardState | None = Field(default=None, exclude=True)
     next_boards: list[BoardState] = Field(default_factory=list, exclude=True)
     is_terminal: bool = False
-    terminal_reason: Literal["duplicate", "self_eliminated", "victory"] | None = None
-    board_array: npt.NDArray[np.int_] = Field(exclude=True)
-    food_array: npt.NDArray[np.int_] = Field(exclude=True)
-    all_snake_moves_array: npt.NDArray[np.int_] = Field(exclude=True)
-    center_weight_array: npt.NDArray[np.int_] = Field(exclude=True)
+    terminal_reason: Literal[
+        "duplicate", "self_eliminated", "victory", "better-snake-state-available"
+    ] | None = None
+    board_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]] = Field(
+        exclude=True
+    )
+    food_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]] = Field(exclude=True)
+    all_snake_moves_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]] = Field(
+        exclude=True
+    )
+    center_weight_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]] = Field(
+        exclude=True
+    )
     score: float = 0
 
     @classmethod
     @log_fn(logger=log, log_args=False)
-    def factory(cls, **kwargs) -> BoardState:
+    def factory(cls, **kwargs) -> BoardState:  # type: ignore
         my_snake = kwargs["my_snake"]
         other_snakes = kwargs["other_snakes"]
         board_height = kwargs["board_height"]
@@ -368,10 +380,10 @@ class BoardState(BaseModel):
             board_array = prev_state.board_array
             center_weight_array = prev_state.center_weight_array
 
-        snake_heads_at_coord = get_snake_heads_at_coord(
+        snake_heads_at_coord_dict = get_snake_heads_at_coord(
             snakes=(my_snake, *other_snakes)
         )
-        for coord, snake_heads_at_coord in snake_heads_at_coord.items():
+        for coord, snake_heads_at_coord in snake_heads_at_coord_dict.items():
             resolve_head_collision(snake_heads_at_coord=snake_heads_at_coord)
             kwargs["food_coords"] = resolve_food_consumption(
                 coord=coord,
@@ -380,7 +392,7 @@ class BoardState(BaseModel):
             )
 
         if my_snake.elimination is not None or len(other_snakes) == 0:
-            terminal_reason: str
+            terminal_reason: Literal["self_eliminated", "victory"]
             score: int
             if my_snake.elimination is not None:
                 terminal_reason = "self_eliminated"
@@ -432,7 +444,7 @@ class BoardState(BaseModel):
             **kwargs,
         )
 
-    def get_my_key(self) -> tuple[int, tuple[Coord]]:
+    def get_my_key(self) -> tuple[int, Coord]:
         return self.turn, self.my_snake.body[0]
 
     def get_other_key(self) -> tuple:
@@ -457,7 +469,7 @@ class BoardState(BaseModel):
 
     def get_next_health(
         self,
-        next_body: list[Coord],
+        next_body: tuple[Coord, ...],
         food_consumed: bool,
         snake: SnakeState,
     ) -> int:
@@ -480,14 +492,14 @@ class BoardState(BaseModel):
 
         return next_health
 
-    def get_next_body(self, current_body: list[Coord]) -> list[Coord]:
+    def get_next_body(self, current_body: tuple[Coord, ...]) -> tuple[Coord, ...]:
         if current_body[0] is DEATH_COORD:
-            return [current_body[0]]
+            return (current_body[0],)
         if current_body[0] in self.food_coords:
-            current_body.append(current_body[-1])
+            current_body = (*current_body, current_body[-1])
         return current_body
 
-    def is_food_consumed(self, next_body: list[Coord]) -> bool:
+    def is_food_consumed(self, next_body: tuple[Coord, ...]) -> bool:
         if next_body[0] in self.food_coords:
             return True
         return False
@@ -496,14 +508,16 @@ class BoardState(BaseModel):
         self, snake: SnakeState, move: Coord
     ) -> SnakeState:
         # TODO: Add an eliminated by object. Mirror what they're doing with board and rules
-        next_body = self.get_next_body(current_body=[move, *snake.body[:-1]])
+        next_body = self.get_next_body(current_body=(move, *snake.body[:-1]))
         food_consumed = self.is_food_consumed(next_body=next_body)
         next_health = self.get_next_health(
             next_body=next_body, food_consumed=food_consumed, snake=snake
         )
-        food_consumed_coords = [*snake.food_consumed]
+
         if food_consumed:
-            food_consumed_coords.append(next_body[0])
+            food_consumed_coords = tuple([*snake.food_consumed, next_body[0]])
+        else:
+            food_consumed_coords = tuple([*snake.food_consumed])
 
         elimination = None
         if next_health == 0:
@@ -579,7 +593,7 @@ class BoardState(BaseModel):
             ]
             if len(other_snake_next_state) > 0
         ]
-        all_potential_snake_states: tuple[list[SnakeState]] = product(
+        all_potential_snake_states: tuple[list[SnakeState]] = product(  # type: ignore
             my_snake_next_states, *other_snakes_next_states
         )
 
@@ -592,9 +606,9 @@ class BoardState(BaseModel):
                 food_coords=self.food_coords,
                 hazard_coords=self.hazard_coords,
                 my_snake=potential_snake_states[0].model_copy(),
-                other_snakes=[
+                other_snakes=tuple(
                     snake.model_copy() for snake in potential_snake_states[1:]
-                ],
+                ),
                 hazard_damage_rate=self.hazard_damage_rate,
                 prev_state=self,
             )
@@ -608,14 +622,14 @@ class BoardState(BaseModel):
     def get_snake_state_payload(
         self,
         snake_defs: dict[str, SnakeDef],
-        snake_id: str | None = None,
+        snake_id: str,
     ) -> dict:
-        snake = [
+        snakes = [
             snake
             for snake in [self.my_snake, *self.other_snakes]
             if snake.id == snake_id
         ]
-        if len(snake) == 0:
+        if len(snakes) == 0:
             return {
                 "id": snake_id,
                 "name": snake_defs[snake_id].name,
@@ -626,7 +640,7 @@ class BoardState(BaseModel):
                 "customizations": snake_defs[snake_id].customizations.model_dump(),
                 "elimination": Elimination(cause="unknown", by="unknown"),
             }
-        snake = snake[0]
+        snake = snakes[0]
 
         return {
             "id": snake.id,
@@ -645,7 +659,7 @@ class BoardState(BaseModel):
     def get_snake_payload(
         self,
         snake_defs: dict[str, SnakeDef],
-        snake_id: str | None = None,
+        snake_id: str,
     ) -> dict:
         snake_state_payload = self.get_snake_state_payload(
             snake_defs=snake_defs, snake_id=snake_id
@@ -705,7 +719,7 @@ class BoardState(BaseModel):
             return self.model_dump() == other.model_dump()
         return super().__eq__(other)
 
-    def is_inferior_to(self, other: BoardState):
+    def is_inferior_to(self, other: BoardState) -> bool:
         return (
             self.my_snake.length <= other.my_snake.length
             and self.my_snake.murder_count <= other.my_snake.murder_count
@@ -721,7 +735,7 @@ class BoardState(BaseModel):
             )
         )
 
-    def is_superior_to(self, other: BoardState):
+    def is_superior_to(self, other: BoardState) -> bool:
         return (
             self.my_snake.length >= other.my_snake.length
             and self.my_snake.murder_count >= other.my_snake.murder_count

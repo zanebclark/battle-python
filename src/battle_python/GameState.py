@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import time
 from itertools import groupby, takewhile
+from typing import Any, Literal
+
 import structlog
 from pydantic import NonNegativeInt, Field, BaseModel
 
@@ -24,7 +26,7 @@ class GameState(BaseModel):
     board_height: NonNegativeInt
     board_width: NonNegativeInt
     current_board: BoardState
-    best_my_snake_board: dict[tuple[int, tuple[Coord]], BoardState] = Field(
+    best_my_snake_board: dict[tuple[int, Coord], BoardState] = Field(
         default_factory=dict, exclude=True
     )
     terminal_counter: int = 0
@@ -32,9 +34,9 @@ class GameState(BaseModel):
     explored_states: dict[tuple, dict[tuple, BoardState]] = Field(
         default_factory=dict, exclude=True
     )
-    frontier: list[BoardState] = Field(default_factory=list, exclude=True)
+    frontier: list[BoardState | None] = Field(default_factory=list, exclude=True)
     snake_defs: dict[str, SnakeDef]
-    timeout_nanoseconds: int | None = None
+    timeout_nanoseconds: int = 0
 
     # noinspection PyNestedDecorators
     @classmethod
@@ -165,7 +167,7 @@ class GameState(BaseModel):
             snake_defs=snake_defs,
         )
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context: Any) -> None:
         self.frontier = [self.current_board]
         self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board
         self.timeout_nanoseconds = (self.game.timeout - 100) * 1_000_000
@@ -232,7 +234,9 @@ class GameState(BaseModel):
         return True
 
     @log_fn(logger=log, log_args=False)
-    def get_next_move(self, request_nanoseconds: float):
+    def get_next_move(
+        self, request_nanoseconds: float
+    ) -> Literal["up", "down", "left", "right"]:
         continue_incrementing = True
         while continue_incrementing:
             continue_incrementing = self.increment_frontier(
@@ -272,6 +276,7 @@ class GameState(BaseModel):
             )
 
             return "up"
+        move: Literal["up", "down", "left", "right"]
         if self.current_board.my_snake.head + Coord(x=-1, y=0) == best_score_head:
             move = "left"
         elif self.current_board.my_snake.head + Coord(x=1, y=0) == best_score_head:

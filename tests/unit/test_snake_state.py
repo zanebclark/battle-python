@@ -15,7 +15,7 @@ class TestSnakeState:
         ],
         ids=str,
     )
-    def test_last_move(self, body: tuple[Coord, ...], expected: Coord):
+    def test_last_move(self, body: tuple[Coord, ...], expected: Coord) -> None:
         snake = get_mock_snake_state(body_coords=body)
         result = snake.last_move
         assert result == expected

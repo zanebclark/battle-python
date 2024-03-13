@@ -96,7 +96,7 @@ def battlesnake_url() -> str:
         return f"{os.environ['BATTLESNAKEAPIURL']}Prod"
 
 
-def test_populated_battlesnake_details(battlesnake_url: str):
+def test_populated_battlesnake_details(battlesnake_url: str) -> None:
     response = requests.get(battlesnake_url)
     SnakeMetadataResponse(**response.json())
     assert response.status_code == 200
@@ -112,7 +112,7 @@ def test_populated_battlesnake_details(battlesnake_url: str):
 )
 def test_populated_api_endpoints(
     battlesnake_url: str, game_state: GameState, turn: int, path: str
-):
+) -> None:
     data = game_state.current_board.get_move_request(
         snake_defs=game_state.snake_defs, game=game_state.game
     )
