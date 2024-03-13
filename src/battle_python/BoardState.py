@@ -573,7 +573,9 @@ class BoardState(BaseModel):
             other_snake_next_state
             for other_snake_next_state in [
                 self.get_next_snake_states_for_snake(snake=snake, index=index + 1)
-                for index, snake in enumerate(self.other_snakes)
+                for index, snake in enumerate(
+                    [snake for snake in self.other_snakes if snake.elimination is None]
+                )
             ]
             if len(other_snake_next_state) > 0
         ]

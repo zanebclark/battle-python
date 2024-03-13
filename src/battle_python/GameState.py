@@ -13,6 +13,7 @@ from battle_python.api_types import (
     SnakeDef,
     SnakeRequest,
 )
+from battle_python.constants import DEATH_COORD
 from battle_python.logging_config import log_fn
 
 log = structlog.get_logger()
@@ -248,31 +249,43 @@ class GameState(BaseModel):
         if len(min_score_per_head.keys()) == 0:
             return "up"
 
-        best_head_score = sorted(
+        best_score_head = sorted(
             min_score_per_head.items(),
             key=lambda item: item[1],
             reverse=True,
         )[0][0]
 
         direction = Coord(
-            x=self.current_board.my_snake.head.x - best_head_score.x,
-            y=self.current_board.my_snake.head.y - best_head_score.y,
+            x=self.current_board.my_snake.head.x - best_score_head.x,
+            y=self.current_board.my_snake.head.y - best_score_head.y,
         )
+        if best_score_head == DEATH_COORD:
+            log.info(
+                "your next move is death",
+                best_head_score=f"({best_score_head.x}, {best_score_head.y})",
+                average_head_scores=[
+                    f"({coord.x},{coord.y}): {score}"
+                    for coord, score in min_score_per_head.items()
+                ],
+                boards_explored=self.counter,
+                terminal_boards=self.terminal_counter,
+            )
 
-        if self.current_board.my_snake.head + Coord(x=-1, y=0) == best_head_score:
+            return "up"
+        if self.current_board.my_snake.head + Coord(x=-1, y=0) == best_score_head:
             move = "left"
-        elif self.current_board.my_snake.head + Coord(x=1, y=0) == best_head_score:
+        elif self.current_board.my_snake.head + Coord(x=1, y=0) == best_score_head:
             move = "right"
-        elif self.current_board.my_snake.head + Coord(x=0, y=-1) == best_head_score:
+        elif self.current_board.my_snake.head + Coord(x=0, y=-1) == best_score_head:
             move = "down"
-        elif self.current_board.my_snake.head + Coord(x=0, y=1) == best_head_score:
+        elif self.current_board.my_snake.head + Coord(x=0, y=1) == best_score_head:
             move = "up"
         else:
             raise Exception(f"Unhandled direction: {direction}")
 
         log.info(
             "get_next_move",
-            best_head_score=f"({best_head_score.x}, {best_head_score.y})",
+            best_head_score=f"({best_score_head.x}, {best_score_head.y})",
             average_head_scores=[
                 f"({coord.x},{coord.y}): {score}"
                 for coord, score in min_score_per_head.items()
