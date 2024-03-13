@@ -176,9 +176,7 @@ def get_all_snake_bodies_array(
     # Rows are indexed from top to bottom. Subtract y coord from rows to account for this
     # Subtract 2 to account for board buffer rows on top and bottom
     # Add 1 to x to account for left-most board buffer
-    for i, snake in enumerate(snakes):
-        if snake.elimination is not None:
-            continue
+    for i, snake in enumerate([snake for snake in snakes if snake.elimination is None]):
         all_snake_bodies_array[
             i,
             # Rows (y-axis) are the first element. Indexing is top to bottom

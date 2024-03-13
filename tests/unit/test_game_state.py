@@ -266,3 +266,140 @@ def test_game_state_get_next_move():
     )
     gs = GameState.from_payload(payload=payload)
     gs.get_next_move(request_nanoseconds=time.time_ns())
+
+
+def test_some_exception():
+    payload = {
+        "game": {
+            "id": "aede16e0-c163-491b-8cbc-d3efa851b57c",
+            "ruleset": {
+                "name": "standard",
+                "version": "v1.2.3",
+                "settings": {
+                    "foodSpawnChance": 15,
+                    "minimumFood": 1,
+                    "hazardDamagePerTurn": 0,
+                    "hazardMap": "",
+                    "hazardMapAuthor": "",
+                    "royale": {"shrinkEveryNTurns": 0},
+                    "squad": {
+                        "allowBodyCollisions": False,
+                        "sharedElimination": False,
+                        "sharedHealth": False,
+                        "sharedLength": False,
+                    },
+                },
+            },
+            "map": "standard",
+            "timeout": 500,
+            "source": "ladder",
+        },
+        "turn": 8,
+        "board": {
+            "height": 11,
+            "width": 11,
+            "snakes": [
+                {
+                    "id": "gs_vBwrGGCKvpqv7jpD9W7hTvdB",
+                    "name": "devops-for-days",
+                    "latency": "436",
+                    "health": 94,
+                    "body": [
+                        {"x": 5, "y": 3},
+                        {"x": 4, "y": 3},
+                        {"x": 3, "y": 3},
+                        {"x": 2, "y": 3},
+                    ],
+                    "head": {"x": 5, "y": 3},
+                    "length": 4,
+                    "shout": "",
+                    "squad": "",
+                    "customizations": {
+                        "color": "#ab8b9c",
+                        "head": "beluga",
+                        "tail": "do-sammy",
+                    },
+                },
+                {
+                    "id": "gs_j9xbRR8q6VdVQfr7Sgj87BvS",
+                    "name": "Battlesnake Go!",
+                    "latency": "7",
+                    "health": 92,
+                    "body": [{"x": 1, "y": 9}, {"x": 1, "y": 8}, {"x": 2, "y": 8}],
+                    "head": {"x": 1, "y": 9},
+                    "length": 3,
+                    "shout": "",
+                    "squad": "",
+                    "customizations": {
+                        "color": "#ff00ff",
+                        "head": "tiger-king",
+                        "tail": "tiger-tail",
+                    },
+                },
+                {
+                    "id": "gs_WvpHJrH8yFQpryWDGxQqGckY",
+                    "name": "Carl Gustav Jung",
+                    "latency": "12",
+                    "health": 94,
+                    "body": [
+                        {"x": 4, "y": 8},
+                        {"x": 4, "y": 9},
+                        {"x": 4, "y": 10},
+                        {"x": 5, "y": 10},
+                    ],
+                    "head": {"x": 4, "y": 8},
+                    "length": 4,
+                    "shout": "",
+                    "squad": "",
+                    "customizations": {
+                        "color": "#00ccff",
+                        "head": "all-seeing",
+                        "tail": "mystic-moon",
+                    },
+                },
+                {
+                    "id": "gs_38PmM8VjxkGVpTPtYgBrXP7C",
+                    "name": "Maxine the Mule",
+                    "latency": "500",
+                    "health": 92,
+                    "body": [{"x": 9, "y": 9}, {"x": 9, "y": 8}, {"x": 9, "y": 7}],
+                    "head": {"x": 9, "y": 9},
+                    "length": 3,
+                    "shout": "",
+                    "squad": "",
+                    "customizations": {
+                        "color": "#ff5500",
+                        "head": "ghost",
+                        "tail": "leaf",
+                    },
+                },
+            ],
+            "food": [{"x": 0, "y": 8}, {"x": 8, "y": 0}, {"x": 5, "y": 5}],
+            "hazards": [],
+        },
+        "you": {
+            "id": "gs_vBwrGGCKvpqv7jpD9W7hTvdB",
+            "name": "devops-for-days",
+            "latency": "436",
+            "health": 94,
+            "body": [
+                {"x": 5, "y": 3},
+                {"x": 4, "y": 3},
+                {"x": 3, "y": 3},
+                {"x": 2, "y": 3},
+            ],
+            "head": {"x": 5, "y": 3},
+            "length": 4,
+            "shout": "",
+            "squad": "",
+            "customizations": {
+                "color": "#ab8b9c",
+                "head": "beluga",
+                "tail": "do-sammy",
+            },
+        },
+    }
+    gs = GameState.from_payload(payload=payload)
+    gs.get_next_move(request_nanoseconds=time.time_ns())
+    for turn in range(2):
+        gs.increment_frontier(request_nanoseconds=time.time_ns() + (5000 * 1_000_000))
