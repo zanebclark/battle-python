@@ -27,7 +27,7 @@ class SnakeState(BaseModel):
     body: tuple[Coord, ...]
     head: Coord
     length: NonNegativeInt
-    latency: NonNegativeInt
+    latency: str
     shout: str | None = None
     is_self: bool = False
     murder_count: int = 0

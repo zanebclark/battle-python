@@ -107,7 +107,7 @@ def test_game_state_init():
         assert gs_snake.body == snake.body
         assert gs_snake.head == snake.head
         assert gs_snake.length == snake.length
-        assert gs_snake.latency == int(snake.latency)
+        assert gs_snake.latency == snake.latency
         assert gs_snake.shout == snake.shout
         assert gs_snake.is_self == (snake.id == mock_gs.current_board.my_snake.id)
         assert gs_snake.murder_count == 0
