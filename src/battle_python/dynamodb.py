@@ -4,23 +4,13 @@ import time
 from typing import Any
 
 from boto3.session import Session
-from ec2_metadata import ec2_metadata
-from requests import ConnectionError
 from pydantic import BaseModel, ConfigDict
 
 from battle_python.api_types import SnakeRequest
 
 
-def get_region_name() -> str:
-    try:
-        return ec2_metadata.region
-    except ConnectionError:
-        return "us-west-2"
-
-
 def get_dynamodb_table(table_name: str) -> Any:
-    region_name = get_region_name()
-    session = Session(region_name=region_name)
+    session = Session(region_name="us-west-2")
     dynamodb = session.resource("dynamodb")
     table = dynamodb.Table(table_name)
     table.load()
