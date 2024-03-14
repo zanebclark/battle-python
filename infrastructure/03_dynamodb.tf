@@ -54,11 +54,6 @@ resource "aws_dynamodb_table" "battlesnakes_games" {
     type = "S"
   }
 
-  attribute {
-    name = "snakeID"
-    type = "S"
-  }
-
   ttl {
     attribute_name = "expireAt"
     enabled        = true
