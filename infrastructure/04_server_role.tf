@@ -27,3 +27,21 @@ resource "aws_iam_role" "battle-python-server-role" {
     }
   )
 }
+
+resource "aws_iam_role_policy" "dynamodb-policy" {
+  name = "dynamodb-policy"
+  role = aws_iam_role.battle-python-server-role.id
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : ["dynamodb:*"],
+        "Resource" : [
+          aws_dynamodb_table.battlesnakes_requests.arn,
+          aws_dynamodb_table.battlesnakes_games.arn
+        ]
+      }
+    ]
+  })
+}
