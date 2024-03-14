@@ -10,7 +10,7 @@ from ..mocks.get_mock_snake_state import get_mock_snake_state
 client = TestClient(api)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def game_state() -> GameState:
     return get_mock_game_state(
         board_height=11,

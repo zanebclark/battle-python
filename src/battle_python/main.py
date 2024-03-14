@@ -2,15 +2,23 @@ import os
 import time
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Request, APIRouter, Depends, status
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Request,
+    APIRouter,
+    Depends,
+    status,
+    BackgroundTasks,
+)
 import structlog
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from battle_python.GameState import GameState
 from battle_python.api_types import SnakeMetadataResponse, SnakeRequest, MoveResponse
+from battle_python.dynamodb import GamesTable, RequestsTable
 from battle_python.logging_config import configure_logger
-
 
 configure_logger()
 logger = structlog.get_logger()
@@ -35,9 +43,6 @@ async def validation_exception_handler(
     return JSONResponse(
         content=content, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
     )
-
-
-# TODO: Anticipate hazard progression
 
 
 async def log_request_info(request: Request) -> None:
@@ -75,32 +80,55 @@ def battlesnake_details() -> SnakeMetadataResponse:
 
 
 @api_router.post("/start")
-def game_started(_: SnakeRequest) -> None:
-    pass
+def game_started(
+    request: SnakeRequest, games_table: GamesTable = Depends(GamesTable.factory)
+) -> None:
+    games_table.add_game(request=request)
 
 
 @api_router.post("/move")
-def move(move_request: SnakeRequest) -> MoveResponse:
+def move(
+    move_request: SnakeRequest,
+    background_tasks: BackgroundTasks,
+    requests_table: RequestsTable = Depends(RequestsTable.factory),
+) -> MoveResponse:
     request_nanoseconds = time.time_ns()
+    request_milliseconds = int(str(request_nanoseconds)[:-6])
+
     try:
         gs = GameState.from_snake_request(move_request=move_request)
-        direction = gs.get_next_move(request_nanoseconds=request_nanoseconds)
+        direction, boards_explored, terminal_boards = gs.get_next_move(
+            request_nanoseconds=request_nanoseconds
+        )
         logger.debug(
             "returning move",
             move=direction,
         )
+        background_tasks.add_task(
+            requests_table.add_request,
+            request=move_request,
+            move=direction,
+            latency=int(str(time.time_ns())[:-6]) - request_milliseconds,
+            boards_explored=boards_explored,
+            terminal_boards=terminal_boards,
+            exception=False,
+        )
         return MoveResponse(move=direction)
     except Exception:
+        requests_table.add_request(request=move_request, exception=True)
         logger.exception("something went wrong")
         raise HTTPException(status_code=404)
 
 
 @api_router.post("/end")
-def game_over(_: SnakeRequest) -> None:
-    pass
+def game_over(
+    request: SnakeRequest, games_table: GamesTable = Depends(GamesTable.factory)
+) -> None:
+    games_table.update_game(request=request)
 
 
 api.include_router(api_router, dependencies=[Depends(log_request_info)])
 
 # TODO: If the battlesnake is going to run out of health and die, take this into account with probabilities
 # TODO: If the battlesnake consistently times out, take this into account with probabilities
+# TODO: Anticipate hazard progression

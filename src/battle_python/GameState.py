@@ -232,7 +232,7 @@ class GameState(BaseModel):
 
     def get_next_move(
         self, request_nanoseconds: float
-    ) -> Literal["up", "down", "left", "right"]:
+    ) -> tuple[Literal["up", "down", "left", "right"], int, int]:
         continue_incrementing = True
         while continue_incrementing:
             continue_incrementing = self.increment_frontier(
@@ -247,7 +247,7 @@ class GameState(BaseModel):
         }
 
         if len(min_score_per_head.keys()) == 0:
-            return "up"
+            return "up", self.counter, self.terminal_counter
 
         best_score_head = sorted(
             min_score_per_head.items(),
@@ -271,7 +271,7 @@ class GameState(BaseModel):
                 terminal_boards=self.terminal_counter,
             )
 
-            return "up"
+            return "up", self.counter, self.terminal_counter
         move: Literal["up", "down", "left", "right"]
         if self.current_board.my_snake.head + Coord(x=-1, y=0) == best_score_head:
             move = "left"
@@ -296,4 +296,4 @@ class GameState(BaseModel):
             terminal_boards=self.terminal_counter,
         )
 
-        return move
+        return move, self.counter, self.terminal_counter
