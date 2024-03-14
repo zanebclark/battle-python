@@ -16,7 +16,6 @@ from battle_python.api_types import (
     SnakeRequest,
 )
 from battle_python.constants import DEATH_COORD
-from battle_python.logging_config import log_fn
 
 log = structlog.get_logger()
 
@@ -172,7 +171,6 @@ class GameState(BaseModel):
         self.best_my_snake_board[self.current_board.get_my_key()] = self.current_board
         self.timeout_nanoseconds = (self.game.timeout - 100) * 1_000_000
 
-    @log_fn(logger=log, log_args=False)
     def save_board_and_prune_tree(self, board: BoardState) -> BoardState | None:
         self.counter += 1
         if board.is_terminal:
@@ -207,7 +205,6 @@ class GameState(BaseModel):
             self.explored_states[my_key] = {other_key: board}
             return board
 
-    @log_fn(logger=log, log_args=False)
     def increment_frontier(self, request_nanoseconds: float) -> bool:
         next_boards: list[BoardState | None] = list(
             takewhile(
@@ -233,7 +230,6 @@ class GameState(BaseModel):
         self.frontier = next_boards
         return True
 
-    @log_fn(logger=log, log_args=False)
     def get_next_move(
         self, request_nanoseconds: float
     ) -> Literal["up", "down", "left", "right"]:

@@ -1,11 +1,11 @@
 resource "aws_dynamodb_table" "battlesnakes_requests" {
   name         = "battlesnakesRequests"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "SnakeGameID"
+  hash_key     = "snakeGameID"
   range_key    = "turn"
 
   attribute {
-    name = "SnakeGameID"
+    name = "snakeGameID"
     type = "S"
   }
 
@@ -42,20 +42,20 @@ resource "aws_dynamodb_table" "battlesnakes_requests" {
 resource "aws_dynamodb_table" "battlesnakes_games" {
   name         = "battlesnakesGames"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "SnakeGameID"
+  hash_key     = "snakeGameID"
 
   attribute {
-    name = "SnakeGameID"
+    name = "snakeGameID"
     type = "S"
   }
 
   attribute {
-    name = "GameID"
+    name = "gameID"
     type = "S"
   }
 
   attribute {
-    name = "SameID"
+    name = "snakeID"
     type = "S"
   }
 
@@ -74,9 +74,9 @@ resource "aws_dynamodb_table" "battlesnakes_games" {
 
 
   global_secondary_index {
-    hash_key           = "GameID"
-    name               = "GameIDIndex"
-    non_key_attributes = ["SnakeID"]
+    hash_key           = "gameID"
+    name               = "gameIDIndex"
+    non_key_attributes = ["snakeID"]
     projection_type    = "INCLUDE"
   }
 

@@ -144,3 +144,7 @@ class SnakeRequest(BaseModel):
     turn: NonNegativeInt
     board: Board
     you: Snake
+
+    @property
+    def snake_game_id(self) -> str:
+        return f"{self.you.id}__{self.game.id}"

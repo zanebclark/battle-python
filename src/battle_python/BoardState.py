@@ -24,7 +24,6 @@ from battle_python.constants import (
     BORDER_VALUE,
     SNAKE_BODY_VALUE,
 )
-from battle_python.logging_config import log_fn
 
 log = structlog.get_logger()
 
@@ -297,7 +296,6 @@ def get_my_snake_area_of_control(
     return my_snake_area_of_control
 
 
-@log_fn(logger=log)
 def get_score(
     my_snake: SnakeState,
     food_array: np.ndarray[Any, np.dtype[np.signedinteger[_8Bit]]],
@@ -363,7 +361,6 @@ class BoardState(BaseModel):
     score: float = 0
 
     @classmethod
-    @log_fn(logger=log, log_args=False)
     def factory(cls, **kwargs) -> BoardState:  # type: ignore
         my_snake = kwargs["my_snake"]
         other_snakes = kwargs["other_snakes"]
@@ -576,7 +573,6 @@ class BoardState(BaseModel):
             for move in moves
         ]
 
-    @log_fn(logger=log, log_args=False)
     def populate_next_boards(self) -> Generator[BoardState, None, None]:
         if self.is_terminal:
             return
