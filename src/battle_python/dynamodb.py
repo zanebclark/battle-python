@@ -85,3 +85,22 @@ class RequestsTable(BaseModel):
                 **request.model_dump(),
             }
         )
+
+
+def add_request(
+    request: SnakeRequest,
+    move: str | None = None,
+    latency: int | None = None,
+    boards_explored: int | None = None,
+    terminal_boards: int | None = None,
+    exception: bool | None = False,
+) -> None:
+    requests_table = RequestsTable.factory()
+    requests_table.add_request(
+        request=request,
+        move=move,
+        latency=latency,
+        boards_explored=boards_explored,
+        terminal_boards=terminal_boards,
+        exception=exception,
+    )

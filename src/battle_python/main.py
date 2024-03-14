@@ -2,6 +2,7 @@ import os
 import time
 from typing import Literal
 
+import structlog
 from fastapi import (
     FastAPI,
     HTTPException,
@@ -11,13 +12,12 @@ from fastapi import (
     status,
     BackgroundTasks,
 )
-import structlog
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from battle_python.GameState import GameState
 from battle_python.api_types import SnakeMetadataResponse, SnakeRequest, MoveResponse
-from battle_python.dynamodb import GamesTable, RequestsTable
+from battle_python.dynamodb import GamesTable, add_request
 from battle_python.logging_config import configure_logger
 
 configure_logger()
@@ -90,7 +90,6 @@ def game_started(
 def move(
     move_request: SnakeRequest,
     background_tasks: BackgroundTasks,
-    requests_table: RequestsTable = Depends(RequestsTable.factory),
 ) -> MoveResponse:
     request_nanoseconds = time.time_ns()
     request_milliseconds = int(str(request_nanoseconds)[:-6])
@@ -105,7 +104,7 @@ def move(
             move=direction,
         )
         background_tasks.add_task(
-            requests_table.add_request,
+            add_request,
             request=move_request,
             move=direction,
             latency=int(str(time.time_ns())[:-6]) - request_milliseconds,
@@ -115,7 +114,7 @@ def move(
         )
         return MoveResponse(move=direction)
     except Exception:
-        requests_table.add_request(request=move_request, exception=True)
+        add_request(request=move_request, exception=True)
         logger.exception("something went wrong")
         raise HTTPException(status_code=404)
 
