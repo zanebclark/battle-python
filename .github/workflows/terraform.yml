@@ -10,6 +10,7 @@ permissions:
 
 env:
   AWS_REGION: us-west-2
+  TESTING_PIPELINE_EXECUTION_ROLE: arn:aws:iam::057283593447:role/aws-sam-cli-managed-dev-pipel-PipelineExecutionRole-5y4BWCbodfPm
 
 jobs:
   build-artifact:
@@ -21,8 +22,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
-          role-session-name: prod-packaging
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: test-packaging
           role-duration-seconds: 3600
           role-skip-session-tagging: true
       - name: Packer Init
