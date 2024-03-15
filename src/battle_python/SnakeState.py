@@ -4,7 +4,7 @@ import structlog
 from typing import Literal, Any
 from pydantic import NonNegativeInt, Field, BaseModel
 
-from battle_python.api_types import Coord
+from battle_python.api_types import Coord, CoordAsDict
 
 logger = structlog.get_logger()
 
@@ -25,14 +25,14 @@ class Elimination(BaseModel):
 class SnakeState(BaseModel):
     id: str
     health: NonNegativeInt
-    body: tuple[Coord, ...]
-    head: Coord
+    body: tuple[CoordAsDict, ...]
+    head: CoordAsDict
     length: NonNegativeInt
     latency: str
     shout: str | None = None
     is_self: bool = False
     murder_count: int = 0
-    food_consumed: tuple[Coord, ...] = Field(default_factory=tuple)
+    food_consumed: tuple[CoordAsDict, ...] = Field(default_factory=tuple)
     elimination: Elimination | None = None
     prev_state: SnakeState | None = Field(default=None, exclude=True)
 

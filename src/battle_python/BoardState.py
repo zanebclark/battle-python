@@ -11,7 +11,7 @@ from numpy.ma import masked_where
 from pydantic import NonNegativeInt, Field, ConfigDict, BaseModel
 
 from battle_python.SnakeState import SnakeState, Elimination
-from battle_python.api_types import Coord, Game, SnakeDef
+from battle_python.api_types import Coord, Game, SnakeDef, CoordAsDict
 from battle_python.constants import (
     FOOD_WEIGHT,
     CENTER_CONTROL_WEIGHT,
@@ -337,8 +337,8 @@ class BoardState(BaseModel):
     turn: NonNegativeInt
     board_width: NonNegativeInt
     board_height: NonNegativeInt
-    food_coords: tuple[Coord, ...]
-    hazard_coords: tuple[Coord, ...]
+    food_coords: tuple[CoordAsDict, ...]
+    hazard_coords: tuple[CoordAsDict, ...]
     other_snakes: tuple[SnakeState, ...]
     my_snake: SnakeState
     hazard_damage_rate: int

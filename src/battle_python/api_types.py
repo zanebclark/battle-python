@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from typing import Literal, NamedTuple
-from pydantic import NonNegativeInt, ConfigDict, BaseModel
+from typing import Literal, NamedTuple, Annotated
+
+from pydantic import NonNegativeInt, ConfigDict, BaseModel, PlainSerializer
 
 Direction = Literal[
     "up",
@@ -114,6 +115,12 @@ class Coord(NamedTuple):
         return {"x": self.x, "y": self.y}
 
 
+CoordAsDict = Annotated[
+    Coord,
+    PlainSerializer(lambda coord: coord.as_dict, return_type=dict, when_used="always"),
+]
+
+
 class MoveResponse(FrozenBaseModel):
     move: Direction
     shout: str | None = None
@@ -123,9 +130,9 @@ class Snake(BaseModel):
     id: str
     name: str
     health: NonNegativeInt
-    body: tuple[Coord, ...]
+    body: tuple[CoordAsDict, ...]
     latency: str
-    head: Coord
+    head: CoordAsDict
     length: NonNegativeInt
     shout: str | None
     customizations: SnakeCustomizations
@@ -134,8 +141,8 @@ class Snake(BaseModel):
 class Board(FrozenBaseModel):
     height: NonNegativeInt
     width: NonNegativeInt
-    food: tuple[Coord, ...]
-    hazards: tuple[Coord, ...]
+    food: tuple[CoordAsDict, ...]
+    hazards: tuple[CoordAsDict, ...]
     snakes: tuple[Snake, ...]
 
 

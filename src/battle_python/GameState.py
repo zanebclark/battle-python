@@ -14,6 +14,7 @@ from battle_python.api_types import (
     Game,
     SnakeDef,
     SnakeRequest,
+    CoordAsDict,
 )
 from battle_python.constants import DEATH_COORD
 
@@ -25,7 +26,7 @@ class GameState(BaseModel):
     board_height: NonNegativeInt
     board_width: NonNegativeInt
     current_board: BoardState
-    best_my_snake_board: dict[tuple[int, Coord], BoardState] = Field(
+    best_my_snake_board: dict[tuple[int, CoordAsDict], BoardState] = Field(
         default_factory=dict, exclude=True
     )
     terminal_counter: int = 0
