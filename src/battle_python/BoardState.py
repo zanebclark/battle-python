@@ -3,21 +3,21 @@ from __future__ import annotations
 from collections import defaultdict
 from itertools import product
 from typing import Literal, Any, Generator
-import structlog
+
 import numpy as np
+import structlog
 from numpy._typing import _8Bit
 from numpy.ma import masked_where
-
 from pydantic import NonNegativeInt, Field, ConfigDict, BaseModel
 
 from battle_python.SnakeState import SnakeState, Elimination
 from battle_python.api_types import Coord, Game, SnakeDef, CoordAsDict
 from battle_python.constants import (
-    FOOD_WEIGHT,
+    FOOD_CONTROLLED_SCORE,
     CENTER_CONTROL_WEIGHT,
     AREA_MULTIPLIER,
     DEATH_COORD,
-    FOOD_SCORE,
+    FOOD_CONSUMED_SCORE,
     MURDER_SCORE,
     WIN_SCORE,
     UNEXPLORED_VALUE,
@@ -85,7 +85,7 @@ def get_food_array(
     if any([ind < 0 for ind in [*rows, *columns]]):
         raise Exception(f"food coordinate outside of board: {food_coords}")
 
-    food_array[rows, columns] = FOOD_WEIGHT
+    food_array[rows, columns] = FOOD_CONTROLLED_SCORE
 
     # print("food_array:")
     # print(get_aligned_masked_array(food_array))
@@ -213,7 +213,11 @@ def get_all_snake_moves_array(
             for shift in [(0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
             for ind in np.argwhere(masked_all_snakes == move)
         ]
+        # TODO: I think you're calculating until every cell is accounted for.
+        # TODO: You could calculate until every cell is explored and break.
+        # TODO: That would require some aggregation on every pass, I suppose.
 
+        # TODO: How do I handle islands?
         if len(neighbors) == 0:
             break
 
@@ -237,9 +241,6 @@ def get_all_snake_moves_array(
         all_snake_moves_array == UNEXPLORED_VALUE,
         0,
     )
-
-    # print("all_snake_moves_array:")
-    # print(get_aligned_masked_array(all_snake_moves_array))
 
     return all_snake_moves_array
 
@@ -327,7 +328,7 @@ def get_score(
 
     score += MURDER_SCORE * my_snake.murder_count
 
-    score += FOOD_SCORE * len(my_snake.food_consumed)
+    score += FOOD_CONSUMED_SCORE * len(my_snake.food_consumed)
 
     return score
 
