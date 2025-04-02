@@ -93,7 +93,7 @@ def get_food_array(
 
 
 def get_snake_heads_at_coord(
-    snakes: tuple[SnakeState, ...]
+    snakes: tuple[SnakeState, ...],
 ) -> dict[Coord, list[SnakeState]]:
     snake_heads_at_coord: dict[Coord, list[SnakeState]] = defaultdict(list)
     for snake_state in snakes:
@@ -634,9 +634,11 @@ class BoardState(BaseModel):
             "head": snake.head.as_dict,
             "length": snake.length,
             "customizations": snake_defs[snake.id].customizations.model_dump(),
-            "elimination": snake.elimination.model_dump()
-            if snake.elimination is not None
-            else None,
+            "elimination": (
+                snake.elimination.model_dump()
+                if snake.elimination is not None
+                else None
+            ),
         }
 
     def get_snake_payload(
